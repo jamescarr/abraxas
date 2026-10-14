@@ -308,7 +308,7 @@ fn cand_files(f: &Filler, files: &[crate::director::schema::FileGen], max: usize
         .iter()
         .take(max)
         .filter_map(|g| {
-            let body = f.ai(&g.body, 900, true);
+            let body = f.ai(&g.body, AI_BODY_MAX, true);
             if body.is_empty() {
                 return None;
             }
@@ -333,9 +333,9 @@ fn place_cand(generated: &PlaceGen, f: &Filler) -> PlaceCand {
     let posts = generated
         .posts
         .iter()
-        .take(8)
+        .take(6)
         .filter_map(|p| {
-            let body = f.ai_opt(&p.body, 600, true)?;
+            let body = f.ai_opt(&p.body, AI_BODY_MAX, true)?;
             let from_full = f.fill(&p.from);
             let from = if from_full.trim().eq_ignore_ascii_case(&shadow) {
                 shadow.clone()
@@ -368,7 +368,7 @@ fn place_cand(generated: &PlaceGen, f: &Filler) -> PlaceCand {
         ice_names: cand_names(f, &generated.host.ice_names, 20),
         posts,
         text_files: cand_files(f, &generated.text_files, 4),
-        host_files: cand_files(f, &generated.host_files, 6),
+        host_files: cand_files(f, &generated.host_files, 4),
         words: generated
             .words
             .iter()
@@ -395,9 +395,12 @@ struct PlaceBuilder<'a, 'c> {
     rng: Rng,
 }
 
-const POST_COUNT: usize = 4;
+/// Board posts filled from AI or pool text; the engine's clue post is appended after them.
+const POST_COUNT: usize = 3;
 const TEXT_FILE_COUNT: usize = 2;
-const HOST_FILE_COUNT: usize = 3;
+const HOST_FILE_COUNT: usize = 2;
+/// AI-written post and file bodies are cut to this many characters (authored and pool text is not).
+const AI_BODY_MAX: usize = 400;
 const NODE_NAME_COUNT: usize = 8;
 const ICE_NAME_COUNT: usize = 3;
 const AI_WORD_CAP: usize = 14;
@@ -736,8 +739,9 @@ impl PlaceBuilder<'_, '_> {
     }
 
     /// Authored files first, then candidate files (bad 8.3 names replaced), then pool files, up to
-    /// `count`. When `target` is set that name is guaranteed to exist in the result. Duplicate
-    /// names get a `1`..`9` suffix.
+    /// `count` (raised to the authored count, so authored files are never dropped). When `target`
+    /// is set that name is guaranteed to exist in the result: it replaces the last non-authored
+    /// file, or is appended when every file is authored. Duplicate names get a `1`..`9` suffix.
     fn files(
         &mut self,
         authored: &[FileDef],
@@ -746,6 +750,7 @@ impl PlaceBuilder<'_, '_> {
         count: usize,
         target: Option<&str>,
     ) -> Vec<FileDef> {
+        let count = count.max(authored.len());
         let fill = |f: &Filler, d: &FileDef| FileDef {
             name: f.fill(&d.name).to_ascii_uppercase(),
             description: f.fill(&d.description),
@@ -757,7 +762,6 @@ impl PlaceBuilder<'_, '_> {
             v
         };
         let mut out: Vec<FileDef> = authored.iter().map(|d| fill(&self.f, d)).collect();
-        out.truncate(count);
         let n_authored = out.len();
         let has = |out: &[FileDef], name: &str| out.iter().any(|d| d.name == name);
 
@@ -802,16 +806,22 @@ impl PlaceBuilder<'_, '_> {
         if let Some(t) = target {
             let idx = match out.iter().position(|d| d.name == t) {
                 Some(i) => i,
-                None => {
-                    let i = if out.len() > n_authored {
-                        out.len() - 1
-                    } else {
-                        out.len().saturating_sub(1)
-                    };
+                None if out.len() > n_authored => {
+                    let i = out.len() - 1;
                     if let Some(slot) = out.get_mut(i) {
                         slot.name = t.to_string();
                     }
                     i
+                }
+                None => {
+                    let mut d = pool_files.first().cloned().unwrap_or_else(|| FileDef {
+                        name: t.to_string(),
+                        description: "Scrap".to_string(),
+                        body: "The rest of the file is static.".to_string(),
+                    });
+                    d.name = t.to_string();
+                    out.push(d);
+                    out.len() - 1
                 }
             };
             target_idx = Some(idx);
@@ -831,8 +841,9 @@ impl PlaceBuilder<'_, '_> {
         out
     }
 
-    /// Authored posts first, then candidates, then pool posts, up to 4; a Shadow post is
-    /// guaranteed from depth 1 on and absent at depth 0.
+    /// Authored posts first (all kept), then candidates, then pool posts, up to
+    /// `max(POST_COUNT, authored)`; a Shadow post is guaranteed from depth 1 on and absent at
+    /// depth 0.
     fn posts(&mut self, authored: &[PostDef], cand: Vec<PostDef>) -> Vec<PostDef> {
         let depth = self.ctx.depth();
         let shadow = self.f.shadow.clone();
@@ -844,10 +855,10 @@ impl PlaceBuilder<'_, '_> {
                 body: self.f.fill(&p.body),
             })
             .collect();
-        out.truncate(POST_COUNT);
+        let slots = POST_COUNT.max(out.len());
         let n_authored = out.len();
         for c in cand {
-            if out.len() >= POST_COUNT {
+            if out.len() >= slots {
                 break;
             }
             if depth == 0 && c.from == shadow {
@@ -876,7 +887,7 @@ impl PlaceBuilder<'_, '_> {
                 .any(|o| o.from == p.from && o.subject == p.subject)
         };
         for p in &pool {
-            if out.len() >= POST_COUNT {
+            if out.len() >= slots {
                 break;
             }
             if !self.ctx.run.used_pool.contains(&key(p)) && !same(&out, p) {
@@ -884,7 +895,7 @@ impl PlaceBuilder<'_, '_> {
             }
         }
         for p in &pool {
-            if out.len() >= POST_COUNT {
+            if out.len() >= slots {
                 break;
             }
             if !same(&out, p) {
@@ -892,7 +903,7 @@ impl PlaceBuilder<'_, '_> {
             }
         }
         let mut i = 0;
-        while out.len() < POST_COUNT {
+        while out.len() < slots {
             out.push(pool.get(i).cloned().unwrap_or_else(|| PostDef {
                 from: "anonymous".to_string(),
                 subject: "static".to_string(),
@@ -1331,11 +1342,11 @@ pub(crate) mod tests {
     }
 
     #[test]
-    fn clue_is_the_fifth_post_and_matches_the_password() {
+    fn clue_is_the_fourth_post_and_matches_the_password() {
         let place = parse(5, |_| {}, place_json());
-        assert_eq!(place.posts.len(), 5);
-        assert_eq!(place.posts[4].subject, "re: front door");
-        assert!(place.posts[4].body.contains("ODS TEST EXCHANGE"));
+        assert_eq!(place.posts.len(), 4);
+        assert_eq!(place.posts[3].subject, "re: front door");
+        assert!(place.posts[3].body.contains("ODS TEST EXCHANGE"));
         for (m, w) in mask_of(&place).chars().zip(place.password.chars()) {
             assert!(m == '_' || m == w);
         }
@@ -1352,11 +1363,27 @@ pub(crate) mod tests {
             place_json(),
         );
         let names: Vec<&str> = place.host_files.iter().map(|f| f.name.as_str()).collect();
-        assert_eq!(names.len(), 3);
+        assert_eq!(names.len(), 2);
         assert!(names.iter().all(|n| is_83_name(n)), "{names:?}");
         assert_eq!(names.iter().filter(|n| **n == "NOTES.TXT").count(), 1);
-        assert!(names.contains(&"NOTES1.TXT"), "{names:?}");
         assert_eq!(place.host.target_file, "NOTES.TXT");
+
+        // Duplicates get a numeric suffix.
+        let mut v = place_json();
+        v["host_files"] = json!([
+            {"name": "NOTES.TXT", "description": "n", "body": "nnn"},
+            {"name": "notes.txt", "description": "n2", "body": "nnn2"}
+        ]);
+        let place = parse(
+            5,
+            |s| {
+                s.objective_kind = ObjectiveKind::Retrieve;
+                s.target_daemon = None;
+            },
+            v,
+        );
+        let names: Vec<&str> = place.host_files.iter().map(|f| f.name.as_str()).collect();
+        assert_eq!(names, ["NOTES.TXT", "NOTES1.TXT"]);
     }
 
     #[test]
@@ -1380,7 +1407,7 @@ pub(crate) mod tests {
                 .count(),
             1
         );
-        assert_eq!(place.host_files.len(), 3);
+        assert_eq!(place.host_files.len(), 2);
     }
 
     #[test]
@@ -1426,9 +1453,11 @@ pub(crate) mod tests {
         let r = run(11);
         let shadow = r.shadow();
         let at5 = parse(5, |_| {}, v.clone());
-        assert_eq!(at5.posts[3].from, shadow);
+        // Three AI posts, the last one forced to the Shadow, then the clue.
+        assert_eq!(at5.posts.len(), 4);
+        assert_eq!(at5.posts[2].from, shadow);
         assert_eq!(
-            at5.posts[..4].iter().filter(|p| p.from == shadow).count(),
+            at5.posts[..3].iter().filter(|p| p.from == shadow).count(),
             1
         );
 
@@ -1448,7 +1477,7 @@ pub(crate) mod tests {
             "{:?}",
             at0.posts
         );
-        assert_eq!(at0.posts.len(), 5);
+        assert_eq!(at0.posts.len(), 4);
     }
 
     #[test]
@@ -1457,7 +1486,7 @@ pub(crate) mod tests {
         let mut v = place_json();
         v["posts"][0]["from"] = json!(r.shadow().to_uppercase());
         let place = parse(5, |_| {}, v);
-        let shadow_posts = place.posts[..4]
+        let shadow_posts = place.posts[..3]
             .iter()
             .filter(|p| p.from == r.shadow())
             .count();
@@ -1567,15 +1596,177 @@ pub(crate) mod tests {
             "posts": [], "text_files": [], "host_files": [], "words": []
         });
         let place = parse(9, |_| {}, empty);
-        assert_eq!(place.posts.len(), 5);
+        assert_eq!(place.posts.len(), 4);
         assert_eq!(place.text_files.len(), 2);
-        assert_eq!(place.host_files.len(), 3);
+        assert_eq!(place.host_files.len(), 2);
         assert_eq!(place.host.node_names.len(), 8);
         assert_eq!(place.host.ice_names.len(), 3);
         assert!(
             !place.title.is_empty() && !place.bbs_name.is_empty() && !place.level_card.is_empty()
         );
         assert!(place.words.contains(&place.password));
+    }
+
+    fn long_text(n: usize) -> String {
+        "abcdefghi ".repeat(n / 10 + 1)
+    }
+
+    #[test]
+    fn ai_bodies_are_truncated_at_400_with_ellipsis() {
+        let mut v = place_json();
+        let long = long_text(900);
+        v["posts"][0]["body"] = json!(long);
+        v["text_files"][0]["body"] = json!(long);
+        v["host_files"][0]["body"] = json!(long);
+        let place = parse(5, |_| {}, v);
+        for body in [
+            &place.posts[0].body,
+            &place.text_files[0].body,
+            &place.host_files[0].body,
+        ] {
+            assert!(body.chars().count() <= 400, "{}", body.chars().count());
+            assert!(body.ends_with("..."), "{body}");
+        }
+    }
+
+    #[test]
+    fn authored_anchor_text_over_400_is_not_truncated() {
+        let mut pack = pack::embedded().unwrap();
+        let long = long_text(700);
+        {
+            let a = &mut pack
+                .anchors
+                .iter_mut()
+                .find(|e| e.anchor.depth == 3)
+                .unwrap()
+                .anchor;
+            a.post.insert(
+                0,
+                crate::pack::model::PostDef {
+                    from: "authored".into(),
+                    subject: "long".into(),
+                    body: long.clone(),
+                },
+            );
+            a.text_file.insert(
+                0,
+                crate::pack::model::FileDef {
+                    name: "LONG.TXT".into(),
+                    description: "long".into(),
+                    body: long.clone(),
+                },
+            );
+            a.host_file.insert(
+                0,
+                crate::pack::model::FileDef {
+                    name: "LONGH.TXT".into(),
+                    description: "long".into(),
+                    body: long.clone(),
+                },
+            );
+        }
+        let r = run(11);
+        let seed = seed_at(&r, &pack, 3);
+        let ctx = GenContext {
+            run: &r,
+            pack: &pack,
+            seed: &seed,
+        };
+        let mut v = place_json();
+        v["posts"][0]["body"] = json!(long_text(900));
+        let place = parse_place(&v.to_string(), &ctx).unwrap();
+        assert_eq!(place.posts[0].body, long);
+        assert_eq!(place.text_files[0].body, long);
+        assert_eq!(place.host_files[0].body, long);
+    }
+
+    #[test]
+    fn anchor_slot_counts_keep_every_authored_entry() {
+        let pack = pack::embedded().unwrap();
+        for depth in [0u32, 3, 7, 11, 15] {
+            let a = &pack.anchor_at(depth).unwrap().anchor;
+            let r = run(5);
+            let seed = seed_at(&r, &pack, depth);
+            let ctx = GenContext {
+                run: &r,
+                pack: &pack,
+                seed: &seed,
+            };
+            for place in [
+                parse_place(&place_json().to_string(), &ctx).unwrap(),
+                build_place(&ctx, PlaceCand::default(), "offline-place"),
+            ] {
+                assert_eq!(
+                    place.posts.len(),
+                    POST_COUNT.max(a.post.len()) + 1,
+                    "L{depth}"
+                );
+                assert_eq!(
+                    place.text_files.len(),
+                    TEXT_FILE_COUNT.max(a.text_file.len()),
+                    "L{depth}"
+                );
+                assert_eq!(
+                    place.host_files.len(),
+                    HOST_FILE_COUNT.max(a.host_file.len()),
+                    "L{depth}"
+                );
+                for (got, want) in place.posts.iter().zip(&a.post) {
+                    assert_eq!(got.subject, want.subject);
+                }
+            }
+        }
+        // Anchor 0 is the largest: 4 authored posts + clue, 2 text files, 3 host files.
+        let r = run(5);
+        let seed = seed_at(&r, &pack, 0);
+        let ctx = GenContext {
+            run: &r,
+            pack: &pack,
+            seed: &seed,
+        };
+        let p = build_place(&ctx, PlaceCand::default(), "offline-place");
+        assert_eq!(
+            (p.posts.len(), p.text_files.len(), p.host_files.len()),
+            (5, 2, 3)
+        );
+    }
+
+    #[test]
+    fn retrieve_target_survives_in_two_host_files_everywhere() {
+        let pack = pack_without_anchor_0();
+        for seed in 0..100u64 {
+            let r = run(seed);
+            for danger in 1..=5u8 {
+                for depth in [1u32, 5, 9] {
+                    let mut s = seed_at(&r, &pack, depth);
+                    s.base_danger = danger;
+                    s.objective_kind = ObjectiveKind::Retrieve;
+                    s.target_daemon = None;
+                    let ctx = GenContext {
+                        run: &r,
+                        pack: &pack,
+                        seed: &s,
+                    };
+                    let offline = build_place(&ctx, PlaceCand::default(), "offline-place");
+                    let mut v = place_json();
+                    v["host"]["target_file"] = json!("LOST.LOG");
+                    let ai = parse_place(&v.to_string(), &ctx).unwrap();
+                    for (label, place) in [("offline", offline), ("ai", ai)] {
+                        let ctxt = format!("{label} seed {seed} D{danger} depth {depth}");
+                        assert_eq!(place.host_files.len(), 2, "{ctxt}");
+                        assert_eq!(place.posts.len(), 4, "{ctxt}");
+                        assert_eq!(place.text_files.len(), 2, "{ctxt}");
+                        assert!(
+                            place
+                                .host_files
+                                .iter()
+                                .any(|f| f.name == place.host.target_file),
+                            "{ctxt}"
+                        );
+                    }
+                }
+            }
+        }
     }
 
     // ---- passage ----

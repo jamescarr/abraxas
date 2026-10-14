@@ -250,7 +250,7 @@ How an anchor mixes with the AI:
 |---|---|---|
 | Locked | `title`, `bbs_name`, `tagline`, `sysop`, `danger`, `focus`, `vision`, `programs`, `password`, every `[host]` key, `choice`, `exit`, `ending` | When present, your value wins and any AI value is ignored. |
 | Adapted | `level_card`, `beat`, `interlude`, `captions`, `summary` | With `ai = "adapt"` the AI is told to keep every fact and reword to fit the story so far, together with `required`. A valid AI result is used, otherwise your text. |
-| Appended | `post`, `text_file`, `host_file`, `words` | Your entries always come first; the AI or the pool fills the remaining slots (4 posts, 2 text files, 3 host files). |
+| Appended | `post`, `text_file`, `host_file`, `words` | Your entries always come first; the AI or the pool fills the remaining slots (3 posts plus the engine's clue post, 2 text files, 2 host files; AI text bodies are cut at 400 characters). |
 | Generated | every level without an anchor | Fully AI-generated, or built from the pool offline. |
 | Continued | depths beyond the last act, when `endless.enabled` | AI levels forever, using the `[endless]` goal and direction plus the story so far. |
 | Finished | the last act's final depth, when `endless.enabled = false` | After that level's choice a matching ending plays, otherwise the generic `END OF LINE`. The run is marked complete. |

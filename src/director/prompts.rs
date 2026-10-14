@@ -166,7 +166,7 @@ pub fn place_prompt(ctx: &GenContext, digest: &str) -> String {
     }
     out.push_str(&format!("Story so far:\n{digest}\n"));
     out.push_str(&format!(
-        "Return JSON: title (≤40 chars, a Backrooms-style level name), bbs_name (≤24), tagline (≤60), level_card (2-3 sentences, an explorer's field note, ≤320), sysop (a CAST id if one runs this board, else a new 1990s handle ≤16), host {{name ≤40, os unix|vax|mainframe|dos, banner ≤160, objective (one sentence ≤100), target_file (DOS 8.3 name), node_names (8 names ≤24), ice_names (3 names ≤20)}}, posts (4 × {{from ≤16, subject ≤40, body ≤600}}; one post must be from {}, who writes like the player but colder and more honest), text_files (2 × {{name 8.3, description ≤40, body ≤900}}), host_files (3 × same), words (14 uppercase English words of exactly {} letters tied to the omen or motifs).\n",
+        "Return JSON: title (≤40 chars, a Backrooms-style level name), bbs_name (≤24), tagline (≤60), level_card (2-3 sentences, an explorer's field note, ≤320), sysop (a CAST id if one runs this board, else a new 1990s handle ≤16), host {{name ≤40, os unix|vax|mainframe|dos, banner ≤160, objective (one sentence ≤100), target_file (DOS 8.3 name), node_names (8 names ≤24), ice_names (3 names ≤20)}}, posts (3 × {{from ≤16, subject ≤40, body ≤400}}; one post must be from {}, who writes like the player but colder and more honest), text_files (2 × {{name 8.3, description ≤40, body ≤400}}), host_files (2 × same), words (14 uppercase English words of exactly {} letters tied to the omen or motifs).\n",
         ctx.run.shadow(),
         seed.wordlock_len
     ));
@@ -643,6 +643,12 @@ mod tests {
         assert!(prompt.contains(&format!("exactly {} letters", c.seed.wordlock_len)));
         assert!(prompt.contains(&format!("one post must be from {}", run.shadow())));
         assert!(!prompt.contains("Authored level"));
+        assert!(prompt.contains("posts (3 × {from ≤16, subject ≤40, body ≤400}"));
+        assert!(prompt.contains("text_files (2 × {name 8.3, description ≤40, body ≤400})"));
+        assert!(prompt.contains("host_files (2 × same)"));
+        for old in ["body ≤600", "body ≤900", "host_files (3", "posts (4"] {
+            assert!(!prompt.contains(old), "{old}");
+        }
     }
 
     #[test]
