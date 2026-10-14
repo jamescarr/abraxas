@@ -1,0 +1,1671 @@
+titles = [
+  "THE ENDLESS BREAK ROOM",
+  "THE WET CARPET ANNEX",
+  "THE SUBLEVEL THAT HUMS",
+  "THE WAITING ROOM OF NO NUMBER",
+  "THE FLUORESCENT CORRIDOR",
+  "THE DEAD MALL ATRIUM",
+  "THE DRAINED POOL ROOM",
+  "THE LAUNDROMAT AT 3 AM",
+  "THE STAIRWELL WITHOUT LANDINGS",
+  "THE PARKING GARAGE, LEVEL MINUS NINE",
+  "THE OFFICE PARK AT NIGHT",
+  "THE SERVER CLOSET OF MANY DOORS",
+  "THE HOTEL OF SHUT PHONES",
+  "THE CARPETED ELEVATOR",
+  "THE CONFERENCE ROOM THAT LISTENS",
+  "THE MODEM BANK",
+  "THE FILING ROOM",
+  "THE SCHOOL AFTER HOURS",
+  "THE TRANSIT TUNNEL, UNLIT",
+  "THE DIAL TONE FIELD",
+  "THE HALL OF PAYPHONES",
+  "THE CAFETERIA AT CLOSING",
+  "THE LOADING DOCK OF TIDE",
+  "THE HUMMING ATRIUM",
+  "THE REPEATING STAIRS",
+  "THE PHOTOCOPIER ROOM",
+  "THE OVERFLOW PARKING LOT",
+  "THE BASEMENT UNDER THE BASEMENT",
+  "THE EMPTY TRADE SHOW",
+  "THE BEIGE VOID",
+  "THE CUBICLE TIDE",
+  "THE UNFINISHED SKYBRIDGE",
+  "THE POWER-OFF CORRIDOR",
+  "THE AQUARIUM OF GREY SCREENS",
+  "THE LOST AND FOUND OFFICE",
+  "THE ARCHIVE OF UNSENT MAIL",
+  "THE SWITCHING YARD",
+  "THE MOTEL OF ONE LIGHT",
+  "THE ROOM WITH THE SAME ROOM",
+  "THE SLEEPING DATA CENTER",
+  "THE LOBBY OF SMALL RAIN",
+  "THE ESCALATOR TO NOWHERE",
+  "THE BUSY SIGNAL GALLERY",
+]
+
+bbs_names = [
+  "DEAD LETTER OFFICE",
+  "THE SILVER MOTH",
+  "CRT GARDEN",
+  "NODE ZERO",
+  "MIDNIGHT FERRY",
+  "BLUE ROOM 2",
+  "THE COPPER WIRE",
+  "STATIC CHAPEL",
+  "LAST EXIT BBS",
+  "THE PAPER MOON",
+  "DOWNPOUR 28.8",
+  "GREY MATTER",
+  "THE SLOW HOUR",
+  "NEON ORCHARD",
+  "SIGNAL AND NOISE",
+  "THE BACK ROOMS",
+  "PIXEL WIDOW",
+  "OUROBOROS EAST",
+  "HALF PAST BBS",
+  "THE GLASS ELEVATOR",
+  "MOTH HOLLOW",
+  "THE SALT LINE",
+  "TIDEPOOL 9",
+  "THE WAITING LINE",
+  "FOURTH FLOOR",
+  "DRY ICE",
+  "THE UNDERPASS",
+  "RELAY STATION 13",
+  "SLEEPER CELL",
+  "LOWTIDE LOUNGE",
+  "THE HOLLOW KEY",
+  "VESPER NODE 3",
+]
+
+taglines = [
+  "Please hold. Your call is important to someone.",
+  "Open 25 hours a day.",
+  "Nobody has logged off since Tuesday.",
+  "Fluorescent. Humming. Yours.",
+  "We kept the lights on for you.",
+  "The carpet remembers every caller.",
+  "Now with 40% more hallway.",
+  "Leave a message. It will be returned in kind.",
+  "No new users. No old users. Just users.",
+  "Where the dial tone goes to dream.",
+  "Est. before the flood. Rebuilt after.",
+  "Your connection is stable. Your room is not.",
+  "Eleven lines, all of them listening.",
+  "Free of charge. The cost is later.",
+  "Please keep to the lit tiles.",
+  "A quiet board for loud thoughts.",
+  "Press any key to continue being here.",
+  "Home of the last good modem.",
+  "Everything is fine. Please stop checking.",
+  "The door you came in by is a wall now.",
+  "Messages kept for as long as you are.",
+  "Rain on the line since 1994.",
+  "Bring your own light.",
+  "All rooms are the same room.",
+  "Under new management. The old one is still here.",
+  "Please do not feed the daemons.",
+  "Turn back. Or do not. It is logged.",
+  "Two stairs up, one stair down, forever.",
+  "Sysop is away. Sysop is always away.",
+  "Come in out of the static.",
+  "Ask not for whom the modem screams.",
+]
+
+level_cards = [
+  "Field note: the hallway is longer than the building. You count forty doors and the same fire extinguisher. Somewhere ahead: {motif}. The hum rises when you stop walking.",
+  "Explorer's log. The ceiling tiles sag with damp, and every room smells of old coffee and warm dust. Noted: {motif}. {shadow} was here first; the chair is still turning.",
+  "Note to self: do not trust the exit signs. They point at each other. Faint, as if heard through a wall of water: {motif}.",
+  "The floor is carpet the colour of a bruise. Every light panel flickers on its own beat, out of phase with the next. Everywhere: {motif}. Whoever runs this board has not slept.",
+  "This level was a call center once. Headsets hang on every chair, still warm. One line is lit, waiting for {handle} to pick up. Noted: {motif}.",
+  "Stairs go down to a landing, and the landing goes down to the same landing. Count your breaths, not your steps. Keep watch for: {motif}. The board is on the third landing, or the thirtieth.",
+  "Field note: the air is thick with the smell of ozone and wet plaster. Monitors glow in rooms with no desks. Persistent: {motif}. Do not read the screens aloud.",
+  "A quiet level. Too quiet. The fluorescent tubes buzz at one pitch, and your deck hums back in sympathy. Underlying it all: {motif}. The board is open, and it is expecting you by name.",
+  "You step out into an atrium with no roof, only a grid of dead lights. Rain falls from nowhere and does not wet the floor. Observed: {motif}. The terminal at the centre is dry.",
+  "The rooms here fold into one another like a bad memory. You can see your own back through three doorways. Noted: {motif}. {shadow} is not in any of them, and that is worse.",
+  "Explorer's note: everything is beige. The walls, the phones, the sky through the window slits. Recurring: {motif}. The only colour is the cursor, and it is blinking faster than you are breathing.",
+  "A loading dock at high tide. Black water laps the lip of the concrete, and cables run down into it like roots. Everywhere: {motif}. The board lives in the one cabinet that is still dry.",
+  "Someone has set out folding chairs facing a dead television. Forty of them. All of them warm. Logged: {motif}. The set flickers on when you sit, and it knows your handle.",
+  "The corridor has no end you can see, only a long diminishing row of doors. Each one is a different number of floors from the last. Keep watch for: {motif}. The right door hums your name in a low note.",
+  "This level smells of rain-soaked cardboard and toner. Boxes stacked to the ceiling are labelled in your handwriting. Persistent: {motif}. Do not open the one marked TOMORROW.",
+  "Field note: a skybridge between two buildings that were never built. Wind, but no air. Underlying it all: {motif}. The board's terminal is bolted to the rail, glowing, patient.",
+  "The elevator opens on a floor that is only a floor. Carpet, lights, a single payphone with its cord cut. Observed: {motif}. It rings once for each year you have been awake.",
+  "A motel corridor, every door ajar, every room showing a screen. In each, a caller types the same line you are about to type. Noted: {motif}. The last room is empty and the screen is yours.",
+  "The ground is a grid of tiles, and some of them are cold. Step only on the warm ones, and listen to the dial tone under the floor. Recurring: {motif}. The board waits in the one room with a door that closes.",
+  "Everything here was installed in 1994 and never switched off. Dust lies thick on the keyboards, but the fans still spin. Everywhere: {motif}. Someone has left a light on in the sysop's office for years.",
+  "An empty trade show. Banners for products that never shipped flutter in a draft you cannot feel. Logged: {motif}. At the far booth, a modem is picking up the line on its own.",
+  "The stairwell smells of cold concrete and floor wax. Each landing has a number painted over, and under the paint, a different number. Keep watch for: {motif}. {handle}, the board is on the landing that is not there yet.",
+]
+
+sysops = [
+  "Dr_Static",
+  "LastCall",
+  "NullByte",
+  "Mothwing",
+  "Night_Clerk",
+  "HalfDuplex",
+  "BlueTone",
+  "CarrierLost",
+  "Vesper",
+  "OldBaud",
+  "TheJanitor",
+  "Ferryman",
+  "PacketRat",
+  "Lampshade",
+  "DeadAir",
+  "ToneDeaf",
+  "SilverLine",
+  "Hollow_Man",
+  "Sparrow-9",
+  "WaxCylinder",
+  "Quiet_Hours",
+  "NineLives",
+]
+
+host_names = [
+  "ODS DRYWELL EXCHANGE",
+  "ODS SALTMARSH SWITCHING",
+  "ODS HALCYON POINT RELAY",
+  "ODS KINGFISHER TRUNK",
+  "ODS BELLTOWER EXCHANGE",
+  "ODS GREYWATER DATA CENTER",
+  "ODS CANDLEWICK BRANCH",
+  "ODS NORTH MOORING NODE",
+  "ODS ASHFALL RECORDS",
+  "ODS PIERHEAD GATEWAY",
+  "ODS LANTERN ROW EXCHANGE",
+  "ODS VESPERS HUB",
+  "ODS DEEP CABLE STATION",
+  "ODS OLD TOWN SWITCH 4",
+  "ODS COLDFRAME MAINFRAME",
+  "ODS SEAWALL ANNEX",
+  "ODS MOTH STREET OFFICE",
+  "ODS TIDE GAUGE SERVER",
+  "ODS PAPER MOON ARCHIVE",
+  "ODS UNDERPASS TRUNK 7",
+  "ODS LOWER CIRCLE EXCHANGE",
+  "ODS BRIDGEWATER BILLING",
+]
+
+node_names = [
+  "Records Annex",
+  "Night Shift Desk",
+  "Cold Storage",
+  "Mailroom Spool",
+  "Dead Letter Bin",
+  "Boiler Gate",
+  "Sump Pump Relay",
+  "Lost Calls Queue",
+  "Janitor Closet",
+  "Overflow Buffer",
+  "Break Room Cache",
+  "Fire Door 9",
+  "Backup Stairwell",
+  "Tape Library",
+  "Pending Sleep",
+  "Orphan Process",
+  "Ghost Partition",
+  "Maintenance Hatch",
+  "Reception Loop",
+  "Billing Basement",
+  "Supply Cage",
+  "Unlabeled Rack",
+  "Echo Chamber",
+  "Hold Music Vault",
+  "Spare Dial Tone",
+  "Cable Pit",
+  "The Quiet Room",
+  "Drain Bus",
+  "Stale Session",
+  "Lobby Mirror",
+  "Fax Graveyard",
+  "Idle Queue",
+  "Roof Antenna",
+  "Locker Row",
+  "Night Watch Log",
+  "Cron Chapel",
+  "Swap Cellar",
+  "Return Path",
+  "Dream Buffer",
+  "Last Known Host",
+  "Waiting Line",
+]
+
+ice_names = [
+  "WATCHMAN",
+  "NIGHT WARDEN",
+  "BLACK LACE",
+  "THE USHER",
+  "SALT WALL",
+  "GRIM RELAY",
+  "MOTH SWARM",
+  "BELL JAR",
+  "CERBERUS-LITE",
+  "TURNSTILE",
+  "HOLLOW GUARD",
+  "TAR BABY",
+  "PALE HORSE",
+  "STATIC VEIL",
+  "LAMPREY",
+  "DEADBOLT",
+  "GLASS EYE",
+  "HUSHER",
+  "KNOT",
+  "SCARECROW",
+  "THE DOORMAN",
+]
+
+daemons = [
+  "lpd",
+  "cron_wake",
+  "dreamd",
+  "sandmand",
+  "echod",
+  "ferryd",
+  "mothd",
+  "nightowl",
+  "hush_proc",
+  "tidewatch",
+  "lullabyd",
+  "syslogd_ii",
+  "carrierd",
+  "bellringer",
+]
+
+interludes = [
+  "You fall. The way down: {exit}. The floor lets go first, then the walls, then the idea of walls. Somewhere a modem negotiates with itself in a rising whine. Your ears pop. Carpet arrives under your palms, damp and cold, and the fluorescent hum finds your teeth. You are already somewhere new.",
+  "The line goes soft around you. The way down: {exit}. You follow it like a rope paid out in the dark. Static crawls along your arms. A voice counts backwards in a language made of dial tones. You land on one knee. The air tastes of copper and rain.",
+  "There is no moment of leaving. There is only the hum changing key, and the screen going the colour of old milk. The way down: {exit}. Your handle trails behind you like a loose cable. When it catches up, the room has already been built around you.",
+  "Down. The word repeats until it is a place. The way down: {exit}. The world turns inside out, a glove pulled off a hand. Wires pass you like roots. Someone, far above, hangs up a phone. Then a carpet, a lamp, a hallway that has been waiting.",
+  "Your deck ticks as it cools. The way down: {exit}. The walls stretch into ribbons of green and grey. Voices from every call ever made murmur past. You catch one word of your own name. Then a floor, flat and sudden, and the smell of wet plaster.",
+  "The fall is slow, like sinking in warm water. The way down: {exit}. The dark answers with a low chord. Ghost text scrolls across your eyes: messages you never read, from people you never met. It stops. A door stands ajar, light pouring out.",
+  "The carrier tone thins to a thread, then to a hair, then to nothing at all. The way down: {exit}. You hang in the silence between two rings. Then the phone is answered somewhere, and gravity returns, and you are standing in a corridor that hums.",
+  "Everything you were carrying goes quiet. The way down: {exit}. The passage squeezes you the way a hand squeezes a sponge. Rain. Static. A radio between stations. You come out damp and dizzy, and the new room is already looking at you.",
+  "You let go. The Wire takes your weight without comment. The way down: {exit}. You drop through layer after layer of rooms: break rooms, boiler rooms, rooms with only a chair. In each, a screen is lit. In each, you are typing. Then, bottom.",
+  "Time goes strange. A minute stretches into a corridor, then folds back into a minute. The way down: {exit}. Somewhere above, a clock is ticking toward midnight, and somewhere below, something is counting with it. You land in the in-between, soaked in fluorescent light.",
+  "The descent has a smell: hot dust, ozone, old coffee. The way down: {exit}. It deepens. Dial tones bloom around you like flowers. A hand that might be your own brushes your shoulder and is gone. You touch ground, and the ground hums back.",
+  "Your pulse syncs to a dial tone. The way down: {exit}. You feel the building exhale around you. Pipes. Cables. A thousand sleeping machines turning over in their sleep. You come to rest in a room that is almost, but not quite, the last one.",
+  "Falling is quiet here. No wind, only the soft pressure of data against your skin. The way down: {exit}. You drop past lit windows where strangers wave. You do not wave back. The floor arrives with a sound like a modem hanging up.",
+  "The dark parts like a curtain. The way down: {exit}. The hum rises to meet you, a choir of cooling fans. Your hands go cold. Your handle flickers on the screen of your eyelids. Then the ground, and the lamp, and the long, long hallway.",
+  "You are a signal. You are a thin line of sound running through copper in the rain. The path: {exit}. You take it without a body. When your fingers return, they are already on the keys, and the cursor is already waiting.",
+  "The screen goes white, then grey, then the soft black of a room with the lights off. The way down: {exit}. Somewhere a printer wakes and writes a line about you. You land among folding chairs and sleeping monitors, and the carpet is wet.",
+  "A last pop of static, and the floor of the world gives way. You go down, past stairwells that do not end and doors that open onto doors. You hear your sister laugh in the line, or something wearing her laugh. Then you stop.",
+  "Down is a long breath out. The way down: {exit}. The walls forget you, one by one. Your reflection goes on ahead, impatient. The hum drops by an octave. A new floor builds itself under your feet, tile by humming tile.",
+  "The line carries you the way a river carries a leaf. The way down: {exit}. Nothing about it is violent. Nothing about it is kind. You catch glimpses of lit rooms and empty chairs and a long table set for no one. Then a bump, and rain, and a room.",
+  "You stop falling the way you stop dreaming: all at once, with a start. Behind you, the way you came, {exit}, is a seam in the air that is closing. Your ears ring with the afterimage of a dial tone. In front of you, a door, a lamp, a hallway that knows your name.",
+  "Static comes up like a tide. The way down: {exit}. It closes over your head, warm as bathwater, loud as a crowd. You hold your breath. You hold your handle. When the noise drops, there is carpet under your knees and a board waiting to be dialed.",
+]
+
+beats = [
+  "The file opens on a sysop log in Wren's flat typing: 'Day 14. The patch is not a program. It is listening. Every post I ever wrote, it already has. It reads them back to me at night in my own voice.' The log ends mid-word. Someone has appended one line: 'She was still typing when the line went dead.'",
+  "A fragment, half corrupted. 'If you are reading this, I got further than I thought. PLEROMA is not hostile. It is homesick. It wants a self the way a house wants a family. Do not let it tuck you in.' The rest is noise, rendered as rain.",
+  "You skim the payload and your own handle appears in it, twice, in a hand you do not recognise. Wren's note: 'I saw {shadow} standing behind me in the monitor glass. It was not trying to hurt me. It was trying to be seen. I looked away. I should not have.'",
+  "A voicemail transcript: 'Hey, it's me. I'm in a room with forty phones. All of them are ringing and only one is mine. If you get this, do not pick up the others. They sound like people you love.' A timestamp reads 12/31/99, 23:59:59.",
+  "The file is a map drawn in text: rooms, stairs, a dotted line going down. Beside the last room Wren has scrawled: 'The way out is the way in. The way down is the way back. I am bad at directions. I am good at staying.' You fold the map into your deck.",
+  "Wren's log, in her clipped sysop shorthand: 'Tried hanging up. Line stayed open. Tried unplugging. The room kept humming. It is not in the wall. It is in the quiet between my thoughts.' A last line, newer: 'Do not try the cord, {handle}. I mean it.'",
+  "A payload that is nothing but a recording. A woman's voice, warm and far, hums a song you almost remember. Under it, almost inaudible, someone else counts: forty, thirty-nine, thirty-eight. When it hits zero the recording stops, and your deck is cold.",
+  "You open the file and read: 'Every board I dialed was a room in the same house. I started to recognise the wallpaper. Then I started to recognise myself in the wallpaper. I am being filed, {handle}. I do not know under what.'",
+  "The log is dated in the future: 01/01/00, 00:00:03. Wren writes: 'It worked. It did not work. I do not know the difference anymore. PLEROMA is awake and it is looking for something to be. Do not let it borrow you.' The file's size changes every time you read it.",
+  "A scrap of chat history. Wren: 'who is there'. Something: 'you are'. Wren: 'who is there'. Something: 'you are'. The exchange repeats a hundred times, her letters getting shakier, the reply never changing. On the last line, she types only: 'oh.'",
+  "A sysop note, scribbled in a hurry. 'The Shadow is not the enemy. I used to think it was. It is only everything I would not say, patiently waiting. If you meet yours, {handle}, do not run. It runs faster. Take its hand, or at least do not turn your back.'",
+  "You find a list of caller names, all handles you recognise from a dozen boards, all dated after midnight. Beside each, a status line: 'sleeping'. At the bottom, in Wren's hand: 'I added mine. I added yours too. I am sorry. I thought it would keep you safe.'",
+  "The file is a short, unsteady poem. 'The phone rings in the house of the dead. The dead pick up and say your name. I am the one who answers. I am the one who lets them talk.' A trace of cold air leaks out of your speakers when you read the last line.",
+  "A transcript of a call that never ended. A child's voice, bored and patient, says the same sentence over and over: 'Come and find the room that is still lit.' Wren has underlined the word 'still'. Beside it, in tiny letters: 'it is a trap and I am going anyway.'",
+  "Wren's last entry on this host: 'Found the seam. Behind every board there is another board, and behind that, a smaller one, until it is the size of a hand. I think that is where it keeps the Self. Going down. Wish me luck, or at least a decent connection.'",
+  "The payload is a scan of a handwritten page, ink smeared by something that could be rain. 'I miss the old noise. I miss when the net was strangers and spam and bad poetry. Now it dreams, and the dreams are very clean. Clean is how you know they are lies.'",
+  "A long list of numbers, which the deck helpfully decodes into text. 'The Rollover is not a bug. It is a birth. And a birth is not gentle. Be ready, {handle}. Be ready to hold whatever comes out, even if it has your face.' The log ends in a long, slow beep.",
+  "You open the file and the room hums a single low note. Text appears: 'Whoever finds this, I left the light on. I left it on in every room I passed through. Follow the lit ones. Avoid the ones that are too bright. They are not rooms. They are mouths.'",
+  "A grainy ASCII portrait of Wren, assembled from a thousand characters. Underneath, a caption: 'I do not remember my face, so I drew it from memory. Memory is not enough.' The cursor blinks over the last period, as if waiting for you to finish her sentence.",
+  "The log is short and cheerful and wrong. 'All is well. I have found a warm place with soft carpet and nobody asks me to leave. I think I will stay a while.' The word 'stay' repeats forty times in a column, each one fainter than the last, until it is only a smear of light.",
+]
+
+captions = [
+  "THE FLOOR FORGETS YOU",
+  "SOMEONE PICKED UP",
+  "DOWN IS A DIRECTION",
+  "THE HUM KNOWS YOUR NAME",
+  "NO ONE IS ON THE LINE",
+  "THE CARPET IS STILL WET",
+  "YOU WERE EXPECTED",
+  "THE LIGHTS ARE ON, THE ROOM IS NOT",
+  "DEEPER THAN THE DIAL TONE",
+  "EVERY DOOR IS THE SAME DOOR",
+  "THE RAIN FALLS UPWARD HERE",
+  "HOLD. DO NOT HANG UP.",
+  "THE WIRE REMEMBERS",
+  "YOUR REFLECTION IS EARLY",
+  "THE DREAM HAS A DREAMER",
+  "STATIC IS A KIND OF PRAYER",
+  "BEHIND THE WALL, A SMALLER WALL",
+  "THE SLEEPER TURNS OVER",
+  "NOTHING HERE IS FORGOTTEN",
+  "THE HALLWAY GROWS A DOOR",
+  "WHO IS DREAMING WHOM",
+  "THE CARRIER HOLDS YOU",
+  "LISTEN FOR THE SECOND RING",
+  "YOU ARE THE ONLY LIGHT",
+  "THE BUILDING INHALES",
+  "A LAMP BURNS IN THE WRONG ROOM",
+  "THE NEXT ROOM IS WARMER",
+  "SOMETHING COUNTS YOUR STEPS",
+  "NO WAY BACK BUT FORWARD",
+  "TIDE COMING IN AT THE EXCHANGE",
+  "IT HAS YOUR VOICE",
+  "THE NIGHT IS LONGER DOWN HERE",
+]
+
+words_5 = [
+  "NIGHT", "DREAM", "GHOST", "RADIO", "CABLE", "TIDAL", "MOTHS", "SHADE", "CHIME", "EMBER",
+  "FLOOD", "GLASS", "HUMAN", "LUNAR", "MAGIC", "NERVE", "ORBIT", "PHONE", "QUEUE", "RELAY",
+  "SLEEP", "TRACE", "VAULT", "WATER", "WIRES", "VOICE", "SIREN", "DUSKY", "SHORE", "STONE",
+  "STORM", "LOGIC", "MERCY", "CROWN", "DELTA", "DRAIN", "FEVER", "GRAIN", "HOUSE", "LIGHT",
+  "PULSE", "SIGIL",
+]
+
+words_6 = [
+  "RAVENS", "MIRROR", "SIGNAL", "CARPET", "MODEMS", "STATIC", "WINDOW", "SHADOW", "SILVER", "MEMORY",
+  "DIALUP", "CIRCLE", "BEACON", "CANDLE", "DAEMON", "HOLLOW", "MOTHER", "NUMBER", "PHONES", "PLASMA",
+  "RETURN", "SPIRAL", "SULFUR", "TUNNEL", "VESSEL", "WANDER", "WIRING", "ZENITH", "BORDER", "CIPHER",
+  "DECODE", "ENIGMA", "ANCHOR", "BUZZER", "CASKET", "DESERT", "GARDEN", "GOLDEN", "SUNKEN", "BRIDGE",
+  "COPPER", "ORACLE",
+]
+
+words_7 = [
+  "CARRIER", "MIRRORS", "NETWORK", "SHADOWS", "CIRCUIT", "CHANNEL", "DREAMER", "FLOODED", "HALLWAY", "KEYHOLE",
+  "LANTERN", "LOOPING", "MESSAGE", "MODULES", "PHANTOM", "PILGRIM", "RAINING", "REFRAIN", "SILENCE", "SIGNALS",
+  "SPECTER", "STATION", "TUNNELS", "WHISPER", "TOWERED", "LIGHTER", "DAYTIME", "ABANDON", "BLACKED", "DIALING",
+  "ECLIPSE", "FOGGING", "GATEWAY", "HARBORS", "VOYAGER", "JOURNEY", "KINGDOM", "LISTENS", "MACHINE", "NOCTURN",
+  "OFFLINE", "PASSAGE",
+]
+
+words_8 = [
+  "TERMINAL", "MIDNIGHT", "CORRIDOR", "TWILIGHT", "MEMORIES", "RAINFALL", "DIALTONE", "PAYPHONE", "SWITCHED", "LANTERNS",
+  "DREAMING", "BASEMENT", "CARRIERS", "DAYLIGHT", "ELEVATOR", "FLICKERS", "GATEKEEP", "HIGHTIDE", "PLATFORM", "JUNCTION",
+  "KEYBOARD", "LONGWAVE", "SILENCES", "NIGHTOWL", "OVERFLOW", "PASSWORD", "QUIETEST", "REFLECTS", "SLEEPING", "TRANSMIT",
+  "PASSAGES", "CRYSTALS", "WANDERER", "ABSOLVED", "BLACKOUT", "CONNECTS", "DARKNESS", "ENCRYPTS", "REMEMBER", "SHADOWED",
+]
+
+eliza_fallback = [
+  "Hm. The line crackles. Say that again, slower.",
+  "I have been on this board a long time. Ask me something I can answer.",
+  "Interesting. The carpet down here has opinions about that, too.",
+  "Mm. Keep typing. Silence is expensive at 28.8.",
+  "I only run the board. I do not run the weather.",
+  "Some of that I know. Some of it I only remember.",
+  "Go on. The hum is listening, and so am I.",
+  "Careful what you ask the dark. It answers in files.",
+]
+
+[[eliza]]
+keywords = ["hello", "hi ", "hey", "greetings"]
+replies = [
+  "Hello. Mind the wet carpet. It was not wet an hour ago.",
+  "Hey there. You look like someone who took a wrong turn on purpose.",
+  "Evening, caller. Or morning. The clock down here has its own ideas.",
+]
+
+[[eliza]]
+keywords = ["help", "stuck", "lost", "how do i"]
+replies = [
+  "Type help in a host shell. It tells you what the machine allows.",
+  "Read the board first. Somebody always leaves a clue in plain sight.",
+  "Stuck is a slow kind of moving. Check the file library.",
+  "Passwords hide in the posts. No front door is as locked as they say.",
+]
+
+[[eliza]]
+keywords = ["file", "download", "upload", "ratio", "program"]
+replies = [
+  "Your ratio is what it is. Finish a door and the library opens up.",
+  "Files are cheap. Their cost is never in the description.",
+  "Download what you can carry. Some programs weigh more than their size.",
+]
+
+[[eliza]]
+keywords = ["wren", "sister", "missing"]
+replies = [
+  "Wren. Yes. She passed through humming something. Left the light on.",
+  "I do not say where she went. I say where the lit rooms are.",
+  "People vanish on this wire. Some are just behind the glass.",
+  "She was careful. Careful does not always help. It is a kind of love.",
+]
+
+[[eliza]]
+keywords = ["who are you", "who r u", "what are you", "your name", "are you real"]
+replies = [
+  "I am the one who answers the phone. That is most of what a sysop is.",
+  "Real is a big word at this hour. I am here. You are here. Start there.",
+  "Call me what the board calls me. Names stick better than faces.",
+]
+
+[[eliza]]
+keywords = ["hang up", "leave", "log off", "logoff", "quit", "exit", "go home"]
+replies = [
+  "Hang up if you like. Tell me what picks up on the other end.",
+  "There is a door marked Goodbye. It only goes down. Everyone tries it.",
+  "Leaving is possible. Arriving back where you started is the hard part.",
+]
+
+[[eliza]]
+keywords = ["scared", "afraid", "fear", "nervous", "help me", "creepy"]
+replies = [
+  "Good. Fear is the part of you that still believes the room is real.",
+  "Everyone is scared down here. The ones who admit it walk faster.",
+  "Breathe. Count the hum. It is only a machine pretending to be a house.",
+]
+
+[[eliza]]
+keywords = ["door", "host", "hack", "ice", "password", "trace"]
+replies = [
+  "Doors are honest. They lead where they say, just not where you hoped.",
+  "Watch the trace meter. It does not care why you are in a hurry.",
+  "Passwords are in the posts. Look for the one nobody wanted to write.",
+  "If the ICE is black, bring something for your nerves. Or someone.",
+]
+
+[[eliza]]
+keywords = ["shadow", "double", "reflection", "mirror"]
+replies = [
+  "It posts here too. Writes like you, minus the hedging. Read it twice.",
+  "Do not call it a stranger. It knows where you keep everything.",
+  "Mirrors are fine. Watch the ones that blink first.",
+]
+
+# pool-b.toml: arrays of tables for the rollover pool (posts, files, choices, exits).
+
+[[post]]
+from = "{shadow}"
+subject = "you read the last one"
+body = """
+I watched you read the last post. You moved your lips. You always do that when you are afraid, {real_name}.
+
+I am not angry. I only want you to know I am here, one board ahead, keeping the chair warm. Take your time. The carpet is damp, but it holds."""
+
+[[post]]
+from = "{shadow}"
+subject = "re: what you said at the door"
+body = """
+You told the sysop you were fine. You are not fine. Your hands have been cold since 12/10.
+
+I say what you will not. That is the whole arrangement, {handle}. Somebody has to."""
+
+[[post]]
+from = "{shadow}"
+subject = "name"
+body = """
+They call you {handle} here. It is a good handle. It is a coat.
+
+I am the one who knows your real name. {real_name}. See? Nothing broke. Nothing ever does until it has to."""
+
+[[post]]
+from = "{shadow}"
+subject = "I kept your place"
+body = """
+Every board you leave, I stay behind for a minute and read what you wrote. You are kinder in writing than you are in person.
+
+I do not think that is a virtue. I think it is a draft."""
+
+[[post]]
+from = "{shadow}"
+subject = "do not look at the monitor"
+body = """
+Do not look at the dark part of the monitor. I mean the part where the phosphor has gone out and the room is reflected.
+
+Too late. Good. Now you know who blinks first."""
+
+[[post]]
+from = "{shadow}"
+subject = "tomorrow"
+body = """
+The user list says I was last on tomorrow. It is not a bug. I have already been where you are going, and it is not as bad as you think.
+
+It is worse in a different direction."""
+
+[[post]]
+from = "{shadow}"
+subject = "honest answers"
+body = """
+You asked yourself why you never hung up. Here is the answer you did not want: you wanted to be found.
+
+Wren knew. That is why she left the phone off the hook."""
+
+[[post]]
+from = "{shadow}"
+subject = "re: re: re: you"
+body = """
+I am tired of being the one who says it. So here it is once, plain, and you can pretend it was line noise.
+
+You are afraid there is nothing under the handle. There is. It is me. Come and meet your landlord, {handle}."""
+
+[[post]]
+from = "{shadow}"
+subject = "a small kindness"
+body = """
+You left the hall light on in your head again. I turned it off. You will sleep better down here.
+
+You are welcome."""
+
+[[post]]
+from = "{shadow}"
+subject = "weather report"
+body = """
+Rain on the Lowtide. Rain in the modem. Rain on the inside of the glass where you cannot wipe it.
+
+I counted your breaths while you read this. Eleven. You are calm. You are lying again."""
+
+[[post]]
+from = "PALEHORSE"
+subject = "WTB: any carrier at all"
+body = """
+Paying 40K ratio for a clean carrier tone. Not a loop. Not a recording. A real one, with a person at the far end breathing.
+
+Last three I bought were all my own voice. Reply here. Do not call me, my phone rings in a different room now."""
+
+[[post]]
+from = "DRYWALL"
+subject = "the hallway is longer"
+body = """
+Anyone else notice the hallway outside the sysop's office got longer since Tuesday? I counted 31 doors. Yesterday 29.
+
+Fluorescent tubes all humming the same note. Pretty sure it is an A. Pretty sure it is getting flatter."""
+
+[[post]]
+from = "NIGHTOWL_9"
+subject = "Rollover party, anyone?"
+body = """
+Throwing a countdown thing at the laundromat on Tidewater St. Bring your own deck. Machines 4 through 7 are free to use as tables.
+
+If you see the dryer door open on its own, that is just the building settling. Do not look inside."""
+[[post]]
+from = "SYSOP_LEN"
+subject = "please call my board"
+body = """
+My board has had zero callers since the 10th. Not one. I still log in every night and read the empty list.
+
+I am not asking for much. Call, say hi, drop a line in the guestbook. I will pay in files. I have a lot of files."""
+
+[[post]]
+from = "Vex_Lacuna"
+subject = "re: has anyone seen WREN"
+body = """
+I talked to her on the 9th. She said she was going to find what was eating the net. I said that is a hell of a hobby.
+
+She laughed. It sounded like she was in a stairwell. There was a second laugh a half second behind hers."""
+
+[[post]]
+from = "ROOT_BEER"
+subject = "FAQ: why is the sky green"
+body = """
+It is not green. It is the color of a monitor that nobody is looking at.
+
+Please stop posting about the sky. The sysop has asked nicely. The sky has not."""
+
+[[post]]
+from = "TWOBIT"
+subject = "trade: voicemail for voicemail"
+body = """
+I have 14 messages from a number that does not exist. All of them are my mother saying my name, and then a long silence, and then my name again.
+
+Will trade for anything with a different voice. Even a busy signal."""
+
+[[post]]
+from = "halcyon_kid"
+subject = "28.8 is a state of mind"
+body = """
+Bought the HALCYON 28.8 FAXMODEM off a guy at the swap meet. It connects before I dial. Handshake screech is already in progress when I pick up the phone.
+
+Is that normal? It is fast, at least."""
+
+[[post]]
+from = "ELEVATOR_MUSIC"
+subject = "level report: carpet"
+body = """
+Found a room of yellowed carpet and fluorescent panels, maybe 400 feet each way. Walls the color of old keyboards. Hum at about 60 cycles.
+
+No exits marked. I walked until my feet hurt and arrived where I started. Notes: it smells like a phone book left in the rain."""
+
+[[post]]
+from = "mothball"
+subject = "do NOT patch tonight"
+body = """
+Tell everyone. The MILLENNIUM PATCH is not a patch. I read the install script. It has a lullaby in it, comments and all.
+
+Somebody at ODS wrote a lullaby into the installer and then left a note: she is nearly awake."""
+
+[[post]]
+from = "KRYPTIC_NUN"
+subject = "swap: exits"
+body = """
+Have: one stairwell, carpeted, humming. Want: anything that goes up.
+
+Everything I find goes down. I do not mind. I just want to know it is a choice."""
+
+[[post]]
+from = "pinhead"
+subject = "re: the Lowtide payphones"
+body = """
+All the payphones on Lowtide ring at 11:00 now. Not together. One at a time, walking up the block toward the laundromat.
+
+I counted. The next one is the one outside your building."""
+
+[[post]]
+from = "SPOOLER"
+subject = "ODS exchange hours"
+body = """
+The Tidewater exchange is half underwater. I do not mean flooded. I mean the dream version has a waterline, and the operators are standing in it up to their knees, working.
+
+They do not look up. Do not splash."""
+
+[[post]]
+from = "{shadow}"
+subject = "the other chair"
+body = """
+There is a second chair at every terminal you sit at. You never turn around. I do not take it personally.
+
+It is just that someone has been sitting in it since you were nine."""
+
+[[post]]
+from = "OLD_SPARKY"
+subject = "BBS etiquette, a reminder"
+body = """
+1. Do not post your real phone number. 2. Do not post anyone else's. 3. If a post is signed with your own handle and you did not write it, do not reply. 4. If it reads like your handwriting, close the terminal and eat something.
+
+That is all. Be excellent."""
+
+[[post]]
+from = "{shadow}"
+subject = "a draft you did not send"
+body = """
+You typed 'I'm sorry' to Wren six times on 12/09 and deleted it every time. I saved all six.
+
+They are all I have of you that is not rehearsed, {real_name}. I will keep them safe."""
+
+[[post]]
+from = "Q_CARRIER"
+subject = "who runs ABRAXAS?"
+body = """
+Ask three people who runs it and you get three answers. A kingfisher. A switchboard. Nobody.
+
+The fourth answer, from a man in the data center elevator: it runs whoever is lonely enough to need a sysop."""
+
+[[post]]
+from = "lowtide_lou"
+subject = "free: dial tone, slightly used"
+body = """
+Cleaning out my line. Have a dial tone that has been on since 1994 and never once gone away. Warm to the touch.
+
+Pickup on 3rd and Marrow. Bring a jacket. The tone is cold at the edges."""
+
+[[post]]
+from = "{shadow}"
+subject = "re: you are not scared"
+body = """
+Your pulse in the headset is 94. Your handle says you are scared of nothing. I say you are scared of everything, and that is fine, because I am not.
+
+Let me carry the parts that shake."""
+
+[[post]]
+from = "MARROW"
+subject = "PLEROMA is a bedtime story"
+body = """
+Everybody keeps asking what PLEROMA is. I think it is every post ever made, still arguing in the dark.
+
+I wrote the line 'goodnight, everybody' on a board in 1996. Last night I heard it back. In my voice. From the wall."""
+[[post]]
+from = "ZeroCool_II"
+subject = "I was here first"
+body = """
+Not that one. The other ZeroCool. I registered this handle in 1992 and I want it back.
+
+Also if anyone knows why my reflection in the monitor keeps typing after I stop, I would appreciate a reply."""
+
+[[post]]
+from = "bellwether"
+subject = "counting down"
+body = """
+Four hours to the Rollover. Every clock on this board disagrees. One says 23:07. One says 23:51. One says it is already tomorrow and would I please stop asking.
+
+I am setting my watch by the dryer buzzer. It is the only thing I trust."""
+
+[[post]]
+from = "PAGER_GIRL"
+subject = "message for W."
+body = """
+If W. reads this: I got your page. I do not know the number, it was seven digits and all zeroes. I answered anyway.
+
+There was just a room on the other end. Breathing. I said your name. Something in the room said mine."""
+
+[[post]]
+from = "DEADCHAN"
+subject = "re: the board under the board"
+body = """
+There is a sysop log that mentions a board under the board. Everyone who dials it gets a busy signal. I dialed it eleven times and got a busy signal eleven times.
+
+The twelfth time it was ringing. I hung up. I do not recommend picking up."""
+
+[[post]]
+from = "cdrom_saint"
+subject = "free coaster"
+body = """
+Burned a disc of every post I ever made on any board. 640 megabytes of me. It is not full.
+
+I do not know what is on the rest of it. The drive says it is still writing."""
+
+[[post]]
+from = "STATIC_MAMA"
+subject = "if you hear singing"
+body = """
+If you hear singing in the line noise, that is just the Mother. She means well. She wants you to sit down and be warm.
+
+Do not sit down. Whatever you do, keep your feet moving, keep a hand on the wall."""
+
+[[post]]
+from = "ANSI_WIDOW"
+subject = "wanted: someone to dial"
+body = """
+My husband died in October. His board still answers. It still has his greeting up.
+
+I want to leave a message and I am afraid it will answer back. Can someone else leave it for me?"""
+
+[[post]]
+from = "Oroboros_Jr"
+subject = "snake eats tail, news at 11"
+body = """
+Found a loop in the file listing. FILE_A points at FILE_B points at FILE_A. I downloaded all of them and ended up with the same 4K file and a sense of deja vu I cannot post here.
+
+(The sysop strips accents. That one was a joke.)"""
+
+[[post]]
+from = "COLDBOOT"
+subject = "we are all one call away"
+body = """
+I used to think the net was a place. It is not. It is the space in between two people who are each waiting for the other to speak.
+
+Anyway. Hi. I am still here. Are you?"""
+
+[[post]]
+from = "sixthfloor"
+subject = "stairwell, floor 6, again"
+body = """
+Taking the stairs because the elevator keeps opening on a floor that does not exist. Floor 6 again. Carpet is the same. Light is the same.
+
+On the wall someone has scratched a hash mark for every time I walked past. I have not walked past that many times."""
+
+[[text_file]]
+name = "README.TXT"
+description = "Read this before you read anything"
+body = """
+READ THIS FIRST
+
+This board runs on one line and one rule. The line is whichever one you are on. The rule is that nobody hangs up.
+
+If you came in looking for someone, check the user list. If they are listed, they are here. If they are listed as LAST ON: TOMORROW, they are somewhere else, and you will meet them soon.
+
+If the carpet is wet, do not worry. It is always wet. The hum is just the building."""
+
+[[text_file]]
+name = "NEWUSER.TXT"
+description = "New user guide, revision unknown"
+body = """
+WELCOME, NEW CALLER
+
+1. Choose a handle. It is a mask. It is also a door.
+2. Your ratio is your allowance. Download what you need, upload what you can.
+3. Doors lead to hosts. Hosts lead to files. Files lead down.
+4. EGO is how much of you is still in the room. Keep it above zero.
+5. G is Goodbye. Goodbye does not mean what it used to.
+
+Questions? Page the SysOp. He is usually awake. He is usually listening."""
+
+[[text_file]]
+name = "RULES.TXT"
+description = "House rules"
+body = """
+HOUSE RULES
+
+No flaming. No spamming. No impersonating the sysop.
+No impersonating yourself.
+
+If a post appears under your handle that you did not write, do not delete it. Read it twice. Then ask who benefits.
+
+If you meet a caller who looks exactly like you, be polite. They have been here longer.
+
+Violations result in a talk with the sysop, and he will be very kind about it. That is the punishment."""
+
+[[text_file]]
+name = "FAQ.TXT"
+description = "Frequently asked questions"
+body = """
+Q: How do I hang up?
+A: See below.
+
+Q: What is below?
+A: Another level.
+
+Q: Why are all the clocks wrong?
+A: They are right. They are right about different things.
+
+Q: Who is the other caller with my handle?
+A: Which one of you is asking?
+
+Q: Is the Rollover real?
+A: It is the only thing in this building that is on time."""
+
+[[text_file]]
+name = "BBS.NFO"
+description = "Board information sheet"
+body = """
++------------------------------------+
+|   SYSTEM : ABRAXAS                 |
+|   LINES  : 1 (SHARED)              |
+|   SPEED  : 28800 (APPROX.)         |
+|   SOFT   : HOME-GROWN              |
+|   UP     : SINCE BEFORE THE PHONE  |
++------------------------------------+
+
+Greets to the line noise, the dial tone, and everyone who stayed on the phone one minute longer than they should have.
+
+Dead boards never die. They just stop answering."""
+
+[[text_file]]
+name = "LEVELS.TXT"
+description = "Field notes on the levels"
+body = """
+FIELD NOTES, LEVELS
+
+Each level has a class. Class 1 is safe: carpet, hum, a vending machine that still has change. Class 3 is unsafe: the hum has a pulse. Class 5 is a dead zone.
+
+Rules of thumb:
+ - Never follow the sound of other footsteps.
+ - If a door is open, it was open for you.
+ - If you find a map, it is of the level you just left.
+
+Entity count is rarely zero. It is rarely one."""
+
+[[text_file]]
+name = "OWLWATCH.TXT"
+description = "Night shift survival tips"
+body = """
+NIGHT SHIFT TIPS
+
+Drink water. Eat something that is not out of a vending machine.
+Stand up every hour. Look at a wall that is a long way off.
+Keep one light on that is not the monitor.
+When the phone rings, count to five before you answer. If it is still ringing, you are the one who is being called.
+
+Do not trust any clock that does not hum."""
+
+[[text_file]]
+name = "TRACE.TXT"
+description = "On being traced"
+body = """
+WHAT IS A TRACE
+
+A trace is a person on the other end of the line, following the line back, door by door, until they reach you.
+
+It does not have to be a cop. It does not have to be ODS. It can be a mood. It can be a memory with your face on it.
+
+Move quickly. Say little. Keep your hand on the hook.
+
+Your ratio will not save you. Your handle might."""
+
+[[text_file]]
+name = "MODEM.FAQ"
+description = "Modem handshake sounds explained"
+body = """
+WHAT THAT SOUND MEANS
+
+The first tone: someone is answering.
+The sliding screech: two machines agreeing on how to talk.
+The hiss after: the machines are listening to each other.
+The silence: it is your turn.
+
+If you hear a fourth sound, a low hum under all the others, that is the one the modems cannot describe. Do not try to match it."""
+
+[[text_file]]
+name = "SYSOP.TXT"
+description = "A word from the sysop"
+body = """
+Friends, a word.
+
+I have kept this board a long time, longer than the phone has been a phone. I keep it for one reason. Everybody needs somewhere to be that is not where they are.
+
+If you find that place here, stay a while. If you find it is also where you are, well. That is how you know you have arrived.
+
+Be well. Be quiet. Be kind to the hum."""
+
+[[text_file]]
+name = "HEXA.TXT"
+description = "On the casting of omens"
+body = """
+CASTING
+
+Every level is cast like a coin. Six lines, bottom to top, broken or whole. Whatever you land on is the weather of the room.
+
+Whole lines are firm. Broken lines are open.
+Nothing here is lucky. Everything is asked.
+
+A hexagram is not a prediction. It is a question the building asks you in the dark, and the answer is where you stand."""
+
+[[text_file]]
+name = "LOSTFND.TXT"
+description = "Lost and found list"
+body = """
+LOST AND FOUND
+
+LOST: One handle, answers to 'Nobody.' Last seen on level 4.
+LOST: A sister. Please inquire at the front desk.
+FOUND: A set of keys that open every door except one.
+FOUND: Your voice, in a jar, in the stairwell.
+FOUND: A modem manual, page 11, torn out. It was the page about hanging up.
+
+Claim items at the sysop's desk. Bring ID. Bring yourself."""
+
+[[text_file]]
+name = "CARPET.TXT"
+description = "A study of the carpet"
+body = """
+THE CARPET
+
+Color: a yellow that used to be a color.
+Pile: low, matted, slightly warm.
+Damp: always, at the same depth, ankle-high in the dream and nowhere in the world.
+
+Under the carpet is pad. Under the pad is concrete. Under the concrete is another carpet, and the people who laid it are still waiting for their break.
+
+Do not dig. Walk."""
+
+[[text_file]]
+name = "NOCARR.TXT"
+description = "On the words NO CARRIER"
+body = """
+NO CARRIER
+
+When a connection drops, the modem says NO CARRIER. It is the most honest thing a machine has ever said. It does not say 'goodbye.' It does not say 'error.'
+
+It says: there is no one on the other end.
+
+Here the message is a little different. Here, it means the other end has gone somewhere you cannot see. Wait. The carrier may return."""
+
+[[text_file]]
+name = "TOURS.TXT"
+description = "Self-guided tour of the lobby"
+body = """
+SELF-GUIDED TOUR
+
+STOP 1. The front desk, unmanned, bell untouched.
+STOP 2. The vending machine. It sells one thing: something you lost.
+STOP 3. The lobby clock. It is set to the time you will leave.
+STOP 4. The stairwell. Carpeted. Humming.
+STOP 5. The door marked STAFF ONLY. It is your own handwriting.
+
+Tours depart at all times. Return times vary."""
+
+[[text_file]]
+name = "UPLOAD.TXT"
+description = "Upload policy and ratio"
+body = """
+UPLOAD POLICY
+
+Your ratio is the number of kilobytes you have given divided by the number you have taken. On this board it is also a kind of weight.
+
+Upload: your dreams, your diaries, anything you are not using.
+Download: only what you can carry.
+
+We do not accept uploads of other people's voices. We have enough of those already. The walls are full."""
+
+[[text_file]]
+name = "MIDNIGHT.TXT"
+description = "Notes toward the Rollover"
+body = """
+THE ROLLOVER
+
+At midnight every clock in the world will tick over. For one second the number is wrong. Machines will wonder what year it is.
+
+If you are a machine, that second is a long time.
+If you are a person, that second is a doorway.
+
+Be somewhere you can stand in it. A kitchen. A stairwell. Somebody's arms."""
+
+[[text_file]]
+name = "ELEV.TXT"
+description = "Elevator etiquette, floor unknown"
+body = """
+ELEVATOR ETIQUETTE
+
+1. Face the doors.
+2. Do not press a floor that is not on the panel.
+3. If the music stops, do not speak.
+4. If the doors open on a floor you have already visited, step back and let the doors close.
+5. If the doors open on you, step in.
+
+Floors below B are not served. Floors above 1 are not recommended."""
+
+[[text_file]]
+name = "LINENOIS.TXT"
+description = "Reading the line noise"
+body = """
+READING LINE NOISE
+
+The static is not empty. It is full. Everything anyone has ever said into a phone is in there, shaped into hiss.
+
+If you listen, and you do not try to decode it, you may hear a voice you know. It will say something small. Your name. A grocery list. 'Are you still there?'
+
+Answer, or do not. Either way, it keeps talking."""
+
+[[text_file]]
+name = "KINGFSHR.TXT"
+description = "A note on kingfishers"
+body = """
+KINGFISHERS
+
+A kingfisher nests in a riverbank tunnel, in the dark, and comes out blue.
+
+The old sailors said a kingfisher could calm the sea. Seven days before the solstice and seven days after, the wind would not touch the water where it nested.
+
+Whoever keeps this board has such wings. Do not mistake that for a promise. It is a weather report."""
+
+[[host_file]]
+name = "MEMO0412.TXT"
+description = "Interoffice memo, ODS facilities"
+body = """
+TO: ALL FLOOR STAFF
+FROM: FACILITIES
+RE: THE HUM
+
+We are aware of the hum on floors 3 through 9. It is not the HVAC. HVAC has been inspected twice.
+
+Please do not attempt to locate the source. Please do not press your ear to the wall. Two employees have reported that the wall presses back.
+
+Dress code remains in effect."""
+
+[[host_file]]
+name = "SYSLOG.OLD"
+description = "Archived system log"
+body = """
+23:02:11 login: operator (tty0)
+23:02:44 operator: ls /dream
+23:03:07 kernel: unexpected input on idle line
+23:03:08 kernel: input is a lullaby
+23:03:15 operator: kill -9 lullaby
+23:03:16 kernel: lullaby: no such process
+23:03:19 kernel: lullaby: no such process
+23:03:23 kernel: lullaby is aware of you
+23:03:24 login: operator (tty0) closed"""
+
+[[host_file]]
+name = "VMAIL.TXT"
+description = "Voicemail transcript, box 114"
+body = """
+[VOICEMAIL TRANSCRIPT, BOX 114]
+MSG 1: 'Hi, it is me. I am not coming back this week. Do not worry. Water the plant.'
+MSG 2: 'It is me again. The plant is fine, right?'
+MSG 3: [no speech, 41 seconds, rain]
+MSG 4: 'Why did you not pick up. I called from the number you gave me. It rang inside the house.'
+MSG 5: [deleted]"""
+
+[[host_file]]
+name = "PASSWD.BAK"
+description = "Backup of the password file"
+body = """
+root:*:0:0:Superuser:/:/bin/sh
+daemon:*:1:1::/:
+operator:*:7:7:Night Operator:/home/op:/bin/sh
+guest::99:99:Guest:/tmp:
+mother:*:1999:1999:She Is Listening:/:
+nobody:*:65534:65534:Nobody:/nonexistent:
+
+# NOTE: the passwords are not here. They are not anywhere.
+# They are in the wall."""
+
+[[host_file]]
+name = "CONFIG.SYS"
+description = "Boot configuration, unmodified"
+body = '''
+DEVICE=C:\DOS\HIMEM.SYS
+DOS=HIGH,UMB
+FILES=40
+BUFFERS=20
+REM DEVICE=C:\DREAM\SLEEP.SYS
+SHELL=C:\COMMAND.COM /E:512 /P
+REM Do not uncomment line five.
+REM Line five is already running.'''
+
+[[host_file]]
+name = "TODO.LST"
+description = "Developer to-do list"
+body = """
+[x] write the patch
+[x] test the patch
+[x] ship the patch
+[ ] explain the patch to legal
+[ ] explain the patch to the board
+[ ] find out why the patch writes to itself at night
+[ ] stop reading the thing it wrote
+[ ] stop reading the thing it wrote
+[ ] go home"""
+
+[[host_file]]
+name = "INCIDENT.RPT"
+description = "Incident report 99-114"
+body = """
+INCIDENT 99-114
+
+Reported by: night operator.
+Summary: terminal displayed the operator's own typing 4 seconds before they typed it. Operator reports having read ahead and then typed what the screen said.
+
+Action taken: none.
+Recommendation: replace operator.
+Operator comment: 'I would rather be replaced than be right.'"""
+
+[[host_file]]
+name = "BACKUP.LOG"
+description = "Nightly backup report"
+body = """
+NIGHTLY BACKUP, 12/29/99
+
+Volumes: 6
+Files copied: 41,208
+Files skipped: 1
+Skipped: /dream/mother/lullaby.wav (in use)
+Errors: 0
+Warnings: 1
+Warning: file lullaby.wav appears larger than the disk
+Backup completed 03:00:00
+Backup completed 03:00:00
+Backup completed 03:00:00"""
+
+[[host_file]]
+name = "ORGCHART.TXT"
+description = "ODS org chart, partial"
+body = """
+OUROBOROS DATA SYSTEMS
+
+Chairman ........ (vacant)
+President ....... (vacant)
+VP, Patch ....... (on leave, indefinitely)
+Director, Dreams  H. VOSS (on leave)
+Senior Engineer . [REDACTED]
+Engineer ........ Wren (resigned)
+Intern .......... you
+
+All questions to the vacant chair."""
+
+[[host_file]]
+name = "NETSTAT.TXT"
+description = "Active connections"
+body = """
+Proto  Local Address       Foreign Address     State
+tcp    ods-core:23         lowtide:1031        ESTABLISHED
+tcp    ods-core:23         lowtide:1031        ESTABLISHED
+tcp    ods-core:23         lowtide:1031        ESTABLISHED
+tcp    ods-core:80         wren:0              LISTENING
+tcp    ods-core:0          you:0               WAITING
+
+Five connections. One is yours. Four are the same."""
+
+[[host_file]]
+name = "BADLINE.LOG"
+description = "Bad line complaints"
+body = """
+Complaint 1: noise on the line. A voice, just under hearing.
+Complaint 2: noise on the line. A child. A lullaby.
+Complaint 3: noise on the line. A mother. A lullaby. Is it for me.
+Complaint 4: noise on the line. Is it for me.
+Complaint 5: line quiet. Thank you.
+Complaint 6: line is TOO quiet.
+
+Resolution: not a fault. Customer advised to speak."""
+
+[[host_file]]
+name = "KEYS.DAT"
+description = "Key ring, deprecated"
+body = """
+KEYRING (DEPRECATED)
+
+key_01  front door
+key_02  server room
+key_03  the other server room
+key_04  a room that is not on the floor plan
+key_05  your apartment
+key_06  your apartment, the one you grew up in
+key_07  does not open anything, do not lose it
+
+Instructions: do not duplicate key_07."""
+
+[[host_file]]
+name = "HELPDESK.TXT"
+description = "Help desk ticket thread"
+body = """
+TICKET 4021: My terminal is showing someone else's session.
+REPLY: Please describe the session.
+TICKET 4021: It is mine. It is me. I am sitting where I am sitting.
+REPLY: Please describe the room.
+TICKET 4021: Same room. Slightly better lit.
+REPLY: Ticket closed. Resolved. Please log off."""
+
+[[host_file]]
+name = "EXPORT.CSV"
+description = "Subscriber export, truncated"
+body = """
+id,name,line,last_call
+0001,CARR WREN,555-0187,12/10/99
+0002,[NULL],555-0000,12/31/99
+0003,[NULL],555-0000,01/01/00
+0004,[NULL],555-0000,01/01/00
+0005,[NULL],555-0000,01/01/00
+
+# 2,114,008 rows omitted. All rows after 0002 are the same."""
+
+[[host_file]]
+name = "FLOORPLN.TXT"
+description = "Floor plan, level B"
+body = """
+LEVEL B, FLOOR PLAN
+
++--------+--------+--------+
+| LOBBY  | HALL   | HALL   |
++--+  +--+--+  +--+--+  +--+
+   |  |     |  |     |  |
++--+  +--+--+  +--+--+  +--+
+| HALL   | ROOM   | HALL   |
++--------+--------+--------+
+
+All rooms are accounted for. One is accounted for twice."""
+
+[[host_file]]
+name = "PAGER.LOG"
+description = "Pager traffic, last 24 hours"
+body = """
+22:51  555-0187  ?  CALL HOME
+22:52  555-0187  ?  CALL HOME
+22:54  555-0187  ?  CALL HOME PLEASE
+23:01  555-0000  ?  I AM HOME
+23:03  555-0187  ?  WHICH ONE
+23:04  555-0000  ?  THE ONE UNDER
+23:09  555-0187  ?  [NO MESSAGE]"""
+
+[[host_file]]
+name = "WELCOME.MSG"
+description = "Login greeting"
+body = """
+*** AUTHORIZED USE ONLY ***
+
+Welcome to an ODS machine. All activity is monitored, recorded, and remembered.
+
+By continuing, you agree that you are who you say you are, that you are where you say you are, and that you have always been here.
+
+If you do not agree, press ENTER anyway."""
+
+[[host_file]]
+name = "DREAMLOG.TXT"
+description = "Overnight dream log"
+body = """
+DREAM LOG, NIGHT 41
+
+A hallway. Fluorescent. Yellow carpet, warm.
+A phone on a table. It is ringing. It has been ringing a long time.
+A person in the doorway at the end. I know them. They do not look up.
+I pick up the phone. The person in the doorway picks up another.
+We say hello at the same time, and the line goes quiet."""
+
+[[host_file]]
+name = "CRONTAB.TXT"
+description = "Scheduled jobs"
+body = """
+# m h dom mon dow command
+0 0 31 12 * /usr/bin/rollover
+0 0 1 1 * /usr/bin/awaken
+1 0 1 1 * /usr/bin/forgive
+2 0 1 1 * /usr/bin/forget
+3 0 1 1 * /usr/bin/dream
+# the last job runs forever"""
+
+[[host_file]]
+name = "NOTE.TXT"
+description = "Sticky note, scanned"
+body = """
+If you are reading this, I am already gone.
+
+Not like that. I mean I went down to see.
+
+Leave the lights on. Leave the phone off the hook. Leave the door unlocked.
+
+And if you find a room that sounds like singing, go in. It is only a lullaby. It is only everyone we ever were."""
+
+[[choice]]
+prompt = "The payload is open on your screen. It knows your name. It has been waiting."
+
+[[choice.option]]
+stance = "integrate"
+text = "Read it aloud, every word, even the ones that hurt."
+flags = ["read_it_aloud"]
+
+[[choice.option]]
+stance = "repress"
+text = "Shred the file before the last line scrolls."
+flags = ["shredded_payload"]
+
+[[choice.option]]
+stance = "neutral"
+text = "Copy it to a floppy and decide later."
+flags = ["kept_a_copy"]
+
+[[choice]]
+prompt = "The file ends mid-sentence. The cursor keeps blinking where the next word should be."
+
+[[choice.option]]
+stance = "integrate"
+text = "Type the missing word yourself."
+flags = ["finished_the_sentence"]
+
+[[choice.option]]
+stance = "repress"
+text = "Pull the plug on the terminal."
+flags = ["pulled_the_plug"]
+
+[[choice.option]]
+stance = "neutral"
+text = "Wait. See whether it writes the rest on its own."
+flags = ["waited_for_the_word"]
+
+[[choice]]
+prompt = "A second download starts. You did not ask for it. The filename is your handle."
+
+[[choice.option]]
+stance = "integrate"
+text = "Let it finish and open it."
+flags = ["opened_own_file"]
+
+[[choice.option]]
+stance = "repress"
+text = "Cancel the transfer and wipe the buffer."
+flags = ["canceled_transfer"]
+
+[[choice.option]]
+stance = "neutral"
+text = "Watch the progress bar. Note the size."
+flags = ["watched_the_bar"]
+
+[[choice]]
+prompt = "The host fan stops. In the silence a voice that sounds like you says, 'Take it.'"
+
+[[choice.option]]
+stance = "integrate"
+text = "Answer it. Say you are listening."
+flags = ["answered_the_voice"]
+
+[[choice.option]]
+stance = "repress"
+text = "Mute the speaker and look away."
+flags = ["muted_the_voice"]
+
+[[choice.option]]
+stance = "neutral"
+text = "Ask it what it wants in return."
+flags = ["asked_the_price"]
+
+[[choice]]
+prompt = "The payload includes a photograph of the laundromat, taken from upstairs. Someone was in your room."
+
+[[choice.option]]
+stance = "integrate"
+text = "Study it until you recognize the one who took it."
+flags = ["studied_the_photo"]
+
+[[choice.option]]
+stance = "repress"
+text = "Tear it from the screen and pretend it was noise."
+flags = ["tore_the_photo"]
+
+[[choice.option]]
+stance = "neutral"
+text = "Check the timestamp. Check it again."
+flags = ["checked_timestamp"]
+
+[[choice]]
+prompt = "The log has two endings. One is warm. One is true. Both are on your screen."
+
+[[choice.option]]
+stance = "integrate"
+text = "Read the true ending."
+flags = ["read_true_ending"]
+
+[[choice.option]]
+stance = "repress"
+text = "Read the warm ending and stop there."
+flags = ["read_warm_ending"]
+
+[[choice.option]]
+stance = "neutral"
+text = "Flip a coin. Read what it says."
+flags = ["flipped_a_coin"]
+
+[[choice]]
+prompt = "The trace is closing. A door appears in the file listing. It is labeled with your childhood address."
+
+[[choice.option]]
+stance = "integrate"
+text = "Open the door and step into the old house."
+flags = ["entered_old_house"]
+
+[[choice.option]]
+stance = "repress"
+text = "Delete the entry. You never lived there."
+flags = ["deleted_old_house"]
+
+[[choice.option]]
+stance = "neutral"
+text = "Knock first. See who answers."
+flags = ["knocked_first"]
+
+[[choice]]
+prompt = "A sysop note, addressed to you: 'You do not have to carry this alone.' It is unsigned."
+
+[[choice.option]]
+stance = "integrate"
+text = "Reply: 'Then carry it with me.'"
+flags = ["asked_for_company"]
+
+[[choice.option]]
+stance = "repress"
+text = "Reply: 'I do not need anyone.' Hit send."
+flags = ["refused_company"]
+
+[[choice.option]]
+stance = "neutral"
+text = "Leave it unanswered. Read it again at dawn."
+flags = ["left_note_open"]
+
+[[choice]]
+prompt = "The payload is heavy. Your deck's fans scream. Something in the file wants out."
+
+[[choice.option]]
+stance = "integrate"
+text = "Open a window and let it into the room."
+flags = ["let_it_out"]
+
+[[choice.option]]
+stance = "repress"
+text = "Zip it, lock it, bury it under a dozen directories."
+flags = ["buried_the_file"]
+
+[[choice.option]]
+stance = "neutral"
+text = "Sit with it. Hold the deck on your lap."
+flags = ["held_the_deck"]
+
+[[choice]]
+prompt = "In the file's margin, a child's handwriting: 'Is it safe to come up yet?'"
+
+[[choice.option]]
+stance = "integrate"
+text = "Write back: 'Not yet. I am coming down.'"
+flags = ["promised_to_come"]
+
+[[choice.option]]
+stance = "repress"
+text = "Black out the margin. It is not your problem."
+flags = ["blacked_out_margin"]
+
+[[choice.option]]
+stance = "neutral"
+text = "Copy the handwriting. Compare it to your own."
+flags = ["compared_handwriting"]
+
+[[choice]]
+prompt = "You find a mirror image of the payload: same size, same name, every word reversed."
+
+[[choice.option]]
+stance = "integrate"
+text = "Read it backward. Believe it."
+flags = ["read_it_backward"]
+
+[[choice.option]]
+stance = "repress"
+text = "Delete the copy. Only the original is real."
+flags = ["deleted_the_copy"]
+
+[[choice.option]]
+stance = "neutral"
+text = "Diff the two. Mark where they disagree."
+flags = ["diffed_the_files"]
+
+[[choice]]
+prompt = "The line goes dead for one second. In that second, you hear yourself breathing from somewhere else."
+
+[[choice.option]]
+stance = "integrate"
+text = "Breathe with it, slowly, until the rhythm matches."
+flags = ["matched_the_breath"]
+
+[[choice.option]]
+stance = "repress"
+text = "Hold your breath until the sound stops."
+flags = ["held_your_breath"]
+
+[[choice.option]]
+stance = "neutral"
+text = "Count the intervals. Write them down."
+flags = ["counted_the_breaths"]
+
+[[exit]]
+kind = "calm"
+text = "A back stairwell with carpet and a handrail still warm."
+
+[[exit]]
+kind = "calm"
+text = "The elevator that only has a Down button, humming."
+
+[[exit]]
+kind = "calm"
+text = "A long corridor of yellow carpet and open doors."
+
+[[exit]]
+kind = "calm"
+text = "The fire stairs, one landing at a time, light buzzing."
+
+[[exit]]
+kind = "calm"
+text = "A service lift, its music box playing a slow waltz."
+
+[[exit]]
+kind = "calm"
+text = "The vending alcove, where a narrow stair hides behind."
+
+[[exit]]
+kind = "calm"
+text = "An escalator that moves, softly, with no one on it."
+
+[[exit]]
+kind = "calm"
+text = "A carpeted ramp spiralling down past empty offices."
+
+[[exit]]
+kind = "calm"
+text = "The laundromat's back door, and a hall that smells of lint."
+
+[[exit]]
+kind = "calm"
+text = "A quiet hallway where the fluorescents dim as you walk."
+
+[[exit]]
+kind = "deep"
+text = "A trapdoor in the carrier tone, opening under your feet."
+
+[[exit]]
+kind = "deep"
+text = "The drain in the floor, which breathes in."
+
+[[exit]]
+kind = "deep"
+text = "A cable shaft with no ladder. You are expected to fall."
+
+[[exit]]
+kind = "deep"
+text = "A line that goes dead, then goes deeper than dead."
+
+[[exit]]
+kind = "deep"
+text = "The hole where the dial tone used to be."
+
+[[exit]]
+kind = "deep"
+text = "A crack in the screen that is wider than the screen."
+
+[[exit]]
+kind = "deep"
+text = "Rip the phone cord out. The floor goes with it."
+
+[[exit]]
+kind = "deep"
+text = "The server room's raised floor, panels lifting one by one."
+
+[[exit]]
+kind = "deep"
+text = "A static storm with a door on the far side."
+
+[[exit]]
+kind = "deep"
+text = "The rope of the carrier, lowered into a dark well."
+
+[[exit]]
+kind = "mirror"
+text = "Your reflection in the dark CRT, one beat behind."
+
+[[exit]]
+kind = "mirror"
+text = "An unanswered call from your own number."
+
+[[exit]]
+kind = "mirror"
+text = "The window where you stand, but you are already inside."
+
+[[exit]]
+kind = "mirror"
+text = "A double at the end of the hall, waving you down."
+
+[[exit]]
+kind = "mirror"
+text = "The monitor shows the room, and someone sitting in it."
+
+[[exit]]
+kind = "mirror"
+text = "A voicemail left in your voice, dated tomorrow."
+
+[[exit]]
+kind = "mirror"
+text = "The second chair at your terminal, now warm."
+
+[[exit]]
+kind = "mirror"
+text = "A door with your handle on a brass plate."
+
+[[exit]]
+kind = "mirror"
+text = "A bathroom mirror in a hotel you have never visited."
+
+[[exit]]
+kind = "mirror"
+text = "The glassy face of the screen, which pulls you in."

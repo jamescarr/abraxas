@@ -1,0 +1,96 @@
+# ABRAXAS story pack: pack.toml
+# Copy this whole directory, rename it, edit the files, then run:
+#   abraxas pack check path/to/your-pack
+# and play it with:
+#   abraxas --pack path/to/your-pack
+# Every key below is explained. Text may use ASCII and CP437 characters only:
+# no curly quotes, no en/em dashes, no ellipsis character, no accents, no emoji.
+# Use straight quotes, a plain hyphen and three dots.
+
+# Short machine name of the pack. Regex: ^[a-z0-9-]{1,32}$
+id = "template"
+
+# Display title, shown on the dialer and in the AI's system prompt. 1-40 characters.
+title = "TEMPLATE PACK"
+
+# Your name. Free text.
+author = "Your Name"
+
+# Free-form version string for your own bookkeeping.
+version = "1"
+
+# Voice rules for the AI, at most 120 words. Tell it person, tense, sentence length,
+# vocabulary, imagery to prefer and things to avoid. This is sent with every AI call.
+style = """Second person, present tense. Short sentences. Concrete sensory detail from 1999 computing: hum of a fan, phosphor glow, dial tone. Show images, never explain them. No real brands, real people or technology after 1999. Plain text only."""
+
+# At least 8 recurring images. Two are drawn at random for every level and given
+# to the AI as the level's atmosphere. The offline generator also substitutes
+# one wherever a pool level card contains the motif placeholder.
+motifs = [
+  "a humming fan",
+  "a flickering tube light",
+  "a dial tone with no end",
+  "a cold cup of coffee",
+  "a corridor of identical doors",
+  "rain on a window",
+  "a floppy disk labelled in pencil",
+  "an unplugged phone that still rings",
+]
+
+# At least 8 kinds of place a level can be. One is drawn per level.
+room_kinds = [
+  "a school district board",
+  "an empty call center",
+  "a basement computer lab",
+  "a telephone exchange at night",
+  "a hotel corridor with no numbers",
+  "a library after closing",
+  "a waiting room with a broken clock",
+  "a parking garage with one level too many",
+]
+
+# In-world time at depth 0, HH:MM:SS (24 hour clock).
+start_clock = "23:00:00"
+
+# In-world minutes that pass for each level descended.
+minutes_per_level = 4
+
+# ACTS. At least one. Acts must be contiguous from depth 0 with no gap and no
+# overlap. A level's act decides its palette, default vision and AI direction.
+[[act]]
+# Regex: ^[a-z0-9_]{1,24}$ and unique inside the pack.
+id = "beginning"
+# Display name shown on the Self screen and in the archive.
+name = "BEGINNING"
+# First and last depth of the act, inclusive. The first act must start at 0.
+depths = [0, 3]
+# Colour theme for the act. One of: nigredo | albedo | citrinitas | rubedo | prism
+palette = "nigredo"
+# What the player is trying to do in this act. At most 160 characters.
+goal = "Find out why the board keeps calling you."
+# Up to 120 words of guidance for the AI: mood, imagery, which cast members to use.
+direction = """Cold, quiet rooms. The player is new and unsure. Introduce the guide slowly and let small oddities accumulate."""
+# Animation played during the descent when nothing better is ready. One of:
+# tunnel | plasma | mandala | fire | ouroboros | starfield | mirror
+default_vision = "fire"
+
+# Add more [[act]] blocks here: for example depths = [4, 7], then [8, 11].
+# The last act's final depth is where the story ends (or goes endless).
+
+# THE ENDLESS MODE. After the last act the AI continues levels forever.
+[endless]
+# true = after the last act the game continues into endless AI levels.
+# false = the last act's final level ends the run with a generic or authored ending.
+enabled = true
+# Name of the endless region. Required when enabled.
+name = "THE DEEP"
+# Palette for endless levels (same choices as acts).
+palette = "prism"
+# What endless levels are about. Required when enabled. At most 160 characters.
+goal = "The board keeps dreaming new rooms."
+# Guidance for the AI in endless mode. Required when enabled. At most 120 words.
+# Tip: mention how the ending reached should colour the cast. The flag ending_ followed
+# by the ending id is set when the player continues, and the AI sees it.
+direction = """Keep the cast alive and changing. Let every room feel like a memory of an earlier one. Let the guide's attitude reflect the ending reached."""
+# Animation default for endless levels (same choices as above).
+default_vision = "starfield"

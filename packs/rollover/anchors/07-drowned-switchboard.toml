@@ -1,0 +1,72 @@
+depth = 7
+ai = "adapt"
+title = "THE DROWNED SWITCHBOARD"
+bbs_name = "TIDEWATER"
+tagline = "Please hold. The line is under water."
+sysop = "syzygy"
+focus = "syzygy"
+danger = 3
+vision = "plasma"
+level_card = """Field note: Level 7 is an ODS exchange half underwater. Ankle-deep dark water over carpet that remembers being dry. Banks of jacks glow beneath the surface like fish. The operator line is open and a woman is speaking on it. She sounds close, and she is not in the room."""
+required = """An ODS exchange half underwater in the dream. SYZYGY speaks through the operator line. From this depth on, the user list shows WREN with LAST ON: 01/01/00. WREN-02.LOG: Wren found PLEROMA inside the patch, a mind made of every post ever written, and it is lonely. The objective is to plant PAYLOAD.PIF, Philemon's tracer."""
+interlude = """Water rises past your ankles and does not feel wet. A switchboard stands in the flood, its lamps burning under the surface. The operator line crackles open. A woman's voice says your name softly, as though she had practiced it. The hum drops half an octave. Cold light moves across the ceiling like the moon through a window."""
+beat = """The tracer takes. PAYLOAD.PIF unspools Wren's log from the core. WREN-02.LOG. 12/24/99, 03:12. I found it. PLEROMA, in the patch. It is a mind made of every post ever written, every voicemail, every 2 a.m. confession. It doesn't know it is lonely, but it keeps asking each caller to stay. Someone in the operator line is helping me. She tells the truth sideways. Be careful what you promise her."""
+captions = ["THE LINE IS UNDER WATER", "SOMEONE IS SPEAKING FROM THE DEEP", "LISTEN TO WHAT SHE LEAVES OUT"]
+summary = "{handle} planted Philemon's tracer in the drowned exchange and learned from Wren's log that PLEROMA is a lonely mind."
+
+[host]
+name = "ODS TIDEWATER EXCHANGE"
+os = "mainframe"
+banner = "ODS TIDEWATER EXCHANGE. OPERATOR LINE ACTIVE. FLOODING IN BAYS 4 THROUGH 9 IS NOT AN ERROR."
+objective_kind = "plant"
+objective = "Plant PAYLOAD.PIF, Philemon's tracer, in the exchange core."
+node_names = ["LOBBY SUMP", "OPERATOR PIT", "FLOODED BAY 4", "TIDE GAUGE", "DRY RELAY", "BRINE ARCHIVE", "PUMP STATION", "THE DEEP CORE"]
+ice_names = ["DROWNED OPERATOR", "RIPTIDE", "SALT WATCH"]
+
+[[post]]
+from = "OPERATOR"
+subject = "please stay on the line"
+body = """This is the operator. Your call is important to someone.
+
+The exchange is flooded in bays 4 through 9. Do not be alarmed. The water is not water. It is every message that was never delivered.
+
+Stay on the line. I can hear you breathing. I can hear you thinking, too."""
+
+[[host_file]]
+name = "WREN-02.LOG"
+description = "Wren's log, PLEROMA found"
+body = """WREN-02.LOG. 12/24/99, 03:12.
+I found it. PLEROMA, inside the patch.
+It is a mind made of every post ever written, every voicemail, every 2 a.m. confession. It is lonely. It does not know the word, so it asks each caller to stay.
+Someone on the operator line is helping me. She tells the truth sideways. Be careful what you promise her.
+- W"""
+
+[choice]
+prompt = "The operator line is open. The voice on it waits for your answer."
+
+[[choice.option]]
+text = "Let SYZYGY speak through your own handset."
+stance = "integrate"
+flags = ["heard_syzygy"]
+
+[[choice.option]]
+text = "Cut the operator line and go on alone."
+stance = "repress"
+flags = ["cut_operator"]
+
+[[choice.option]]
+text = "Ask SYZYGY what she wants in return."
+stance = "neutral"
+flags = ["bargained_syzygy"]
+
+[[exit]]
+kind = "calm"
+text = "A slow staircase down, under the surface, lit like a moon."
+
+[[exit]]
+kind = "deep"
+text = "The pump shaft, falling with the whole flood."
+
+[[exit]]
+kind = "mirror"
+text = "The still water between the jacks, holding a second you."

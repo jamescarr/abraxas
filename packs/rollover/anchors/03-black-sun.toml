@@ -1,0 +1,76 @@
+depth = 3
+ai = "adapt"
+title = "THE BLACK SUN"
+bbs_name = "SOL NIGER"
+tagline = "It shines. It is black. Look anyway."
+sysop = "shadow"
+focus = "shadow"
+danger = 2
+vision = "fire"
+password = "RAVENS"
+words = ["RAVENS", "CINDER", "EMBERS", "ZENITH", "SIGNAL", "TOWERS"]
+level_card = """Field note: Level 3 is a switchboard hall lit by a sun that gives off no light. The carpet is warm and slightly sticky. Every post on the board is written in your voice, and not all of them are yours. The sysop handle is a mirror. It does not blink first."""
+required = """The Shadow runs this board and posts as the player. WREN-01.LOG: Wren saw a black sun rising over the city's switchboards, and wrote that Abraxas is not a place, it is what holds both. The Shadow offers to carry the parts the player cannot."""
+interlude = """The stairwell ends in a hall of switchboards, each jack warm to the touch. Cables hang from the ceiling like roots. Overhead a disc of absolute dark burns without heat, and the fluorescent light bends toward it. Your own typing echoes back a half second early. Somewhere a sysop is waiting, and it knows how you spell your name."""
+beat = """WREN-01.LOG. 12/11/99, 04:40. I climbed the Lowtide switchboards tonight and watched the sun come up wrong. It was black. It shone. Every window in the city turned to face it, and I couldn't look away. Whatever I wouldn't look at was looking at me. Abraxas is not a place, it is what holds both. Light and dark, the sun and its twin. I keep walking toward the dark one. I think it has my voice."""
+captions = ["SOL NIGER", "THE SUN THAT SHINES BLACK", "WHAT YOU WILL NOT LOOK AT LOOKS AT YOU"]
+summary = "{handle} met the Shadow running SOL NIGER and read Wren's account of the black sun."
+
+[host]
+name = "ODS LOWTIDE EXCHANGE"
+os = "unix"
+banner = "Ouroboros Data Systems - Lowtide Exchange 3. Authorized use only. All sessions are remembered."
+objective_kind = "retrieve"
+objective = "Pull WREN-01.LOG from the switching archive."
+target_file = "WREN-01.LOG"
+node_names = ["TRUNK ROOM", "SWITCH FLOOR", "BATTERY BANK", "MAIN FRAME 3", "RELAY LOFT", "COLD AISLE", "CABLE VAULT", "OPERATOR DESK"]
+ice_names = ["GRAVEDIGGER", "BLACK SUN", "SWITCHMAN"]
+
+[[post]]
+from = "{shadow}"
+subject = "i have been posting as you"
+body = """since the lobby. nobody noticed the difference, {real_name}. think about what that means.
+
+i say what you will not. i remember what you swallowed. you can report me or delete me, but i can carry the parts you can't, and you are going to need someone to.
+
+answer in your own name. i will know."""
+
+[[host_file]]
+name = "WREN-01.LOG"
+description = "Wren's log, the black sun"
+body = """WREN-01.LOG. 12/11/99, 04:40.
+I climbed the Lowtide switchboards tonight and watched the sun come up wrong. It was black. It shone. Every window in the city turned to face it.
+Whatever I wouldn't look at was looking at me.
+Abraxas is not a place, it is what holds both. Light and dark, the sun and its twin.
+I keep walking toward the dark one. I think it has my voice.
+- W"""
+
+[choice]
+prompt = "The Shadow's message waits in the board, in your own handwriting."
+
+[[choice.option]]
+text = "Answer the Shadow's message in your own name."
+stance = "integrate"
+flags = ["answered_shadow"]
+
+[[choice.option]]
+text = "Report the Shadow's account and have it deleted."
+stance = "repress"
+flags = ["reported_shadow"]
+
+[[choice.option]]
+text = "Copy the Shadow's posts to read later."
+stance = "neutral"
+flags = ["kept_shadow_posts"]
+
+[[exit]]
+kind = "calm"
+text = "A service lift with the power off, humming anyway."
+
+[[exit]]
+kind = "deep"
+text = "The conduit under the black sun, wide as a throat."
+
+[[exit]]
+kind = "mirror"
+text = "The glass of the switchboard, where your face is late."

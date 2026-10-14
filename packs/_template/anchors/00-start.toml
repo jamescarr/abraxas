@@ -1,0 +1,180 @@
+# ABRAXAS story pack: anchors/NN-slug.toml
+# An anchor is an authored level at a fixed depth. Between anchors the AI (or the
+# offline generator) makes up levels. Every key except depth is optional.
+# Name the file NN-slug.toml with NN the depth, so files sort in story order.
+#
+# Each field belongs to one class:
+#   LOCKED   (title, bbs_name, tagline, sysop, danger, focus, vision, programs, password,
+#             every [host] key, choice, exit, ending): when present your value always wins
+#             and anything the AI writes for that field is ignored.
+#   ADAPTED  (level_card, beat, interlude, captions, summary): with ai = "adapt" the AI
+#             is told to keep every fact but reword to fit the story so far. A bad AI
+#             result falls back to your text.
+#   APPENDED (post, text_file, host_file, words): your entries always come first;
+#             the AI or the pool fills the remaining slots (4 posts, 2 text files,
+#             3 host files).
+#
+# Text may use ASCII and CP437 only. Placeholders in curly braces: handle, shadow,
+# real_name. Write a literal brace by doubling it. Pipe codes in text and art:
+# a pipe followed by 00 to 15 sets the foreground to a DOS colour, 16 to 23 sets
+# the background. A pipe not followed by two digits is literal.
+
+# REQUIRED. The level number this anchor occupies. Must be unique among anchors and
+# lie inside the span of the acts.
+depth = 0
+
+# "adapt" (default): the AI may reword adapted fields. "off": the AI is never called for
+# this level and every missing field comes from the offline generator.
+ai = "adapt"
+
+# Level title, at most 40 characters. LOCKED.
+title = "THE FIRST ROOM"
+
+# Name of the BBS on this level, at most 24 characters. Names of 9 or fewer render in big text. LOCKED.
+bbs_name = "FIRST ROOM"
+
+# Tagline under the BBS name, at most 60 characters. LOCKED.
+# tagline = "Please wait. Someone will be with you."
+
+# Who runs this board. Either a cast id (cast.toml) or a new handle matching
+# ^[A-Za-z0-9_-]{2,16}$. The word shadow may be used to mean the player's Shadow. LOCKED.
+sysop = "guide"
+
+# Facts the AI must keep when it adapts this level. Free text, a few sentences. This
+# is the heart of an anchor: say what must be true, who must appear, what must happen.
+required = """The board is called FIRST ROOM. Its sysop is the GUIDE. The player has just arrived and has no way to hang up. Something in the walls knows the player's real name."""
+
+# Danger class 1 to 5. Sets WORDLOCK length (1:5, 2:6, 3:6, 4:7, 5:8 letters) and the
+# number of nodes. LOCKED.
+# danger = 1
+
+# Cast id that is the focus of this level (shapes mood and effects). LOCKED.
+# focus = "guide"
+
+# Descent animation that plays after this level's passage:
+# tunnel | plasma | mandala | fire | ouroboros | starfield | mirror. LOCKED.
+# vision = "fire"
+
+# Programs offered in the file library (file names from the engine's list:
+# DECRYPT.COM SNIFFER.EXE BUFFER.EXE GHOST.COM ICEPICK.EXE MIRROR.EXE MANDALA.SYS). LOCKED.
+# programs = ["DECRYPT.COM", "MANDALA.SYS"]
+
+# The WORDLOCK password: A to Z only, length must equal the WORDLOCK length for this
+# anchor's danger (danger 1 = 5 letters). LOCKED.
+# password = "OWLET"
+
+# Level card, an explorer's field note, at most 320 characters. ADAPTED.
+# level_card = """Level 0 is a room with a counter and a bell. The bell rings by itself. The carpet is damp."""
+
+# Interlude shown during the descent INTO this level, plain text of 40 to 70 words. ADAPTED.
+# interlude = """The line crosses. The modem screams in a key you do not know. The floor goes soft."""
+
+# What the payload reveals when the objective is complete, at most 700 characters. ADAPTED.
+# beat = """The file opens on a single line. Someone has been waiting for you."""
+
+# Exactly three captions for the descent, each at most 48 characters. ADAPTED.
+# captions = ["THE LINE IS NOT DEAD", "IT IS LISTENING", "DOWN IS THE ONLY WAY OUT"]
+
+# One past-tense sentence about the level for the chronicle, at most 200 characters. ADAPTED.
+# summary = "The caller reached the first room and found the door gone."
+
+# Extra WORDLOCK candidates. Each must be A to Z and have exactly the WORDLOCK length for
+# the anchor's danger. They appear first among the decoys. APPENDED.
+# words = ["BELLS", "RAVEN"]
+
+# THE HOST: the system the player breaks into. Every key is LOCKED when present.
+# [host]
+# Host name, at most 40 characters.
+# name = "FIRST ROOM MAINFRAME"
+# Operating system flavour, sets the prompt: unix | vax | mainframe | dos
+# os = "unix"
+# Login banner text, at most 160 characters.
+# banner = "AUTHORIZED USERS ONLY"
+# What the player must do: retrieve | plant | crash
+# objective_kind = "retrieve"
+# One sentence, at most 100 characters.
+# objective = "Retrieve the file left for you."
+# DOS 8.3 file name, regex ^[A-Z0-9_-]{1,8}\.[A-Z0-9]{1,3}$. The payload.
+# target_file = "NOTE-00.LOG"
+# For crash objectives only: the lowercase name of the process to kill.
+# target_daemon = "watcher"
+# The ICE guarding the objective: breach | black | shadow
+# objective_ice = "breach"
+# Number of nodes in the host, 3 to 8.
+# nodes = 4
+# Display names for nodes (at most 24 characters each; the AI makes 8).
+# node_names = ["FRONT DESK", "BACK OFFICE"]
+# Names for ICE (at most 20 characters each; the AI makes 3).
+# ice_names = ["DOORMAN", "WATCHER"]
+
+# BOARD POSTS. Repeat the block for more. Authored posts always come first. APPENDED.
+# [[post]]
+# Poster handle, at most 16 characters. May be the shadow placeholder.
+# from = "GUIDE"
+# Subject, at most 40 characters.
+# subject = "Welcome"
+# Body, at most 600 characters.
+# body = """You did not dial us. Nobody does."""
+
+# FILES SHOWN IN THE BBS FILE LIBRARY (text the player can read). APPENDED.
+# [[text_file]]
+# DOS 8.3 file name, regex ^[A-Z0-9_-]{1,8}\.[A-Z0-9]{1,3}$.
+# name = "README.TXT"
+# Short description, at most 40 characters.
+# description = "Read me first"
+# Body, at most 900 characters. Pipe codes and art are allowed.
+# body = """Welcome to the first room."""
+
+# FILES FOUND ON THE HOST (read with cat, taken with get). APPENDED. Same keys as text_file.
+# [[host_file]]
+# name = "SHIFT.LOG"
+# description = "Operator log"
+# body = """Nothing to report."""
+
+# THE CHOICE after the payload. Two or three options. LOCKED when present.
+# [choice]
+# Question put to the player, at most 160 characters.
+# prompt = "The door is open. What do you do?"
+# [[choice.option]]
+# Option text, at most 70 characters.
+# text = "Step through."
+# Stance: integrate (face or accept the dark side) | repress (deny, flee or destroy)
+# | neutral (observe or bargain). Stances change the player's integration score.
+# stance = "integrate"
+# Up to two snake_case facts to remember, regex ^[a-z][a-z0-9_]{0,31}$.
+# flags = ["stepped_through"]
+# [[choice.option]]
+# text = "Slam it shut."
+# stance = "repress"
+# flags = ["slammed_door"]
+
+# EXITS: how the player descends. If present, give exactly three, one of each kind. LOCKED.
+# [[exit]]
+# Kind: calm (a gentle way down) | deep (a dangerous shortcut) | mirror (toward the Shadow).
+# kind = "calm"
+# Text at most 60 characters.
+# text = "A stairwell, carpeted and humming."
+# [[exit]]
+# kind = "deep"
+# text = "The carrier tone, followed down like a rope."
+# [[exit]]
+# kind = "mirror"
+# text = "Your reflection in the dark CRT."
+
+# ENDINGS: only on the last level of a story. First matching ending wins. LOCKED.
+# Every choice option's stance must match at least one ending.
+# [[ending]]
+# Unique id; the flag ending_ followed by this id is set if the player continues.
+# id = "whole"
+# Title, at most 40 characters.
+# title = "WHOLE"
+# Which option stance triggers this ending: integrate | repress | neutral
+# when_stance = "integrate"
+# Optional integration range (the score runs -10 to 10).
+# min_integration = 3
+# max_integration = 10
+# Animation behind the ending text (default mandala): tunnel | plasma | mandala | fire
+# | ouroboros | starfield | mirror | noise
+# vision = "mandala"
+# Ending text, adapted by the AI like other text fields, at most 900 characters.
+# text = """You hold both sides. The board goes quiet. The phone rings."""

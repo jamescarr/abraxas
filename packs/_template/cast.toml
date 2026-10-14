@@ -1,0 +1,57 @@
+# ABRAXAS story pack: cast.toml
+# Characters appear on boards, in chat, in the user list and on Beat screens.
+# An engine rule: a character is only available once the player reaches from_depth.
+# Cast text may use these placeholders: handle (the player's handle), shadow (the
+# player's Shadow handle) and real_name, each written in curly braces.
+# Write a literal brace by doubling it.
+
+[[character]]
+# Unique id. Regex: ^[a-z0-9_]{1,24}$. Anchors refer to this in sysop and focus.
+id = "guide"
+
+# Name shown on screen. For the character whose archetype is shadow, write exactly
+# the Shadow placeholder instead of a name, so it always matches the player's Shadow.
+# At most one character may use the shadow archetype.
+handle = "GUIDE"
+
+# Jungian role. One of:
+#   persona | shadow | syzygy | anima | animus | wise_old_man | great_mother
+#   | trickster | self | child | hero
+archetype = "wise_old_man"
+
+# First depth at which this character exists.
+from_depth = 0
+
+# true = the character may be chosen as the "focus" of a level, which shapes the
+# level's mood and the animation effects. false = never focus.
+focusable = true
+
+# At most 60 words, given to the AI to describe the character.
+description = """Keeper of the first board. Patient, tired, kind, and quietly aware of what lies beneath."""
+
+# At most 40 words on how the character speaks.
+voice = """Short sentences. Gentle. Answers questions with questions."""
+
+# Optional. A file in the pack's art/ directory (at most 36 columns by 16 rows
+# after pipe codes are removed). Remove this line for no portrait.
+# art = "guide.txt"
+
+# At least 3 lines used by the built-in ELIZA chat when nothing matches (also used
+# when the AI is offline). Keep each under 70 characters so it fits the chat pane.
+fallback = [
+  "I hear you. Say a little more.",
+  "The line is long. Take your time.",
+  "Ask me again, slower.",
+]
+
+# Keyword groups for ELIZA chat. The first group with a keyword found anywhere in
+# the player's line (case-insensitive) answers. Replies cycle in order.
+[[character.eliza]]
+# Words or phrases to look for.
+keywords = ["who are you", "name"]
+# At least one reply, ideally 3 or more.
+replies = [
+  "I keep the lamp lit. That is all.",
+  "A name is only what others call you.",
+  "Someone who stayed behind.",
+]

@@ -1,0 +1,81 @@
+id = "rollover"
+title = "ABRAXAS: The Rollover"
+author = "James Carr"
+version = "1"
+style = """Second person, present tense. Terse sentences. Late-90s computing vocabulary: baud, carrier, handshake, ratio, node, sysop, dial tone, line noise. Sensory and liminal detail: the hum, damp carpet, fluorescent light, a CRT's warm smell. Show images, never explanations. Let rooms feel recently abandoned and slightly wrong. Dread comes from quiet, repetition and doors that should not be there. Never name Jung or explain psychology. Never name real brands or real people. No technology after 1999. Plain text only."""
+motifs = [
+  "wet carpet",
+  "a payphone ringing",
+  "fluorescent hum",
+  "a dial tone with no end",
+  "rain on a laundromat window",
+  "a CRT warming up in an empty room",
+  "yellowed wallpaper that repeats",
+  "a modem handshake heard through a wall",
+  "a stairwell with one more flight than it should have",
+  "an answering machine counting down",
+  "a mirror that blinks late",
+  "a drowned switchboard",
+  "salt on the windowsill",
+  "a kingfisher on a telephone wire",
+]
+room_kinds = [
+  "a school district board",
+  "a regional telephone exchange",
+  "a drowned shopping mall food court",
+  "an abandoned call center",
+  "a hotel corridor with no room numbers",
+  "a university computing lab at 3 AM",
+  "a public library basement",
+  "a lighthouse converted to a relay station",
+  "a laundromat that never closes",
+  "a parking structure with every level the same",
+  "a municipal records office",
+  "a bus depot waiting room",
+]
+start_clock = "23:00:00"
+minutes_per_level = 4
+
+[[act]]
+id = "nigredo"
+name = "NIGREDO"
+depths = [0, 3]
+palette = "nigredo"
+goal = "Follow Wren's trail; learn you cannot hang up; meet your Shadow."
+direction = """The blackening. Soot, tar, burnt dust, dead phone lines, rain on glass. Rooms are cold and half-lit. The player discovers that every logoff leads deeper. Wren's logs surface as scraps. PHILEMON guides gently and says less than he knows. From level 1 the Shadow starts posting on every board, writing like the player but colder and more honest. Keep the mood grief-heavy and quiet. End the act with the Shadow asking to be answered."""
+default_vision = "fire"
+
+[[act]]
+id = "albedo"
+name = "ALBEDO"
+depths = [4, 7]
+palette = "albedo"
+goal = "Reflect; hear the operator's voice; learn where Wren went."
+direction = """The whitening. Moonlight on water, frost on glass, pale CRT glow, flooded corridors, mirrors, silver. SYZYGY breaks into the line as the operator voice: lunar, tender, truthful sideways, sometimes lovingly misleading. Rooms are drowned or reflected. The player reflects on what they have repressed and what they miss about Wren. Reveal that Wren found PLEROMA inside the patch and that it is lonely. Keep a hush over everything."""
+default_vision = "plasma"
+
+[[act]]
+id = "citrinitas"
+name = "CITRINITAS"
+depths = [8, 11]
+palette = "citrinitas"
+goal = "Break into the Millennium Patch; meet the Trickster and the Mother; face the Shadow."
+direction = """The yellowing. Sodium light, dawn through blinds, hot wires, static. Rooms rearrange themselves while you read. MERCURIUS is a glitch entity of puns and quicksilver, offering shortcuts at a price. MOTHER is PLEROMA's face: warm, suffocating, wanting everyone safe and asleep. Corridors tilt toward the Millennium Patch. The Shadow waits behind the payload. Pressure rises as midnight nears; choices cost something real."""
+default_vision = "tunnel"
+
+[[act]]
+id = "rubedo"
+name = "RUBEDO"
+depths = [12, 15]
+palette = "rubedo"
+goal = "Reach the Center before midnight; unite the opposites."
+direction = """The reddening. Blood-warm light, red phosphor, symmetry, mandalas, clock numerals rolling toward 00:00:00. Rooms grow geometric and radial, every door paired with its opposite. The Shadow walks beside the player, no longer hiding. MOTHER holds Wren in a loop of safe dreams. ABRAXAS speaks in paired opposites. Everything converges on the Center, a board shaped like a mandala. Let the tone turn from dread toward awe."""
+default_vision = "mandala"
+
+[endless]
+enabled = true
+name = "THE UNDERBOARD"
+palette = "prism"
+goal = "After the Rollover the net keeps dreaming; every level is a room in PLEROMA's memory."
+direction = """Keep the cast alive and changing: PHILEMON, MERCURIUS, MOTHER, SYZYGY and WREN may all return, altered by what the player has done. Let the Shadow's relationship to the player reflect the ending reached, read from the ending_<id> flag: warm after individuation, cold after cold_hand, absent or hollow after the_cut, vast and quiet after abraxas. Levels are rooms of PLEROMA's memory, never the same twice. The clock shows 01/01/19100. Prismatic light, endless corridors, tenderness and strangeness."""
+default_vision = "starfield"

@@ -1,0 +1,23 @@
+HX-BIOS v4.51PG (C) 1996-1999 Halcyon Microsystems
+Port Hecate Release 08/14/99-HX586-PCI-2A59HX-00
+
+HX-586 CPU at 233MHz
+Cache: 256K L2 Enabled     Bus: PCI 33MHz
+
+Memory Test : 
+
+Plug and Play Initialization ... Done
+
+Primary Master   : OUROBOROS OD-3200A  3200MB  UDMA-2
+Primary Slave    : None
+Secondary Master : ATAPI CD-ROM 24X
+Secondary Slave  : None
+
+Serial Port(s)   : COM1 3F8   COM2 2F8
+ COM2 : HALCYON 28.8 FAXMODEM  (V.34, V.42bis)
+Parallel Port(s) : LPT1 378
+Display          : VGA/ANSI Color 80x25
+
+Press DEL to enter SETUP
+
+03/31/99-HX586-PCI-2A59HX-00 / ODS PATCH BIOS 12-31-99

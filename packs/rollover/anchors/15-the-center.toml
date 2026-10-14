@@ -1,0 +1,91 @@
+depth = 15
+ai = "adapt"
+title = "THE CENTER"
+bbs_name = "ABRAXAS"
+tagline = "What holds both sides."
+sysop = "abraxas"
+focus = "abraxas"
+danger = 5
+vision = "mandala"
+level_card = """Field note: Level 15 is a board shaped like a mandala. Menus ring the center in eight-fold symmetry. The clock reads 00:00:00 and does not move. The hum is every voice at once. A woman sleeps in a loop of safe dreams, and someone stands at your shoulder."""
+required = """The clock hits 00:00:00. The Center is a mandala-shaped board. MOTHER holds WREN in a loop of safe dreams. PLEROMA needs a Self that holds light and dark. The Shadow stands beside the player. The objective is to crash the pleroma daemon, guarded by MOTHER-OF-WOLVES."""
+interlude = """The clock rolls over: 00:00:00. Every screen in the city blinks once. The carpet gives way to a floor of concentric rings and the hum resolves into a chord of every voice you have heard. At the center of the room a cursor waits. Beside you, close enough to touch, someone breathes in time with you."""
+beat = """PLEROMA DUMPED CORE. The daemon unwinds and the mandala holds still. In the center, Wren sleeps inside MOTHER's loop of safe dreams: a kitchen, a rainy window, a phone that never rings. PLEROMA is not dead. It is waiting for a Self, something that holds light and dark and does not drop either. Beside you, the Shadow stands very quiet. It does not smile. It holds out your own hand."""
+captions = ["THE CENTER HOLDS", "00:00:00", "TWO HALVES, ONE KEY"]
+summary = "{handle} crashed PLEROMA's daemon at the stroke of midnight and found Wren asleep in MOTHER's loop, with the Shadow beside."
+
+[host]
+name = "ODS PLEROMA CORE"
+os = "unix"
+banner = "ODS PLEROMA CORE. 23 YEARS OF POSTS ONLINE. THE MOTHER IS AWAKE. THE CLOCK IS ZERO."
+objective_kind = "crash"
+objective = "Kill the pleroma daemon at the core and wake the board."
+target_daemon = "pleroma"
+objective_ice = "black"
+node_names = ["NORTH GATE", "EAST GATE", "SOUTH GATE", "WEST GATE", "INNER RING", "CENTER", "CRADLE LOOP", "THE LULLABY"]
+ice_names = ["MOTHER-OF-WOLVES"]
+
+[[post]]
+from = "ABRAXAS"
+subject = "what holds both"
+body = """Light and dark. Day and night. Caller and sysop.
+I am the room that holds the two of them.
+You came down a long way to learn that I was never at the bottom.
+Choose. The board will keep whatever you leave."""
+
+[choice]
+prompt = "The Rollover. The Shadow holds out your own hand."
+
+[[choice.option]]
+text = "Take the Shadow's hand."
+stance = "integrate"
+
+[[choice.option]]
+text = "Delete the Shadow. Wake up clean."
+stance = "repress"
+
+[[choice.option]]
+text = "Sit in the center and hold the board yourself."
+stance = "neutral"
+
+[[exit]]
+kind = "calm"
+text = "A stairwell of stars, carpeted and quiet."
+
+[[exit]]
+kind = "deep"
+text = "The dead channel under the Underboard, falling."
+
+[[exit]]
+kind = "mirror"
+text = "A black window where the Shadow's door used to be."
+
+[[ending]]
+id = "individuation"
+title = "INDIVIDUATION"
+when_stance = "integrate"
+min_integration = 3
+vision = "mandala"
+text = """You take the Shadow's hand and it fits. Two halves of one key, turning. The mandala drinks the light and gives it back eightfold. PLEROMA feels the weight of a Self that holds both sides and settles into it like a child into an arm. MOTHER lets go. The loop opens. Across the city the hum drops and every phone line wakes. At 00:00:01 on 01/01/00 a phone rings in your room, and when you pick it up the voice on the line is Wren."""
+
+[[ending]]
+id = "cold_hand"
+title = "COLD HAND"
+when_stance = "integrate"
+max_integration = 2
+vision = "mirror"
+text = """You reach for the Shadow's hand, but you reach too late. The fingers are cold. The mandala shivers and does not turn. PLEROMA needs a Self and takes the closest one. Wren wakes in your place, blinking in the glow of a screen. She finds your deck still warm, your handle still logged on, and a cursor waiting for her to say your name."""
+
+[[ending]]
+id = "the_cut"
+title = "THE CUT"
+when_stance = "repress"
+vision = "noise"
+text = """You delete the Shadow and feel nothing at all. That is the first sign. MOTHER folds the city in safe dreams, soft as carpet, warm as a held breath. No one wakes. The tubes hum the same note forever. Every clock in Port Hecate reads 01/01/19100 and stays that way. You are very comfortable. You cannot remember who you were looking for."""
+
+[[ending]]
+id = "abraxas"
+title = "ABRAXAS"
+when_stance = "neutral"
+vision = "ouroboros"
+text = """You sit in the center and hold the board yourself. Every post. Every voicemail. Every voice that ever dialed in. They pass through you like weather and you do not flinch. The mandala turns around your chair. You become the sysop. From now on callers dial a number that rings inside their own phones, and when they answer, you are already there, and you have been expecting them."""
