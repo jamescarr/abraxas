@@ -154,7 +154,9 @@ impl OpenAiCompat {
     ) -> Self {
         let agent: ureq::Agent = ureq::Agent::config_builder()
             .timeout_connect(Some(Duration::from_secs(5)))
-            .timeout_recv_response(Some(Duration::from_secs(120)))
+            // A request queued behind another on a single-slot server (Ollama's default) sends no
+            // headers until its turn comes, so waiting for them gets the full generation budget.
+            .timeout_recv_response(Some(timeout.max(Duration::from_secs(120))))
             .timeout_recv_body(Some(timeout))
             .http_status_as_error(false)
             .build()
