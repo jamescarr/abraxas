@@ -1,8 +1,8 @@
 //! The AI director: schedules generation jobs, falls back to the offline generator, and reports
 //! results as `DirectorEvent`s.
 //!
-//! SCAFFOLD: the data types below are final; the `Director` methods are placeholders that the
-//! director step replaces.
+//! SCAFFOLD: the data types below are final; the `Director` methods are inert placeholders (they
+//! never produce events) that the director step replaces.
 
 use std::collections::BTreeSet;
 use std::sync::Arc;
@@ -111,21 +111,13 @@ impl Director {
         }
     }
 
-    pub fn warmup(&self) {
-        unimplemented!("SCAFFOLD: director step")
-    }
+    pub fn warmup(&self) {}
 
-    pub fn request_place(&mut self, _run: &RunState, _depth: u32) {
-        unimplemented!("SCAFFOLD: director step")
-    }
+    pub fn request_place(&mut self, _run: &RunState, _depth: u32) {}
 
-    pub fn request_passage(&mut self, _run: &RunState, _depth: u32) {
-        unimplemented!("SCAFFOLD: director step")
-    }
+    pub fn request_passage(&mut self, _run: &RunState, _depth: u32) {}
 
-    pub fn request_interlude(&mut self, _run: &RunState, _depth: u32) {
-        unimplemented!("SCAFFOLD: director step")
-    }
+    pub fn request_interlude(&mut self, _run: &RunState, _depth: u32) {}
 
     /// Returns a session id echoed by `ChatDelta`/`ChatDone`.
     pub fn request_chat(
@@ -134,23 +126,17 @@ impl Director {
         _partner: &ChatPartner,
         _history: &[ChatLine],
     ) -> u64 {
-        unimplemented!("SCAFFOLD: director step")
+        0
     }
 
-    pub fn request_epilogue(&mut self, _run: &RunState, _ending: &EndingDef) {
-        unimplemented!("SCAFFOLD: director step")
-    }
+    pub fn request_epilogue(&mut self, _run: &RunState, _ending: &EndingDef) {}
 
     pub fn is_pending(&self, kind: JobKind, depth: u32) -> bool {
         self.pending.contains(&(kind, depth))
     }
 
     /// Clear pending markers for a finished job.
-    pub fn on_event(&mut self, _ev: &DirectorEvent) {
-        unimplemented!("SCAFFOLD: director step")
-    }
+    pub fn on_event(&mut self, _ev: &DirectorEvent) {}
 
-    pub fn cancel_all(&mut self) {
-        unimplemented!("SCAFFOLD: director step")
-    }
+    pub fn cancel_all(&mut self) {}
 }

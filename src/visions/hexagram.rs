@@ -17,103 +17,9 @@ const TYPE_MS: u128 = 40;
 pub const HEIGHT: u16 = 8;
 const MIN_WIDTH: usize = 14;
 
-/// Trigram lines bottom to top (true = yang).
-fn trigram(code: char) -> [bool; 3] {
-    match code {
-        'H' => [true, true, true],
-        'L' => [true, true, false],
-        'F' => [true, false, true],
-        'T' => [true, false, false],
-        'N' => [false, true, true],
-        'W' => [false, true, false],
-        'M' => [false, false, true],
-        _ => [false, false, false],
-    }
-}
-
-/// King Wen order: (upper, lower, name).
-const TABLE: [(char, char, &str); 64] = [
-    ('H', 'H', "The Creative"),
-    ('E', 'E', "The Receptive"),
-    ('W', 'T', "Difficulty at the Beginning"),
-    ('M', 'W', "Youthful Folly"),
-    ('W', 'H', "Waiting"),
-    ('H', 'W', "Conflict"),
-    ('E', 'W', "The Army"),
-    ('W', 'E', "Holding Together"),
-    ('N', 'H', "The Taming Power of the Small"),
-    ('H', 'L', "Treading"),
-    ('E', 'H', "Peace"),
-    ('H', 'E', "Standstill"),
-    ('H', 'F', "Fellowship with Men"),
-    ('F', 'H', "Possession in Great Measure"),
-    ('E', 'M', "Modesty"),
-    ('T', 'E', "Enthusiasm"),
-    ('L', 'T', "Following"),
-    ('M', 'N', "Work on What Has Been Spoiled"),
-    ('E', 'L', "Approach"),
-    ('N', 'E', "Contemplation"),
-    ('F', 'T', "Biting Through"),
-    ('M', 'F', "Grace"),
-    ('M', 'E', "Splitting Apart"),
-    ('E', 'T', "Return"),
-    ('H', 'T', "Innocence"),
-    ('M', 'H', "The Taming Power of the Great"),
-    ('M', 'T', "The Corners of the Mouth"),
-    ('L', 'N', "Preponderance of the Great"),
-    ('W', 'W', "The Abysmal"),
-    ('F', 'F', "The Clinging"),
-    ('L', 'M', "Influence"),
-    ('T', 'N', "Duration"),
-    ('H', 'M', "Retreat"),
-    ('T', 'H', "The Power of the Great"),
-    ('F', 'E', "Progress"),
-    ('E', 'F', "Darkening of the Light"),
-    ('N', 'F', "The Family"),
-    ('F', 'L', "Opposition"),
-    ('W', 'M', "Obstruction"),
-    ('T', 'W', "Deliverance"),
-    ('M', 'L', "Decrease"),
-    ('N', 'T', "Increase"),
-    ('L', 'H', "Break-through"),
-    ('H', 'N', "Coming to Meet"),
-    ('L', 'E', "Gathering Together"),
-    ('E', 'N', "Pushing Upward"),
-    ('L', 'W', "Oppression"),
-    ('W', 'N', "The Well"),
-    ('L', 'F', "Revolution"),
-    ('F', 'N', "The Caldron"),
-    ('T', 'T', "The Arousing"),
-    ('M', 'M', "Keeping Still"),
-    ('N', 'M', "Development"),
-    ('T', 'L', "The Marrying Maiden"),
-    ('T', 'F', "Abundance"),
-    ('F', 'M', "The Wanderer"),
-    ('N', 'N', "The Gentle"),
-    ('L', 'L', "The Joyous"),
-    ('N', 'W', "Dispersion"),
-    ('W', 'L', "Limitation"),
-    ('N', 'L', "Inner Truth"),
-    ('T', 'M', "Preponderance of the Small"),
-    ('W', 'F', "After Completion"),
-    ('F', 'W', "Before Completion"),
-];
-
-fn entry(number: u8) -> &'static (char, char, &'static str) {
-    &TABLE[usize::from(number.clamp(1, 64)) - 1]
-}
-
-/// Six lines bottom to top (true = yang): lower trigram at the bottom.
-fn lines(number: u8) -> [bool; 6] {
-    let (upper, lower, _) = entry(number);
-    let (lo, up) = (trigram(*lower), trigram(*upper));
-    [lo[0], lo[1], lo[2], up[0], up[1], up[2]]
-}
-
 /// `29 THE ABYSMAL`.
 pub fn hexagram_title(number: u8) -> String {
-    let n = number.clamp(1, 64);
-    format!("{n:02} {}", entry(n).2.to_uppercase())
+    crate::oracle::title(number)
 }
 
 #[derive(Debug, Clone)]
@@ -128,7 +34,7 @@ impl HexagramCast {
     pub fn new(number: u8, calm: bool) -> Self {
         let title = hexagram_title(number);
         let mut cast = Self {
-            lines: lines(number),
+            lines: crate::oracle::lines(number),
             title,
             calm,
             elapsed: Duration::ZERO,
@@ -247,30 +153,6 @@ mod tests {
 
     fn visible(rows: &[String]) -> usize {
         rows[..6].iter().filter(|r| r.contains('█')).count()
-    }
-
-    #[test]
-    fn trigram_rule_matches_known_hexagrams() {
-        assert_eq!(lines(1), [true; 6]);
-        assert_eq!(lines(2), [false; 6]);
-        // 63 After Completion: water (010) over fire (101), bottom to top.
-        assert_eq!(lines(63), [true, false, true, false, true, false]);
-        // 11 Peace: earth over heaven.
-        assert_eq!(lines(11), [true, true, true, false, false, false]);
-    }
-
-    #[test]
-    fn all_64_hexagrams_are_distinct() {
-        let mut seen = std::collections::BTreeSet::new();
-        for n in 1..=64u8 {
-            assert!(seen.insert(lines(n)), "duplicate lines at {n}");
-        }
-    }
-
-    #[test]
-    fn title_format() {
-        assert_eq!(hexagram_title(29), "29 THE ABYSMAL");
-        assert_eq!(hexagram_title(63), "63 AFTER COMPLETION");
     }
 
     #[test]
