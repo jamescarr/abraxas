@@ -33,7 +33,9 @@ use crate::rng::Rng;
 use crate::ui::canvas::{self, HEIGHT, STATUS_ROW, WIDTH};
 use crate::ui::crt;
 use crate::ui::keys::{self, Key, classify};
-use crate::ui::screens::{BootScreen, DialerScreen, MenuScreen, Nav, Screen, ScreenImpl, help};
+use crate::ui::screens::{
+    BootScreen, DeathScreen, DialerScreen, MenuScreen, Nav, Screen, ScreenImpl, help,
+};
 use crate::ui::status::{ModemLights, render_status};
 use crate::ui::widgets::banner::{BoxKind, boxed};
 
@@ -621,10 +623,20 @@ impl App {
             let nav = self.screen.tick(dt, &mut self.ctx);
             self.apply_nav(nav);
         }
+        self.check_ego_death();
         if let Some(ov) = self.ctx.overlay_request.take() {
             self.overlay = Some(ov);
         }
         self.drain_fx();
+    }
+
+    /// EGO 0 ends the run wherever it happens: whatever screen is up, the Death screen takes over.
+    fn check_ego_death(&mut self) {
+        let dead = self.ctx.run.as_ref().is_some_and(|r| r.stats.is_dead());
+        if dead && !matches!(self.screen, Screen::Death(_)) && !self.quit {
+            let death = Screen::Death(DeathScreen::new(&mut self.ctx));
+            self.apply_nav(Nav::To(Box::new(death)));
+        }
     }
 
     fn track_level_clock(&mut self, dt: Duration) {
@@ -668,6 +680,18 @@ impl App {
             Nav::Stay => {}
             Nav::To(next) => {
                 self.screen_changed();
+                // Level-root screens start a fresh stack: nothing underneath them is still valid.
+                if matches!(
+                    *next,
+                    Screen::Dialer(_)
+                        | Screen::Dialing(_)
+                        | Screen::Login(_)
+                        | Screen::LevelCard(_)
+                        | Screen::Menu(_)
+                        | Screen::Death(_)
+                ) {
+                    self.stack.clear();
+                }
                 self.screen = *next;
             }
             Nav::Push(next) => {
@@ -1348,6 +1372,38 @@ mod tests {
             lit[0].trim(),
             "ABRAXAS needs an 80x25 terminal. This one is 79x24."
         );
+    }
+
+    #[test]
+    fn nav_to_a_level_root_clears_the_stack() {
+        let dir = tempfile::tempdir().unwrap();
+        let mut app = dialer_app(dir.path());
+        app.ctx.run = Some(new_run());
+        let boot = Screen::Boot(BootScreen::new(&mut app.ctx));
+        app.apply_nav(Nav::Push(Box::new(boot)));
+        let first_menu = Screen::Menu(MenuScreen::new(&mut app.ctx));
+        app.apply_nav(Nav::Push(Box::new(first_menu)));
+        assert_eq!(app.stack.len(), 2);
+        let menu = Screen::Menu(MenuScreen::new(&mut app.ctx));
+        app.apply_nav(Nav::To(Box::new(menu)));
+        assert!(
+            app.stack.is_empty(),
+            "stale screens must not survive a level-root transition"
+        );
+    }
+
+    #[test]
+    fn ego_zero_hands_the_screen_to_death_from_anywhere() {
+        let dir = tempfile::tempdir().unwrap();
+        let mut app = dialer_app(dir.path());
+        let mut run = new_run();
+        run.stats.ego = 0;
+        app.ctx.run = Some(run);
+        app.step(None, Duration::from_millis(33));
+        assert_eq!(app.screen.name(), "Death");
+        // Once on Death it stays (no re-entry loop).
+        app.step(None, Duration::from_millis(33));
+        assert_eq!(app.screen.name(), "Death");
     }
 
     #[test]
