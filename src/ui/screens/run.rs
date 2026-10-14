@@ -378,15 +378,7 @@ impl RunScreen {
             Some(n) => self.session.apply_ice_outcome(n, outcome),
             None => self.session.apply_bounce_outcome(outcome),
         });
-        let portal_aborted = node == Some(0)
-            && matches!(outcome, crate::ice::IceOutcome::Aborted { .. })
-            && self.session.needs_login();
-        let nav = self.apply_effects(effects, ctx);
-        if portal_aborted && matches!(nav, Nav::Stay) && !matches!(self.mode, Mode::Dump { .. }) {
-            ctx.autosave();
-            return Nav::Back;
-        }
-        nav
+        self.apply_effects(effects, ctx)
     }
 
     // ----- effects -------------------------------------------------------------------------
@@ -1127,22 +1119,32 @@ mod tests {
     }
 
     #[test]
-    fn esc_in_the_portal_wordlock_drops_back_to_the_menu_with_trace() {
+    fn esc_in_the_portal_wordlock_costs_trace_and_leaves_the_locked_shell() {
         let dir = tempfile::tempdir().unwrap();
         let mut ctx = test_ctx(dir.path());
         install_test_run(&mut ctx, 0);
         let mut screen = RunScreen::new(&mut ctx);
         let nav = screen.handle_key(press(KeyCode::Esc), &mut ctx);
-        assert!(matches!(nav, Nav::Back));
+        assert!(matches!(nav, Nav::Stay), "the shell stays up");
         assert!(screen.session.trace() >= 5.0, "abort costs 5 trace");
         assert!(screen.session.needs_login(), "the portal was not passed");
+        assert!(screen.in_text_input(), "the prompt is available again");
     }
 
     #[test]
-    fn esc_through_the_app_returns_to_the_menu() {
+    fn the_locked_portal_refuses_to_connect_and_reopens_the_password_prompt() {
         let mut r = rig(0);
         r.press(press(KeyCode::Esc));
-        assert_eq!(r.app.screen.name(), "Menu");
+        let neighbour = {
+            let session = &r.run().session;
+            session.nodes()[session.nodes()[0].neighbors[0]].id.clone()
+        };
+        for c in format!("connect {neighbour}").chars() {
+            r.press(press_char(c));
+        }
+        r.press(press(KeyCode::Enter));
+        assert!(r.text().contains("WORDLOCK"), "the lock is offered again");
+        assert_eq!(r.run().session.current_node().id, "portal0");
     }
 
     /// Select the password through key events (cursor moves are linear over 2 x 12 columns).

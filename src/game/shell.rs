@@ -320,6 +320,17 @@ fn connect(session: &mut HostSession, rest: &str, out: &mut Vec<ShellEffect>) {
         err(out, &format!("no route to {rest}"));
         return;
     }
+    if session.current == 0 && session.needs_login() {
+        // The front door is still locked: nothing beyond it is reachable until the WORDLOCK
+        // falls, and trying again re-opens the password prompt.
+        err(out, "ACCESS DENIED: the front door is locked.");
+        out.push(ShellEffect::highlight("ENTER PASSWORD NOW"));
+        out.push(ShellEffect::StartIce {
+            node: 0,
+            kind: IceKindAt::Wordlock,
+        });
+        return;
+    }
     if !session.bump(2.0, true, out) {
         return;
     }
@@ -1153,6 +1164,38 @@ mod tests {
             }
             assert_eq!(s.current(), i);
         }
+    }
+
+    #[test]
+    fn a_locked_front_door_blocks_connect_and_reoffers_the_wordlock() {
+        let mut s = mk(ObjectiveKind::Retrieve, 2, None, 3);
+        assert!(s.needs_login());
+        let adj = s.nodes()[0].neighbors[0];
+        let id = s.nodes()[adj].id.clone();
+        let fx = execute(&mut s, &format!("connect {id}"));
+        assert!(has(
+            &fx,
+            &ShellEffect::StartIce {
+                node: 0,
+                kind: IceKindAt::Wordlock
+            }
+        ));
+        assert_eq!(s.current(), 0);
+        assert_eq!(s.trace(), 0.0, "a refused connect costs nothing");
+        // Read-only commands still work while locked out.
+        assert!(!text(&execute(&mut s, "ls")).is_empty());
+        s.apply_ice_outcome(0, IceOutcome::Cleared);
+        let fx = execute(&mut s, &format!("connect {id}"));
+        assert!(
+            !has(
+                &fx,
+                &ShellEffect::StartIce {
+                    node: 0,
+                    kind: IceKindAt::Wordlock
+                }
+            ),
+            "after login the front door no longer blocks"
+        );
     }
 
     #[test]
