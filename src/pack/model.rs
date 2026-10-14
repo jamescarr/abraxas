@@ -625,6 +625,25 @@ impl StoryPack {
         }
     }
 
+    /// True when finishing the choice at `depth` plays an ending: the anchor there has authored
+    /// endings, or it is the last authored depth and the endless tail is disabled (the generic
+    /// `END OF LINE` ending).
+    pub fn ends_run_at(&self, depth: u32) -> bool {
+        self.anchor_at(depth)
+            .is_some_and(|a| !a.anchor.ending.is_empty())
+            || (!self.endless_enabled() && !self.meta.act.is_empty() && depth == self.last_depth())
+    }
+
+    /// The first authored ending at `depth` that matches the chosen stance and the player's
+    /// integration (`None` when there are none or none match).
+    pub fn ending_for(&self, depth: u32, stance: Stance, integration: i32) -> Option<&EndingDef> {
+        self.anchor_at(depth)?
+            .anchor
+            .ending
+            .iter()
+            .find(|e| e.matches(stance, integration))
+    }
+
     pub fn anchor_at(&self, depth: u32) -> Option<&AnchorEntry> {
         self.anchors.iter().find(|a| a.anchor.depth == depth)
     }

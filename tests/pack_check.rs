@@ -351,3 +351,17 @@ fn parse_errors_are_listed_with_validation_errors_absent() {
     );
     assert!(got.iter().any(|i| i.starts_with("cast.toml:")), "{got:#?}");
 }
+
+#[test]
+fn rollover_endings_are_selected_by_stance_and_integration() {
+    use abraxas::pack::model::Stance;
+    let pack = abraxas::pack::embedded().unwrap();
+    assert!(pack.ends_run_at(15));
+    assert!(!pack.ends_run_at(14));
+    let id = |s, i| pack.ending_for(15, s, i).map(|e| e.id.as_str());
+    assert_eq!(id(Stance::Integrate, 3), Some("individuation"));
+    assert_eq!(id(Stance::Integrate, 2), Some("cold_hand"));
+    assert_eq!(id(Stance::Repress, 0), Some("the_cut"));
+    assert_eq!(id(Stance::Neutral, 0), Some("abraxas"));
+    assert_eq!(pack.ending_for(14, Stance::Neutral, 0), None);
+}
