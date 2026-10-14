@@ -20,10 +20,8 @@ use std::time::Duration;
 use ratatui::Frame;
 use ratatui::crossterm::event::KeyEvent;
 use ratatui::layout::Rect;
-use ratatui::style::{Color, Style};
 
 use crate::ui::app::Ctx;
-use crate::ui::canvas::put_centered;
 
 pub mod archive;
 pub mod beat;
@@ -177,15 +175,4 @@ screens! {
     Descent(DescentScreen),
     Death(DeathScreen),
     Ending(EndingScreen),
-}
-
-/// Draws `[name: not implemented yet]` centred. Used only by placeholder screens.
-pub fn render_placeholder(frame: &mut Frame, area: Rect, name: &str) {
-    put_centered(
-        frame.buffer_mut(),
-        area,
-        area.y + area.height / 2,
-        &format!("[{name}: not implemented yet]"),
-        Style::new().fg(Color::Gray),
-    );
 }
