@@ -1527,7 +1527,8 @@ mod tests {
         app.step(key(press_char('N')), Duration::ZERO);
         assert!(app.overlay.is_none());
         assert!(!app.quit);
-        assert!(!app.ctx.store.exists("tester"));
+        // Generation results autosave as they land; start the quit check from a clean slate.
+        app.ctx.store.delete("tester").unwrap();
 
         app.step(key(press_ctrl('c')), Duration::ZERO);
         assert_eq!(app.overlay, Some(Overlay::ConfirmQuit));
