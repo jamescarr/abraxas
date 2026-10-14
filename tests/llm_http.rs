@@ -1,4 +1,5 @@
 //! `OpenAiCompat` against a tiny hand-written HTTP/1.1 server.
+#![allow(clippy::unwrap_used, clippy::expect_used)]
 
 use std::io::{Read, Write};
 use std::net::{TcpListener, TcpStream};
