@@ -23,11 +23,11 @@ pub struct PlaceGen {
     #[schemars(length(max = 32))]
     pub sysop: String,
     pub host: HostGen,
-    #[schemars(length(max = 8))]
+    #[schemars(length(max = 6))]
     pub posts: Vec<PostGen>,
     #[schemars(length(max = 4))]
     pub text_files: Vec<FileGen>,
-    #[schemars(length(max = 6))]
+    #[schemars(length(max = 4))]
     pub host_files: Vec<FileGen>,
     #[schemars(length(max = 28), inner(length(max = 24)))]
     pub words: Vec<String>,
@@ -56,7 +56,7 @@ pub struct PostGen {
     pub from: String,
     #[schemars(length(max = 80))]
     pub subject: String,
-    #[schemars(length(max = 1200))]
+    #[schemars(length(max = 800))]
     pub body: String,
 }
 
@@ -66,7 +66,7 @@ pub struct FileGen {
     pub name: String,
     #[schemars(length(max = 80))]
     pub description: String,
-    #[schemars(length(max = 1800))]
+    #[schemars(length(max = 800))]
     pub body: String,
 }
 
@@ -168,6 +168,28 @@ mod tests {
     fn schemas_bound_every_string_and_array() {
         assert_bounded(&place_schema());
         assert_bounded(&passage_schema());
+    }
+
+    #[test]
+    fn place_schema_limits_are_twice_the_prompt_limits() {
+        let place = place_schema();
+        let props = &place["properties"];
+        assert_eq!(props["posts"]["maxItems"], 6);
+        assert_eq!(props["text_files"]["maxItems"], 4);
+        assert_eq!(props["host_files"]["maxItems"], 4);
+        assert_eq!(
+            props["posts"]["items"]["properties"]["body"]["maxLength"],
+            800
+        );
+        assert_eq!(
+            props["posts"]["items"]["properties"]["subject"]["maxLength"],
+            80
+        );
+        for list in ["text_files", "host_files"] {
+            let item = &props[list]["items"]["properties"];
+            assert_eq!(item["body"]["maxLength"], 800, "{list}");
+            assert_eq!(item["description"]["maxLength"], 80, "{list}");
+        }
     }
 
     #[test]

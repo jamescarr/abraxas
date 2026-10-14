@@ -243,13 +243,13 @@ fn passage_json() -> String {
 }
 
 fn assert_place_invariants(place: &Place, run: &RunState, depth: u32) {
-    assert_eq!(place.posts.len(), 5, "4 posts plus the clue post");
+    assert_eq!(place.posts.len(), 4, "3 posts plus the clue post");
     assert!(place.posts.iter().any(|p| p.subject == "re: front door"));
     if depth >= 1 {
         assert!(place.posts.iter().any(|p| p.from == run.shadow()));
     }
     assert_eq!(place.text_files.len(), 2);
-    assert_eq!(place.host_files.len(), 3);
+    assert_eq!(place.host_files.len(), 2);
     assert_eq!(place.host.node_names.len(), 8);
     assert_eq!(place.host.ice_names.len(), 3);
     assert!(place.words.contains(&place.password));

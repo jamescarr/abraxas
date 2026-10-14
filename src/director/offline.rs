@@ -156,10 +156,24 @@ mod tests {
             for depth in 0..=20u32 {
                 let (s, place, passage) = level(&r, &pack, depth);
                 let ctx = format!("seed {seed} depth {depth}");
-                assert_eq!(place.posts.len(), 5, "{ctx}");
-                assert_eq!(place.posts[4].subject, "re: front door", "{ctx}");
-                assert_eq!(place.text_files.len(), 2, "{ctx}");
-                assert_eq!(place.host_files.len(), 3, "{ctx}");
+                let anchor = pack.anchor_at(depth).map(|e| &e.anchor);
+                let authored = |n: Option<usize>| n.unwrap_or(0);
+                let posts = 3.max(authored(anchor.map(|a| a.post.len()))) + 1;
+                assert_eq!(place.posts.len(), posts, "{ctx}");
+                assert_eq!(place.posts[posts - 1].subject, "re: front door", "{ctx}");
+                assert_eq!(
+                    place.text_files.len(),
+                    2.max(authored(anchor.map(|a| a.text_file.len()))),
+                    "{ctx}"
+                );
+                assert_eq!(
+                    place.host_files.len(),
+                    2.max(authored(anchor.map(|a| a.host_file.len()))),
+                    "{ctx}"
+                );
+                if anchor.is_none() {
+                    assert_eq!((place.posts.len(), place.host_files.len()), (4, 2), "{ctx}");
+                }
                 for list in [&place.text_files, &place.host_files] {
                     let mut names: Vec<&str> = list.iter().map(|f| f.name.as_str()).collect();
                     assert!(names.iter().all(|n| is_83_name(n)), "{ctx}: {names:?}");
@@ -182,7 +196,10 @@ mod tests {
                 assert_eq!(place.host.ice_names.len(), 3, "{ctx}");
                 assert!((2..=16).contains(&place.sysop.handle.len()), "{ctx}");
                 let shadow = r.shadow();
-                let shadow_posts = place.posts[..4].iter().filter(|p| p.from == shadow).count();
+                let shadow_posts = place.posts[..posts - 1]
+                    .iter()
+                    .filter(|p| p.from == shadow)
+                    .count();
                 assert_eq!(shadow_posts >= 1, depth >= 1, "{ctx}");
                 match s.objective_kind {
                     ObjectiveKind::Retrieve => {
@@ -325,9 +342,9 @@ mod tests {
         let (_, second, _) = level(&r, &pack, 5);
         assert_ne!(first.title, second.title);
         assert_ne!(first.bbs_name, second.bbs_name);
-        for p in &second.posts[..4] {
+        for p in &second.posts[..3] {
             assert!(
-                !first.posts[..4]
+                !first.posts[..3]
                     .iter()
                     .any(|q| q.from == p.from && q.subject == p.subject),
                 "reused post {p:?}"
