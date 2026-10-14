@@ -27,7 +27,7 @@ use crate::game::state::{
     ClockReading, GenSource, HostInfo, Level, Passage, Place, RunState, Sysop,
 };
 use crate::llm::{Llm, OpenAiCompat};
-use crate::pack::model::{ActView, Character, HostOs, PaletteId, PostDef, StoryPack};
+use crate::pack::model::{ActView, Character, HostOs, PaletteId, PostDef, StoryPack, VisionKind};
 use crate::palette::{Dos, Palette};
 use crate::rng::Rng;
 use crate::ui::canvas::{self, HEIGHT, STATUS_ROW, WIDTH};
@@ -38,6 +38,7 @@ use crate::ui::screens::{
 };
 use crate::ui::status::{ModemLights, render_status};
 use crate::ui::widgets::banner::{BoxKind, boxed};
+use crate::visions::Vision;
 
 // ---------------------------------------------------------------------------------------------
 // Overlays and effects
@@ -144,6 +145,9 @@ pub struct Ctx {
     pub epilogue: EpilogueBuf,
     /// The previous frame's canvas (80x25, origin 0,0), for dissolve and the mirror vision.
     pub last_frame: Buffer,
+    /// Time left of the noise-vision burst that plays when generation fell back to the offline
+    /// generator after an AI failure (400 ms; never in calm mode).
+    pub noise_burst: Duration,
 }
 
 impl Ctx {
@@ -175,6 +179,7 @@ impl Ctx {
             streams: BTreeMap::new(),
             chat_inbox: Vec::new(),
             epilogue: EpilogueBuf::default(),
+            noise_burst: Duration::ZERO,
             last_frame: Buffer::empty(Rect::new(0, 0, WIDTH, HEIGHT)),
             config,
             paths,
@@ -409,6 +414,9 @@ pub fn install_test_run(ctx: &mut Ctx, depth: u32) {
 // Generation pumping
 // ---------------------------------------------------------------------------------------------
 
+/// How long the noise burst after an AI fallback lasts.
+const NOISE_BURST: Duration = Duration::from_millis(400);
+
 /// One generation request the run needs right now.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum GenNeed {
@@ -518,6 +526,19 @@ pub fn pump_generation(ctx: &mut Ctx) {
 /// level already has is kept.
 pub fn apply_director_event(ctx: &mut Ctx, ev: DirectorEvent) {
     ctx.lights.on_event(&ev);
+    let fell_back = match &ev {
+        DirectorEvent::PlaceReady { source, .. }
+        | DirectorEvent::PassageReady { source, .. }
+        | DirectorEvent::InterludeDone { source, .. }
+        | DirectorEvent::ChatDone { source, .. }
+        | DirectorEvent::EpilogueDone { source, .. } => {
+            matches!(source, GenSource::Offline { reason } if !reason.is_empty())
+        }
+        _ => false,
+    };
+    if fell_back {
+        ctx.noise_burst = NOISE_BURST;
+    }
     let Ctx {
         run,
         pack,
@@ -655,6 +676,7 @@ impl App {
         self.ctx.elapsed += dt;
         self.pending_dt += dt;
         self.ctx.lights.tick(dt);
+        self.ctx.noise_burst = self.ctx.noise_burst.saturating_sub(dt);
         self.track_level_clock(dt);
 
         while let Ok(ev) = self.ctx.events.try_recv() {
@@ -852,6 +874,17 @@ impl App {
         let dt = std::mem::take(&mut self.pending_dt);
         self.effects.process_effects(dt, frame.buffer_mut(), c);
         copy_canvas(frame.buffer_mut(), c, &mut self.ctx.last_frame);
+        if !self.ctx.noise_burst.is_zero() && !self.ctx.calm() {
+            let mut noise = Vision::new(
+                VisionKind::Noise,
+                self.ctx.opts.seed.unwrap_or(0),
+                0,
+                self.ctx.gradient(),
+                false,
+            );
+            noise.tick(self.ctx.elapsed);
+            noise.render(c, frame.buffer_mut());
+        }
         if let Some(overlay) = &self.overlay {
             render_overlay(overlay, frame.buffer_mut(), c, &self.ctx);
         }
@@ -1439,6 +1472,49 @@ mod tests {
             "THE BLACK SUN"
         );
         assert_eq!(ctx.passage().unwrap().exits.len(), 3);
+    }
+
+    #[test]
+    fn an_ai_fallback_triggers_a_noise_burst_that_expires_and_authored_does_not() {
+        let dir = tempfile::tempdir().unwrap();
+        let mut ctx = test_ctx(dir.path());
+        install_test_run(&mut ctx, 3);
+        let place = ctx.place().unwrap().clone();
+        let event = |source| DirectorEvent::PlaceReady {
+            depth: 4,
+            place: place.clone(),
+            source,
+        };
+        apply_director_event(&mut ctx, event(GenSource::Authored));
+        apply_director_event(
+            &mut ctx,
+            event(GenSource::Offline {
+                reason: String::new(),
+            }),
+        );
+        assert!(
+            ctx.noise_burst.is_zero(),
+            "authored and plain offline mode are not failures"
+        );
+        apply_director_event(
+            &mut ctx,
+            event(GenSource::Offline {
+                reason: "timed out".into(),
+            }),
+        );
+        assert_eq!(ctx.noise_burst, NOISE_BURST);
+
+        let mut app = App::with_screen(
+            ctx,
+            Screen::Dialer(DialerScreen::new(&mut test_ctx(dir.path()))),
+        );
+        app.step(None, Duration::from_millis(250));
+        assert!(!app.ctx.noise_burst.is_zero());
+        let noisy = draw(&mut app, 80, 25);
+        app.step(None, Duration::from_millis(250));
+        assert!(app.ctx.noise_burst.is_zero());
+        let clean = draw(&mut app, 80, 25);
+        assert_ne!(noisy, clean, "the burst replaces the screen while it lasts");
     }
 
     #[test]
