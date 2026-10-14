@@ -234,6 +234,9 @@ impl DescentScreen {
             }
         }
         ctx.autosave();
+        // Whatever the director is still writing for the level behind us is now redundant;
+        // stop it so a slow model's backlog cannot delay the next chat or prefetch.
+        ctx.director.cancel_all();
     }
 
     fn start_cast(&mut self, ctx: &Ctx) {
