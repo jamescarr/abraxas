@@ -180,6 +180,23 @@ pub struct Place {
     pub password: String,
 }
 
+impl Place {
+    /// Keys recorded in `RunState::used_pool` when this place is adopted, so the offline
+    /// generator avoids repeating titles, BBS names and posts within a run. The same key format
+    /// is what `director::offline` checks when it picks from the pool.
+    pub fn pool_keys(&self) -> Vec<String> {
+        let mut keys = Vec::with_capacity(2 + self.posts.len());
+        keys.push(format!("title:{}", self.title));
+        keys.push(format!("bbs:{}", self.bbs_name));
+        keys.extend(
+            self.posts
+                .iter()
+                .map(|p| format!("post:{}|{}", p.from, p.subject)),
+        );
+        keys
+    }
+}
+
 /// A validated passage: the payload beat, the choice, the exits and the descent dressing.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Passage {
