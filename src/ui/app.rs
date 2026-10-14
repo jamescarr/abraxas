@@ -356,6 +356,55 @@ pub fn test_ctx(dir: &Path) -> Ctx {
     ctx
 }
 
+/// Test helper: install a registered run (`TESTER`) at `depth` as `ctx.run`, with the levels at
+/// `depth` and `depth + 1` fully populated by the offline generator (place, passage and
+/// interlude), as if generation had already finished. The run is in `Phase::Arrival`.
+pub fn install_test_run(ctx: &mut Ctx, depth: u32) {
+    use crate::director::offline;
+    use crate::director::validate::GenContext;
+    use crate::game::state::{GenSource, RunState};
+
+    let seed = ctx.opts.seed.unwrap_or(42);
+    let mut run = RunState::new(
+        "Tester",
+        "Test Person",
+        "a dream",
+        seed,
+        ctx.pack.meta.id.clone(),
+        None,
+    );
+    run.depth = depth;
+    for d in [depth, depth + 1] {
+        ensure_level(&mut run, &ctx.pack, d);
+        let Some(level_seed) = run.levels.get(&d).map(|l| l.seed.clone()) else {
+            continue;
+        };
+        let generated = {
+            let gen_ctx = GenContext {
+                run: &run,
+                pack: &ctx.pack,
+                seed: &level_seed,
+            };
+            let place = offline::place(&gen_ctx);
+            let passage = offline::passage(&gen_ctx, &place);
+            let interlude = offline::interlude(&gen_ctx, &place, None);
+            (place, passage, interlude)
+        };
+        let source = GenSource::Offline {
+            reason: "test".to_string(),
+        };
+        if let Some(level) = run.levels.get_mut(&d) {
+            level.place = Some(generated.0);
+            level.place_source = Some(source.clone());
+            level.passage = Some(generated.1);
+            level.passage_source = Some(source.clone());
+            level.interlude = Some(generated.2);
+            level.interlude_source = Some(source);
+        }
+    }
+    ctx.run = Some(run);
+}
+
 // ---------------------------------------------------------------------------------------------
 // Generation pumping
 // ---------------------------------------------------------------------------------------------
@@ -1372,6 +1421,24 @@ mod tests {
             lit[0].trim(),
             "ABRAXAS needs an 80x25 terminal. This one is 79x24."
         );
+    }
+
+    #[test]
+    fn install_test_run_populates_two_levels_with_valid_content() {
+        let dir = tempfile::tempdir().unwrap();
+        let mut ctx = test_ctx(dir.path());
+        install_test_run(&mut ctx, 3);
+        let run = ctx.run.as_ref().unwrap();
+        assert_eq!(run.depth, 3);
+        for d in [3, 4] {
+            let level = &run.levels[&d];
+            assert!(level.place.is_some() && level.passage.is_some() && level.interlude.is_some());
+        }
+        assert_eq!(
+            run.levels[&3].place.as_ref().unwrap().title,
+            "THE BLACK SUN"
+        );
+        assert_eq!(ctx.passage().unwrap().exits.len(), 3);
     }
 
     #[test]
