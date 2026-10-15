@@ -6,7 +6,7 @@
 //! cancelled: AI failures after the retry chain, and even a panic inside a job, produce the
 //! offline result instead, so the game never waits on the AI.
 
-use std::collections::BTreeSet;
+use std::collections::BTreeMap;
 use std::panic::{AssertUnwindSafe, catch_unwind};
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -76,7 +76,8 @@ pub enum DirectorEvent {
         text: String,
         source: GenSource,
     },
-    /// A request went out (SD light).
+    /// A request went out (SD light). Exactly one of `CallOk`, `CallFailed` or `CallCancelled`
+    /// follows it.
     Request {
         kind: JobKind,
     },
@@ -86,6 +87,10 @@ pub enum DirectorEvent {
     CallOk,
     /// A call failed (CD red).
     CallFailed,
+    /// A call was cancelled (the request is over; CD unchanged).
+    CallCancelled,
+    /// A job's retry chain gave up and its offline result is used (CD red; no request ends).
+    Fallback,
 }
 
 /// Who the player is chatting with.
@@ -114,17 +119,27 @@ const INTERLUDE_MAX_CHARS: usize = 700;
 const EPILOGUE_MAX_CHARS: usize = 1800;
 const CHAT_MAX_CHARS: usize = 320;
 
+/// A running job: its kind plus the depth it writes for (the session id for a chat).
+type JobKey = (JobKind, u64);
+
 /// The live director. Requests are idempotent per `(JobKind, depth)`: a part that is already in
 /// flight is never requested again until its Ready/Done event passes through [`on_event`].
+/// Every job has its own cancel flag, so prefetch can be stopped without touching the current
+/// level's jobs (see [`hold_prefetch`]).
 ///
 /// [`on_event`]: Director::on_event
+/// [`hold_prefetch`]: Director::hold_prefetch
 pub struct Director {
     llm: Option<Arc<dyn Llm>>,
     pack: Arc<StoryPack>,
     ai: AiConfig,
     tx: Sender<DirectorEvent>,
-    pending: BTreeSet<(JobKind, u32)>,
-    cancel: Arc<AtomicBool>,
+    /// Jobs in flight and their cancel flags.
+    pending: BTreeMap<JobKey, Arc<AtomicBool>>,
+    /// The warmup request's cancel flag.
+    warmup_cancel: Arc<AtomicBool>,
+    /// While set, level parts deeper than this depth are neither running nor requested.
+    held_above: Option<u32>,
     retry_delay: Duration,
     next_session: u64,
 }
@@ -136,6 +151,7 @@ struct Env {
     pack: Arc<StoryPack>,
     ai: AiConfig,
     tx: Sender<DirectorEvent>,
+    /// This job's own cancel flag.
     cancel: Arc<AtomicBool>,
     retry_delay: Duration,
 }
@@ -250,7 +266,7 @@ fn call_once(
     );
     match &result {
         Ok(_) => env.send(DirectorEvent::CallOk),
-        Err(LlmError::Cancelled) => {}
+        Err(LlmError::Cancelled) => env.send(DirectorEvent::CallCancelled),
         Err(_) => env.send(DirectorEvent::CallFailed),
     }
     result
@@ -446,7 +462,7 @@ fn place_job(env: &Env, run: &RunState, level_seed: &LevelSeed, digest: &str) {
                     },
                 )),
                 Outcome::Failed(reason) => {
-                    env.send(DirectorEvent::CallFailed);
+                    env.send(DirectorEvent::Fallback);
                     Some((offline::place(&ctx), offline_failed(&reason)))
                 }
                 Outcome::Cancelled => None,
@@ -504,7 +520,7 @@ fn passage_job(env: &Env, run: &RunState, level_seed: &LevelSeed, digest: &str) 
                     },
                 )),
                 Outcome::Failed(reason) => {
-                    env.send(DirectorEvent::CallFailed);
+                    env.send(DirectorEvent::Fallback);
                     Some((offline::passage(&ctx, &place), offline_failed(&reason)))
                 }
                 Outcome::Cancelled => None,
@@ -560,7 +576,7 @@ fn interlude_job(env: &Env, run: &RunState, level_seed: &LevelSeed) {
                     },
                 )),
                 Outcome::Failed(reason) => {
-                    env.send(DirectorEvent::CallFailed);
+                    env.send(DirectorEvent::Fallback);
                     Some((offline_text(), offline_failed(&reason)))
                 }
                 Outcome::Cancelled => None,
@@ -608,7 +624,7 @@ fn epilogue_job(env: &Env, run: &RunState, ending: &EndingDef, digest: &str) {
                     },
                 )),
                 Outcome::Failed(reason) => {
-                    env.send(DirectorEvent::CallFailed);
+                    env.send(DirectorEvent::Fallback);
                     Some((offline_text(), offline_failed(&reason)))
                 }
                 Outcome::Cancelled => None,
@@ -661,7 +677,7 @@ fn chat_job(env: &Env, run: &RunState, partner: &ChatPartner, history: &[ChatLin
                     },
                 )),
                 Outcome::Failed(reason) => {
-                    env.send(DirectorEvent::CallFailed);
+                    env.send(DirectorEvent::Fallback);
                     Some((offline_text(), offline_failed(&reason)))
                 }
                 Outcome::Cancelled => None,
@@ -708,8 +724,9 @@ impl Director {
             pack,
             ai,
             tx,
-            pending: BTreeSet::new(),
-            cancel: Arc::new(AtomicBool::new(false)),
+            pending: BTreeMap::new(),
+            warmup_cancel: Arc::new(AtomicBool::new(false)),
+            held_above: None,
             retry_delay: RETRY_DELAY,
             next_session: 0,
         }
@@ -721,21 +738,29 @@ impl Director {
         self
     }
 
-    fn env(&self) -> Env {
-        Env {
+    /// Register `key` as pending with a fresh cancel flag and run `job` for it, unless `key` is
+    /// already pending. Without an `Llm` the job is offline-only, cheap and deterministic, so it
+    /// runs inline and its events are queued before this call returns; otherwise it gets its
+    /// own thread.
+    fn dispatch(
+        &mut self,
+        key: JobKey,
+        name: &'static str,
+        job: impl FnOnce(Env) + Send + 'static,
+    ) {
+        if self.pending.contains_key(&key) {
+            return;
+        }
+        let cancel = Arc::new(AtomicBool::new(false));
+        self.pending.insert(key, Arc::clone(&cancel));
+        let env = Env {
             llm: self.llm.clone(),
             pack: Arc::clone(&self.pack),
             ai: self.ai.clone(),
             tx: self.tx.clone(),
-            cancel: Arc::clone(&self.cancel),
+            cancel,
             retry_delay: self.retry_delay,
-        }
-    }
-
-    /// Runs `job` on its own thread; without an `Llm` the job is offline-only, cheap and
-    /// deterministic, so it runs inline and its events are queued before this call returns.
-    fn dispatch(&self, name: &'static str, job: impl FnOnce(Env) + Send + 'static) {
-        let env = self.env();
+        };
         if env.llm.is_none() {
             job(env);
         } else if let Err(e) = std::thread::Builder::new()
@@ -744,6 +769,11 @@ impl Director {
         {
             tracing::error!("cannot spawn the {name} thread: {e}");
         }
+    }
+
+    /// Whether a level part at `depth` is held back by [`Director::hold_prefetch`].
+    fn held(&self, depth: u32) -> bool {
+        self.held_above.is_some_and(|d| depth > d)
     }
 
     fn level_seed_for(&self, run: &RunState, depth: u32) -> LevelSeed {
@@ -766,7 +796,7 @@ impl Director {
             seed: None,
             json_schema: None,
         };
-        let cancel = Arc::clone(&self.cancel);
+        let cancel = Arc::clone(&self.warmup_cancel);
         let spawned = std::thread::Builder::new()
             .name("director-warmup".to_string())
             .spawn(move || {
@@ -780,38 +810,41 @@ impl Director {
     /// Request the place for `depth` (idempotent while pending). The level's seed comes from
     /// `run.levels[depth]` when present.
     pub fn request_place(&mut self, run: &RunState, depth: u32) {
-        if !self.pending.insert((JobKind::Place, depth)) {
+        let key = (JobKind::Place, u64::from(depth));
+        if self.held(depth) || self.pending.contains_key(&key) {
             return;
         }
         let run = run.clone();
         let level_seed = self.level_seed_for(&run, depth);
         let digest = run.chronicle.digest(&run, &self.pack);
-        self.dispatch("director-place", move |env| {
+        self.dispatch(key, "director-place", move |env| {
             place_job(&env, &run, &level_seed, &digest);
         });
     }
 
     /// Request the passage for `depth`, written for the validated place in `run.levels[depth]`.
     pub fn request_passage(&mut self, run: &RunState, depth: u32) {
-        if !self.pending.insert((JobKind::Passage, depth)) {
+        let key = (JobKind::Passage, u64::from(depth));
+        if self.held(depth) || self.pending.contains_key(&key) {
             return;
         }
         let run = run.clone();
         let level_seed = self.level_seed_for(&run, depth);
         let digest = run.chronicle.digest(&run, &self.pack);
-        self.dispatch("director-passage", move |env| {
+        self.dispatch(key, "director-passage", move |env| {
             passage_job(&env, &run, &level_seed, &digest);
         });
     }
 
     /// Request the interlude into `depth` for the exit in `run.exit_taken`.
     pub fn request_interlude(&mut self, run: &RunState, depth: u32) {
-        if !self.pending.insert((JobKind::Interlude, depth)) {
+        let key = (JobKind::Interlude, u64::from(depth));
+        if self.held(depth) || self.pending.contains_key(&key) {
             return;
         }
         let run = run.clone();
         let level_seed = self.level_seed_for(&run, depth);
-        self.dispatch("director-interlude", move |env| {
+        self.dispatch(key, "director-interlude", move |env| {
             interlude_job(&env, &run, &level_seed);
         });
     }
@@ -826,11 +859,10 @@ impl Director {
     ) -> u64 {
         self.next_session += 1;
         let session = self.next_session;
-        self.pending.insert((JobKind::Chat, 0));
         let run = run.clone();
         let partner = partner.clone();
         let history = history.to_vec();
-        self.dispatch("director-chat", move |env| {
+        self.dispatch((JobKind::Chat, session), "director-chat", move |env| {
             chat_job(&env, &run, &partner, &history, session);
         });
         session
@@ -838,51 +870,81 @@ impl Director {
 
     /// Request the epilogue for `ending` (idempotent while pending; keyed by `run.depth`).
     pub fn request_epilogue(&mut self, run: &RunState, ending: &EndingDef) {
-        if !self.pending.insert((JobKind::Epilogue, run.depth)) {
+        let key = (JobKind::Epilogue, u64::from(run.depth));
+        if self.pending.contains_key(&key) {
             return;
         }
         let run = run.clone();
         let ending = ending.clone();
         let digest = run.chronicle.digest(&run, &self.pack);
-        self.dispatch("director-epilogue", move |env| {
+        self.dispatch(key, "director-epilogue", move |env| {
             epilogue_job(&env, &run, &ending, &digest);
         });
     }
 
     pub fn is_pending(&self, kind: JobKind, depth: u32) -> bool {
-        self.pending.contains(&(kind, depth))
+        self.pending.contains_key(&(kind, u64::from(depth)))
+    }
+
+    /// Hold back prefetch: with `Some(depth)`, cancel every place, passage and interlude job
+    /// deeper than `depth` and ignore requests for them until `None` releases the hold, after
+    /// which they can be requested again. Jobs for `depth` itself, chats and epilogues are never
+    /// touched. On a single-slot model server this keeps a chat reply from queueing behind the
+    /// next level. Cheap to call every frame.
+    pub fn hold_prefetch(&mut self, above: Option<u32>) {
+        if self.held_above == above {
+            return;
+        }
+        self.held_above = above;
+        let Some(depth) = above else {
+            return;
+        };
+        self.pending.retain(|&(kind, d), cancel| {
+            let prefetch = matches!(kind, JobKind::Place | JobKind::Passage | JobKind::Interlude)
+                && d > u64::from(depth);
+            if prefetch {
+                cancel.store(true, Ordering::Relaxed);
+            }
+            !prefetch
+        });
     }
 
     /// Clear pending markers for a finished job.
     pub fn on_event(&mut self, ev: &DirectorEvent) {
         match ev {
             DirectorEvent::PlaceReady { depth, .. } => {
-                self.pending.remove(&(JobKind::Place, *depth));
+                self.pending.remove(&(JobKind::Place, u64::from(*depth)));
             }
             DirectorEvent::PassageReady { depth, .. } => {
-                self.pending.remove(&(JobKind::Passage, *depth));
+                self.pending.remove(&(JobKind::Passage, u64::from(*depth)));
             }
             DirectorEvent::InterludeDone { depth, .. } => {
-                self.pending.remove(&(JobKind::Interlude, *depth));
+                self.pending
+                    .remove(&(JobKind::Interlude, u64::from(*depth)));
             }
-            DirectorEvent::ChatDone { .. } => self.pending.retain(|(k, _)| *k != JobKind::Chat),
+            DirectorEvent::ChatDone { session, .. } => {
+                self.pending.remove(&(JobKind::Chat, *session));
+            }
             DirectorEvent::EpilogueDone { .. } => {
-                self.pending.retain(|(k, _)| *k != JobKind::Epilogue);
+                self.pending.retain(|(k, _), _| *k != JobKind::Epilogue);
             }
             _ => {}
         }
     }
 
-    /// Stop every running job (they send nothing further) and forget what was pending.
+    /// Stop every running job (they send nothing further but their calls' `CallCancelled`) and
+    /// forget what was pending.
     pub fn cancel_all(&mut self) {
-        self.cancel.store(true, Ordering::Relaxed);
-        self.cancel = Arc::new(AtomicBool::new(false));
-        self.pending.clear();
+        self.warmup_cancel.store(true, Ordering::Relaxed);
+        self.warmup_cancel = Arc::new(AtomicBool::new(false));
+        for cancel in std::mem::take(&mut self.pending).into_values() {
+            cancel.store(true, Ordering::Relaxed);
+        }
     }
 }
 
 impl Drop for Director {
     fn drop(&mut self) {
-        self.cancel.store(true, Ordering::Relaxed);
+        self.cancel_all();
     }
 }

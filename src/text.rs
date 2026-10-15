@@ -359,21 +359,6 @@ pub fn clean_ai_text(s: &str, max_chars: usize, keep_newlines: bool) -> String {
     truncate(&joined, max_chars)
 }
 
-/// The trimmed, non-empty spans between pairs of straight double quotes. An unpaired last
-/// quote opens nothing.
-pub fn quoted_spans(text: &str) -> Vec<&str> {
-    let parts: Vec<&str> = text.split('"').collect();
-    // An odd part count means every quote is paired; otherwise drop the unpaired tail.
-    let paired = parts.len() - (1 - parts.len() % 2);
-    parts[..paired]
-        .iter()
-        .skip(1)
-        .step_by(2)
-        .map(|s| s.trim())
-        .filter(|s| !s.is_empty())
-        .collect()
-}
-
 /// Whether the words of `needle` appear consecutively in `haystack`, ignoring case and
 /// punctuation. An empty `needle` is always contained.
 pub fn contains_words(haystack: &str, needle: &str) -> bool {
@@ -596,16 +581,6 @@ mod tests {
         assert!(!is_83_name("AB.TEXT"));
         assert!(!is_83_name(".TXT"));
         assert!(!is_83_name("A.B.C"));
-    }
-
-    #[test]
-    fn quoted_spans_pairs_quotes_and_ignores_an_unpaired_tail() {
-        assert_eq!(
-            quoted_spans(r#"Wren wrote " Abraxas is not a place. " and "MOTHER has me." then ""#),
-            ["Abraxas is not a place.", "MOTHER has me."]
-        );
-        assert_eq!(quoted_spans(r#"a "" b "c"#), Vec::<&str>::new());
-        assert_eq!(quoted_spans("no quotes"), Vec::<&str>::new());
     }
 
     #[test]

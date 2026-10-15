@@ -2,10 +2,11 @@
 //! pending markers, cancellation and the synchronous offline path.
 #![allow(clippy::unwrap_used, clippy::expect_used)]
 
+use parking_lot::Mutex;
 use std::collections::VecDeque;
+use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use std::sync::mpsc::{self, Receiver};
-use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
 use abraxas::config::AiConfig;
@@ -51,7 +52,7 @@ impl Fake {
     }
 
     fn calls(&self) -> Vec<LlmRequest> {
-        self.calls.lock().unwrap().clone()
+        self.calls.lock().clone()
     }
 }
 
@@ -62,8 +63,8 @@ impl Llm for Fake {
         on_delta: &mut dyn FnMut(&str),
         cancel: &AtomicBool,
     ) -> Result<LlmReply, LlmError> {
-        self.calls.lock().unwrap().push(req.clone());
-        let step = self.steps.lock().unwrap().pop_front();
+        self.calls.lock().push(req.clone());
+        let step = self.steps.lock().pop_front();
         let result = match step {
             None => Err(LlmError::Transport("script exhausted".into())),
             Some(Step::Transport) => Err(LlmError::Transport("refused".into())),
@@ -296,9 +297,8 @@ fn garbage_twice_falls_back_to_an_offline_place() {
     );
     assert_eq!(fake.calls().len(), 2, "one call plus one repair call");
     assert!(
-        events
-            .iter()
-            .any(|e| matches!(e, DirectorEvent::CallFailed))
+        events.iter().any(|e| matches!(e, DirectorEvent::Fallback)),
+        "falling back turns CD red"
     );
     assert_place_invariants(&place, &r.run, 5);
     assert!(!r.director.is_pending(JobKind::Place, 5));
@@ -356,7 +356,7 @@ fn garbage_then_valid_json_on_the_repair_call_is_ai() {
     assert!(
         !events
             .iter()
-            .any(|e| matches!(e, DirectorEvent::CallFailed))
+            .any(|e| matches!(e, DirectorEvent::CallFailed | DirectorEvent::Fallback))
     );
 }
 
@@ -630,7 +630,10 @@ fn chat_streams_with_the_chat_model_and_the_last_twelve_turns() {
     assert_eq!(call.max_tokens, 180);
     assert_eq!(call.messages.len(), 13, "system plus the last 12 turns");
     assert_eq!(call.messages[1].content, "turn 8");
-    assert!(!r.director.is_pending(JobKind::Chat, 0));
+    assert!(
+        !r.director
+            .is_pending(JobKind::Chat, u32::try_from(session).unwrap())
+    );
 }
 
 #[test]
@@ -743,13 +746,77 @@ fn cancel_all_stops_a_long_stream_quickly_and_drops_its_result() {
             .any(|e| matches!(e, DirectorEvent::PlaceReady { .. })),
         "a cancelled job delivers nothing"
     );
+    assert!(
+        late.iter()
+            .any(|e| matches!(e, DirectorEvent::CallCancelled)),
+        "the cancelled call still ends its request, so SD goes dark"
+    );
     // The director works again afterwards.
-    fake.steps
-        .lock()
-        .unwrap()
-        .push_back(Step::Reply(place_json()));
+    fake.steps.lock().push_back(Step::Reply(place_json()));
     r.director.request_place(&r.run, 5);
     let (_, source, _) = r.place(5);
+    assert!(matches!(source, GenSource::Ai { .. }));
+}
+
+/// `Request` events minus the call results that end them: what keeps SD lit.
+fn open_requests(events: &[DirectorEvent]) -> i32 {
+    events
+        .iter()
+        .map(|e| match e {
+            DirectorEvent::Request { .. } => 1,
+            DirectorEvent::CallOk | DirectorEvent::CallFailed | DirectorEvent::CallCancelled => -1,
+            _ => 0,
+        })
+        .sum()
+}
+
+#[test]
+fn holding_prefetch_cancels_deeper_jobs_only_and_defers_them_until_released() {
+    let fake = Fake::new(vec![Step::Slow]);
+    let mut r = rig(Some(Arc::clone(&fake)), 5);
+    ensure_level(&mut r.run, &r.pack, 6);
+    r.director.request_place(&r.run, 6);
+    let mut events = r.until(|e| matches!(e, DirectorEvent::Chunk));
+
+    r.director.hold_prefetch(Some(5));
+    assert!(!r.director.is_pending(JobKind::Place, 6));
+    let started = Instant::now();
+    while fake.finished.load(Ordering::SeqCst) == 0 {
+        assert!(
+            started.elapsed() < Duration::from_secs(2),
+            "prefetch kept streaming"
+        );
+        std::thread::sleep(Duration::from_millis(5));
+    }
+    std::thread::sleep(Duration::from_millis(50));
+    events.extend(r.rx.try_iter());
+    assert!(
+        !events
+            .iter()
+            .any(|e| matches!(e, DirectorEvent::PlaceReady { .. }))
+    );
+    assert_eq!(open_requests(&events), 0, "SD goes dark after the cancel");
+
+    // Held: the deeper part is not requested again; the current level and chat still run.
+    r.director.request_place(&r.run, 6);
+    assert!(!r.director.is_pending(JobKind::Place, 6));
+    assert_eq!(fake.calls().len(), 1);
+    fake.steps
+        .lock()
+        .extend([Step::Reply(place_json()), Step::Reply("still here.".into())]);
+    r.director.request_place(&r.run, 5);
+    let (_, source, _) = r.place(5);
+    assert!(matches!(source, GenSource::Ai { .. }));
+    r.director
+        .request_chat(&r.run, &partner(), &[player_line("hello?")]);
+    r.until(|e| matches!(e, DirectorEvent::ChatDone { .. }));
+
+    // Released: the prefetch is accepted again.
+    r.director.hold_prefetch(None);
+    fake.steps.lock().push_back(Step::Reply(place_json()));
+    r.director.request_place(&r.run, 6);
+    assert!(r.director.is_pending(JobKind::Place, 6));
+    let (_, source, _) = r.place(6);
     assert!(matches!(source, GenSource::Ai { .. }));
 }
 

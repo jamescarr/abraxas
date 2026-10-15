@@ -229,9 +229,17 @@ pub fn passage_prompt(ctx: &GenContext, place: &Place, digest: &str) -> String {
             }
             if let Some(r) = required {
                 out.push_str(&format!(" Required: {}", f.fill(r.trim())));
-                if r.contains('"') {
-                    out.push_str(" The beat must contain every quoted line word for word.");
-                }
+            }
+            if !a.keep.is_empty() {
+                let lines: Vec<String> = a
+                    .keep
+                    .iter()
+                    .map(|k| format!("\"{}\"", f.fill(k.trim())))
+                    .collect();
+                out.push_str(&format!(
+                    " The beat must contain these lines word for word: {}.",
+                    lines.join(" ")
+                ));
             }
             out.push('\n');
         }

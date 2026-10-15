@@ -242,6 +242,25 @@ fn password_length_mismatch_is_reported() {
 }
 
 #[test]
+fn keep_line_missing_from_the_authored_beat_is_reported() {
+    let (_t, dir) = scratch("rollover");
+    // Rewording the beat drops a kept line: the authored fallback would break the rule.
+    edit(
+        &dir,
+        "anchors/03-black-sun.toml",
+        "Abraxas is not a place, it is what holds both. Light",
+        "Abraxas holds both. Light",
+    );
+    let got = issues(&dir);
+    assert_eq!(
+        got,
+        [
+            "anchors/03-black-sun.toml: keep[1]: 'Abraxas is not a place, it is what holds both.' is not in beat"
+        ],
+    );
+}
+
+#[test]
 fn non_cp437_art_is_reported() {
     let (_t, dir) = scratch("rollover");
     let path = dir.join("art/wren.txt");

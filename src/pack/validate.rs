@@ -9,7 +9,9 @@ use super::model::{
     ObjectiveKind, PostDef, Stance, StoryPack,
 };
 use crate::game::danger;
-use crate::text::{check_placeholders, is_83_name, is_cp437, pipe_size, strip_pipe_codes};
+use crate::text::{
+    check_placeholders, contains_words, is_83_name, is_cp437, pipe_size, strip_pipe_codes,
+};
 
 /// Placeholders allowed in every authored text.
 const BASE: [&str; 3] = ["handle", "shadow", "real_name"];
@@ -502,6 +504,15 @@ impl Validator {
         self.opt_text(file, "level_card", a.level_card.as_ref(), 320, t);
         self.opt_text(file, "beat", a.beat.as_ref(), 700, t);
         self.opt_text(file, "required", a.required.as_ref(), ANY, t);
+        for (i, k) in a.keep.iter().enumerate() {
+            let field = format!("keep[{}]", i + 1);
+            self.text(file, &field, k, 200, t);
+            if !k.chars().any(char::is_alphanumeric) {
+                self.add(file, &field, "has no words");
+            } else if !a.beat.as_deref().is_some_and(|b| contains_words(b, k)) {
+                self.add(file, &field, format!("'{k}' is not in beat"));
+            }
+        }
         self.opt_text(file, "interlude", a.interlude.as_ref(), ANY, t);
         self.opt_text(file, "summary", a.summary.as_ref(), 200, t);
 

@@ -237,7 +237,6 @@ impl DescentScreen {
         // Whatever the director is still writing for the level behind us is now redundant;
         // stop it so a slow model's backlog cannot delay the next chat or prefetch.
         ctx.director.cancel_all();
-        ctx.lights.clear_outstanding();
     }
 
     fn start_cast(&mut self, ctx: &Ctx) {

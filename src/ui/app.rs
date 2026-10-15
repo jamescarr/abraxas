@@ -610,7 +610,9 @@ pub fn apply_director_event(ctx: &mut Ctx, ev: DirectorEvent) {
         DirectorEvent::Request { .. }
         | DirectorEvent::Chunk
         | DirectorEvent::CallOk
-        | DirectorEvent::CallFailed => {}
+        | DirectorEvent::CallFailed
+        | DirectorEvent::CallCancelled
+        | DirectorEvent::Fallback => {}
     }
     if changed {
         ctx.autosave();
@@ -683,6 +685,13 @@ impl App {
             self.ctx.director.on_event(&ev);
             apply_director_event(&mut self.ctx, ev);
         }
+        // While the player chats, the next level waits: a chat reply must not queue behind a
+        // multi-minute prefetch on a model server that runs one request at a time.
+        let chatting = matches!(self.screen, Screen::Chat(_));
+        let hold = chatting
+            .then(|| self.ctx.run.as_ref().map(|r| r.depth))
+            .flatten();
+        self.ctx.director.hold_prefetch(hold);
         pump_generation(&mut self.ctx);
 
         if let Some(Event::Key(key)) = event

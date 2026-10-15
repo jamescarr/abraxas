@@ -42,9 +42,12 @@ sysop = "guide"
 
 # Facts the AI must keep when it adapts this level. Free text, a few sentences. This
 # is the heart of an anchor: say what must be true, who must appear, what must happen.
-# Put a line in straight double quotes ("like this") when the adapted beat must contain
-# it word for word; an AI beat that drops one is discarded for your own beat.
 required = """The board is called FIRST ROOM. Its sysop is the GUIDE. The player has just arrived and has no way to hang up. Something in the walls knows the player's real name."""
+
+# Lines the adapted beat must contain word for word (case and punctuation aside). Each
+# must also appear in your beat below. An AI beat that drops one is discarded and your
+# beat is used instead.
+# keep = ["Someone has been waiting for you."]
 
 # Danger class 1 to 5. Sets WORDLOCK length (1:5, 2:6, 3:6, 4:7, 5:8 letters) and the
 # number of nodes. LOCKED.

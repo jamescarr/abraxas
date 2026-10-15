@@ -19,8 +19,8 @@ use crate::pack::model::{
 };
 use crate::rng::{Rng, substream};
 use crate::text::{
-    Subst, clean_ai_text, contains_words, fill_placeholders, is_83_name, quoted_spans,
-    strip_pipe_codes, to_cp437_safe, truncate,
+    Subst, clean_ai_text, contains_words, fill_placeholders, is_83_name, strip_pipe_codes,
+    to_cp437_safe, truncate,
 };
 
 /// Everything validation needs to know about the level being generated.
@@ -1005,14 +1005,10 @@ pub(crate) fn build_passage(
     let f = Filler::new(ctx);
     let pool = &ctx.pack.pool;
 
-    // Beat (adapted). An AI beat that drops a quoted span of `required` is not valid.
-    let required = anchor
-        .and_then(|a| a.required.as_deref())
-        .map(|r| f.fill(r))
-        .unwrap_or_default();
+    // Beat (adapted). An AI beat that drops one of the anchor's `keep` lines is not valid.
     let ai_beat = cand
         .beat
-        .filter(|b| quoted_spans(&required).iter().all(|q| contains_words(b, q)));
+        .filter(|b| anchor.is_none_or(|a| a.keep.iter().all(|k| contains_words(b, &f.fill(k)))));
     let beat = match (ai_beat, anchor.and_then(|a| a.beat.as_deref())) {
         (Some(ai), _) => ai,
         (None, Some(authored)) => f.fill(authored),

@@ -419,6 +419,10 @@ pub struct Anchor {
     pub level_card: Option<String>,
     #[serde(default)]
     pub required: Option<String>,
+    /// Lines an adapted beat must contain word for word (case and punctuation aside); each is
+    /// also in `beat`, so the authored fallback always has them.
+    #[serde(default)]
+    pub keep: Vec<String>,
     #[serde(default)]
     pub interlude: Option<String>,
     #[serde(default)]

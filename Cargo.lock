@@ -10,6 +10,7 @@ dependencies = [
  "clap",
  "directories",
  "include_dir",
+ "parking_lot",
  "rand 0.10.3",
  "ratatui",
  "schemars",

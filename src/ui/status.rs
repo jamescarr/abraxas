@@ -29,8 +29,9 @@ pub enum Carrier {
 /// The SD / RD / CD modem lights.
 ///
 /// SD is lit while any request is outstanding: `Request` raises the count and `CallOk` /
-/// `CallFailed` lower it (the director sends one result per request). RD is lit for
-/// [`RD_HOLD`] after each `Chunk`. CD keeps the result of the latest call.
+/// `CallFailed` / `CallCancelled` lower it (the director ends every request with one of them).
+/// RD is lit for [`RD_HOLD`] after each `Chunk`. CD keeps the latest result: a call's, or red
+/// when a job falls back to its offline result.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ModemLights {
     outstanding: u32,
@@ -53,7 +54,7 @@ impl ModemLights {
         }
     }
 
-    /// Feed a director event; only `Request`, `Chunk`, `CallOk` and `CallFailed` matter.
+    /// Feed a director event; only `Request`, `Chunk`, the call results and `Fallback` matter.
     pub fn on_event(&mut self, ev: &DirectorEvent) {
         match ev {
             DirectorEvent::Request { .. } => self.outstanding += 1,
@@ -66,14 +67,12 @@ impl ModemLights {
                 self.outstanding = self.outstanding.saturating_sub(1);
                 self.carrier = Carrier::Failed;
             }
+            DirectorEvent::CallCancelled => {
+                self.outstanding = self.outstanding.saturating_sub(1);
+            }
+            DirectorEvent::Fallback => self.carrier = Carrier::Failed,
             _ => {}
         }
-    }
-
-    /// Forget outstanding requests. Cancelled jobs end without a result event, so whoever cancels
-    /// them (the descent fallback) calls this to turn SD off.
-    pub fn clear_outstanding(&mut self) {
-        self.outstanding = 0;
     }
 
     /// Let time pass (RD fades after [`RD_HOLD`]).
@@ -217,19 +216,19 @@ mod tests {
     }
 
     #[test]
-    fn clearing_outstanding_requests_turns_sd_off_but_keeps_the_carrier() {
+    fn cancelled_calls_end_their_request_and_fallback_only_turns_cd_red() {
         let mut l = ModemLights::new();
-        l.on_event(&DirectorEvent::Request {
-            kind: JobKind::Place,
-        });
-        l.on_event(&DirectorEvent::Request {
-            kind: JobKind::Passage,
-        });
+        for kind in [JobKind::Place, JobKind::Passage] {
+            l.on_event(&DirectorEvent::Request { kind });
+        }
         l.on_event(&DirectorEvent::CallOk);
+        // A job falling back ends no request: the passage call is still out.
+        l.on_event(&DirectorEvent::Fallback);
         assert!(l.sd_on());
-        l.clear_outstanding();
+        assert_eq!(l.carrier(), Carrier::Failed);
+        l.on_event(&DirectorEvent::CallCancelled);
         assert!(!l.sd_on());
-        assert_eq!(l.carrier(), Carrier::Ok);
+        assert_eq!(l.carrier(), Carrier::Failed);
     }
 
     #[test]
