@@ -19,7 +19,8 @@ use crate::pack::model::{
 };
 use crate::rng::{Rng, substream};
 use crate::text::{
-    Subst, clean_ai_text, fill_placeholders, is_83_name, strip_pipe_codes, to_cp437_safe, truncate,
+    Subst, clean_ai_text, contains_words, fill_placeholders, is_83_name, quoted_spans,
+    strip_pipe_codes, to_cp437_safe, truncate,
 };
 
 /// Everything validation needs to know about the level being generated.
@@ -1004,8 +1005,15 @@ pub(crate) fn build_passage(
     let f = Filler::new(ctx);
     let pool = &ctx.pack.pool;
 
-    // Beat (adapted).
-    let beat = match (cand.beat, anchor.and_then(|a| a.beat.as_deref())) {
+    // Beat (adapted). An AI beat that drops a quoted span of `required` is not valid.
+    let required = anchor
+        .and_then(|a| a.required.as_deref())
+        .map(|r| f.fill(r))
+        .unwrap_or_default();
+    let ai_beat = cand
+        .beat
+        .filter(|b| quoted_spans(&required).iter().all(|q| contains_words(b, q)));
+    let beat = match (ai_beat, anchor.and_then(|a| a.beat.as_deref())) {
         (Some(ai), _) => ai,
         (None, Some(authored)) => f.fill(authored),
         (None, None) => match pool.beats.choose(&mut rng) {
@@ -1858,13 +1866,18 @@ pub(crate) mod tests {
 
     #[test]
     fn passage_locked_and_adapted_anchor_fields() {
-        let (p, _) = passage_at(3, passage_json());
+        let mut v = passage_json();
+        v["beat"] = json!("The file opens. Abraxas is not a place, it is what holds both.");
+        let (p, _) = passage_at(3, v);
         // Locked: authored choice, exits and vision win over the AI's.
         assert!(p.choice.options[0].text.starts_with("Answer the Shadow"));
         assert_eq!(p.vision, VisionKind::Fire);
         assert_ne!(p.exits[0].text, "a calm way");
         // Adapted: valid AI beat and summary are used; an empty one falls back to authored text.
-        assert_eq!(p.beat, "The file opens. It knows your name.");
+        assert_eq!(
+            p.beat,
+            "The file opens. Abraxas is not a place, it is what holds both."
+        );
         let mut v = passage_json();
         v["beat"] = json!("");
         v["summary"] = json!("");
@@ -1873,6 +1886,18 @@ pub(crate) mod tests {
         assert!(q.beat.contains("Abraxas is not a place"));
         assert!(q.summary.contains("met the Shadow running SOL NIGER"));
         assert_eq!(q.captions[0], "SOL NIGER");
+    }
+
+    #[test]
+    fn ai_beat_missing_a_required_quote_falls_back_to_the_authored_beat() {
+        let mut v = passage_json();
+        v["beat"] = json!("The sun came up black. Wren wrote that the board holds everything.");
+        let (p, _) = passage_at(3, v);
+        assert!(p.beat.starts_with("WREN-01.LOG. 12/11/99"));
+        let mut v = passage_json();
+        v["beat"] = json!("A black sun. ABRAXAS is not a place -- it is what holds both sides.");
+        let (p, _) = passage_at(3, v);
+        assert!(p.beat.starts_with("A black sun."));
     }
 
     #[test]

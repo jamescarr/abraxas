@@ -186,7 +186,7 @@ programs = ["GHOST.COM"]         # DECRYPT.COM SNIFFER.EXE BUFFER.EXE GHOST.COM
                                  # ICEPICK.EXE MIRROR.EXE MANDALA.SYS
 password = "RAVENS"              # A-Z, as long as the WORDLOCK word for `danger`
 level_card = """..."""           # at most 320
-required = """facts the AI must keep"""
+required = """facts the AI must keep"""   # "quoted" lines must appear word for word in the beat
 interlude = """..."""
 beat = """..."""                 # at most 700
 captions = ["...", "...", "..."] # at most 3, each at most 48
@@ -249,7 +249,7 @@ How an anchor mixes with the AI:
 | Class | Fields | Rule |
 |---|---|---|
 | Locked | `title`, `bbs_name`, `tagline`, `sysop`, `danger`, `focus`, `vision`, `programs`, `password`, every `[host]` key, `choice`, `exit`, `ending` | When present, your value wins and any AI value is ignored. |
-| Adapted | `level_card`, `beat`, `interlude`, `captions`, `summary` | With `ai = "adapt"` the AI is told to keep every fact and reword to fit the story so far, together with `required`. A valid AI result is used, otherwise your text. |
+| Adapted | `level_card`, `beat`, `interlude`, `captions`, `summary` | With `ai = "adapt"` the AI is told to keep every fact and reword to fit the story so far, together with `required`. A valid AI result is used, otherwise your text. An AI beat is only valid if it contains every line you put in straight double quotes in `required`, word for word (case and punctuation aside). |
 | Appended | `post`, `text_file`, `host_file`, `words` | Your entries always come first; the AI or the pool fills the remaining slots (3 posts plus the engine's clue post, 2 text files, 2 host files; AI text bodies are cut at 400 characters). |
 | Generated | every level without an anchor | Fully AI-generated, or built from the pool offline. |
 | Continued | depths beyond the last act, when `endless.enabled` | AI levels forever, using the `[endless]` goal and direction plus the story so far. |
