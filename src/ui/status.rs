@@ -70,6 +70,12 @@ impl ModemLights {
         }
     }
 
+    /// Forget outstanding requests. Cancelled jobs end without a result event, so whoever cancels
+    /// them (the descent fallback) calls this to turn SD off.
+    pub fn clear_outstanding(&mut self) {
+        self.outstanding = 0;
+    }
+
     /// Let time pass (RD fades after [`RD_HOLD`]).
     pub fn tick(&mut self, dt: Duration) {
         self.rd_left = self.rd_left.saturating_sub(dt);
@@ -208,6 +214,22 @@ mod tests {
         l.on_event(&DirectorEvent::Chunk);
         l.tick(Duration::from_millis(100));
         assert!(l.rd_on());
+    }
+
+    #[test]
+    fn clearing_outstanding_requests_turns_sd_off_but_keeps_the_carrier() {
+        let mut l = ModemLights::new();
+        l.on_event(&DirectorEvent::Request {
+            kind: JobKind::Place,
+        });
+        l.on_event(&DirectorEvent::Request {
+            kind: JobKind::Passage,
+        });
+        l.on_event(&DirectorEvent::CallOk);
+        assert!(l.sd_on());
+        l.clear_outstanding();
+        assert!(!l.sd_on());
+        assert_eq!(l.carrier(), Carrier::Ok);
     }
 
     #[test]
