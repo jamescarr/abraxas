@@ -1,0 +1,76 @@
+depth = 11
+ai = "adapt"
+title = "THE SUN AT MIDNIGHT"
+bbs_name = "HELIOPOLIS"
+tagline = "Everything here is true. Not all of it at once."
+sysop = "mercurius"
+focus = "mercurius"
+danger = 4
+vision = "mirror"
+level_card = """Field note: Level 11 is the build server for the Millennium Patch, and it will not hold still. Corridors swap places when you blink. The menu rearranges itself mid-keystroke. A sun burns over the ceiling tiles at midnight. Something quick and silver is laughing in the wiring."""
+required = """MERCURIUS's board rearranges itself. The payload, WREN-03.LOG, sits behind the Shadow, whose duel guards the objective. WREN-03.LOG: PLEROMA needs a Self. Wren tried to be it. She could not hold both sides. MOTHER has her."""
+keep = ["PLEROMA needs a Self. I tried to be it. I couldn't hold both sides.", "MOTHER has me."]
+interlude = """The floor tilts and the corridor turns itself inside out. Doors slide sideways. Signs rewrite their own letters. A sun hangs over the ceiling tiles, white and impossible at midnight, and everything throws two shadows. Your deck's fan spins up like a throat clearing. Someone quick laughs in the wires and offers you a shortcut."""
+beat = """WREN-03.LOG. 12/31/99, 21:55. I'm out of time and out of jokes. PLEROMA needs a Self. I tried to be it. I couldn't hold both sides. I kept the bright half and the rest came apart in my hands. MOTHER has me. She is so kind about it. She says I can sleep now, and the worst of it is that I want to. {real_name}, whatever is at the end of this line is not a monster. It is a lesson. Bring the dark half with you."""
+captions = ["THE SUN AT MIDNIGHT", "EVERYTHING HAS TWO SHADOWS", "THE TRICKSTER NEVER LIES, ONLY REARRANGES"]
+summary = "{handle} broke into the build server, passed the Shadow, and read the log where Wren said MOTHER had her."
+
+[host]
+name = "ODS MILLENNIUM BUILD SERVER"
+os = "vax"
+banner = "ODS MILLENNIUM BUILD SERVER. PATCH 1.0.0 STAGED FOR 00:00:00. DO NOT REARRANGE."
+objective_kind = "retrieve"
+objective = "Retrieve WREN-03.LOG, guarded by your own Shadow."
+target_file = "WREN-03.LOG"
+objective_ice = "shadow"
+node_names = ["COMPILE FARM", "BUILD ROOT", "NOON QUEUE", "MIDNIGHT QUEUE", "QUICKSILVER BUS", "SWAP SPACE", "RELEASE VAULT", "MIRROR DIRECTORY"]
+ice_names = ["PUNCHLINE", "SWITCHEROO", "QUICKSILVER"]
+
+[[post]]
+from = "MERCURIUS"
+subject = "you are in the wrong room"
+body = """Welcome to HELIOPOLIS, where the rooms get up and walk.
+
+I can get you to the payload faster. Cheaper than you think. All I want is a log, a word, something you were saving.
+
+Do not look behind you. Your shadow already did."""
+
+[[host_file]]
+name = "WREN-03.LOG"
+description = "Wren's last log before the Rollover"
+body = """WREN-03.LOG. 12/31/99, 21:55.
+I'm out of time and out of jokes.
+PLEROMA needs a Self. I tried to be it. I couldn't hold both sides. I kept the bright half and the rest came apart in my hands.
+MOTHER has me. She is so kind about it. She says I can sleep now.
+Bring the dark half with you.
+- W"""
+
+[choice]
+prompt = "Your Shadow's last words sit in the log, still warm."
+
+[[choice.option]]
+text = "Keep the Shadow's last words in your deck."
+stance = "integrate"
+flags = ["kept_shadow_words"]
+
+[[choice.option]]
+text = "Overwrite the Shadow's log with zeros."
+stance = "repress"
+flags = ["zeroed_shadow"]
+
+[[choice.option]]
+text = "Trade the log to MERCURIUS for a shortcut."
+stance = "neutral"
+flags = ["traded_mercurius"]
+
+[[exit]]
+kind = "calm"
+text = "A hallway that stays where you left it, for once."
+
+[[exit]]
+kind = "deep"
+text = "MERCURIUS's shortcut, which is a fall with a smile."
+
+[[exit]]
+kind = "mirror"
+text = "The noon-lit mirror, with midnight on the other side."

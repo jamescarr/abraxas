@@ -1,0 +1,165 @@
+depth = 0
+ai = "off"
+title = "THE LOBBY"
+bbs_name = "ABRAXAS"
+tagline = "Nobody dials us. Everybody arrives."
+sysop = "philemon"
+focus = "philemon"
+danger = 1
+vision = "fire"
+programs = ["DECRYPT.COM", "MANDALA.SYS"]
+password = "OWLET"
+words = ["OWLET", "NIGHT", "SHIFT", "WIRES", "DREAM", "LOBBY", "RINGS", "TONES", "STAIR", "FLOOR", "WATER", "HALLS", "DIALS", "ROOMS"]
+level_card = """Field note: Level 0 is a lobby with a menu. The carpet is damp. One fluorescent tube hums a note flat of anything you know. The board says it has always been here, and that you called it. There is a door marked D. There is no door marked Hang Up."""
+required = """Philemon is the sysop. The player did not dial this board; nobody does. There is no hanging up; every Goodbye leads one level deeper. Wren, the player's older sister and sysop of NIGHT SHIFT BBS, vanished 12/10/99 with her phone off the hook. Her first log is WREN-00.LOG."""
+interlude = """The line crosses. Two carriers meet in the dark and neither one yields. Your modem screams in a key it was never built for, a note too low for the little speaker. Static lifts like wet carpet. Then a click, a hum, and a cursor blinking in a room you never dialed. Someone has been expecting you."""
+beat = """WREN-00.LOG. 12/10/99, 02:14. {real_name}, I dialed a number tonight. 555-0000. It rang from inside my own phone. The handset was in my hand and it was ringing against my ear. I answered and heard the board breathing. Something is eating the net. The patch is only its mouth. I'm going down to find what it is. If you followed me, don't hang up. You can't anyway."""
+captions = ["THE LINE IS NOT DEAD", "IT IS LISTENING", "DOWN IS THE ONLY WAY OUT"]
+summary = "{handle} dialed Wren's board, crossed onto ABRAXAS, and read her first log, which said not to hang up."
+
+[host]
+name = "NIGHT SHIFT BBS"
+os = "dos"
+banner = "NIGHT SHIFT BBS - sysop WREN - 1 line, 1 node. Last caller 12/10/99. The handset has been off the hook ever since."
+objective_kind = "retrieve"
+objective = "Pull WREN-00.LOG off the sysop's drive."
+target_file = "WREN-00.LOG"
+nodes = 3
+node_names = ["FRONT DESK", "BACK OFFICE", "SYSOP DRIVE", "MODEM RACK", "SPOOL ROOM", "STAIRWELL", "BREAK ROOM", "LINE 1"]
+ice_names = ["DOORMAN", "NIGHT WATCH", "PAYPHONE"]
+
+[[post]]
+from = "PHILEMON"
+subject = "Rules of the house"
+body = """You did not dial us. Nobody does. The line crossed and you arrived, and that is the whole of the story so far.
+
+One: there is no hanging up. Every Goodbye is a way down.
+Two: a door must be opened before the way down will open.
+Three: be kind to the callers. Some of them are you."""
+
+[[post]]
+from = "WREN"
+subject = "if you find this"
+body = """12/10/99. Sysop's note, left where only a stranger would look.
+
+If you find this, you followed the line. I'm sorry. I would have told you in person but the phone was already ringing.
+
+Open the door marked D. My log is inside. Read it before you decide anything."""
+
+[[post]]
+from = "DRYWALL"
+subject = "logoff loops back here"
+body = """tried to log off three times. every time the menu comes back and the carpet is a little wetter. there is a stairwell behind the menu if you go through G. i have not been brave enough.
+
+anyone else hear the hum change when you type?"""
+
+[[post]]
+from = "PHILEMON"
+subject = "Doors"
+body = """A door is a run. Press D at the menu.
+
+First comes the login: a dump of words. One is the password. Check the board for a careless post; people always say too much.
+
+Inside, type help. scan draws the map. Move with connect. Take the payload with get. Everything you do warms the trace, and at 100 it burns.
+
+Jack out with logout when the work is done. Then G."""
+
+[[text_file]]
+name = "HOWTO.TXT"
+description = "Shell and ICE field manual"
+body = """ABRAXAS HOWTO - read twice.
+
+D opens the door. Inside is a host.
+LOGIN is WORDLOCK: one word in the dump is the
+password. Likeness=k means k letters are right and
+in place. 4 tries. A (..) or [..] with no letters
+inside, picked on its opener, kills a dud.
+SHELL: help scan ls cat connect get put ps kill
+bounce run deck whoami logout. scan maps nodes.
+connect moves. get takes the payload. put PAYLOAD.PIF
+plants. ps then kill crashes a daemon.
+ICE: BREACH picks codes, row then column, to fill a
+daemon. PHREAK repeats tones. ROUTER (bounce) turns
+pipes and cuts trace. DUEL: attack, sleaze, defend,
+retreat. Esc aborts.
+TRACE climbs. 100 is DUMP SHOCK. EGO 0 is the end.
+Programs cost KB. Doors pay KB. run ghost slows trace.
+G goes down. Nobody comes back up."""
+
+[[text_file]]
+name = "ABRAXAS.NFO"
+description = "Board information"
+body = """╔══════════════════════════════════╗
+║          A B R A X A S           ║
+║      what holds both sides       ║
+╠══════════════════════════════════╣
+║ SYSOP  PHILEMON                  ║
+║ NODE   1 OF 1                    ║
+║ LINE   555-0000                  ║
+║ UP     switchboard one           ║
+╚══════════════════════════════════╝
+
+No ads. No warez. No hang-up.
+Callers are asked to be gentle with the carpet.
+Sysop since the first switchboard."""
+
+[[host_file]]
+name = "SHIFTLOG.TXT"
+description = "Sysop log, Wren"
+body = """NIGHT SHIFT BBS - SYSOP LOG
+12/08/99 Line 1 noisy. Hum on the carrier at 60 Hz.
+12/09/99 Someone keeps dialing from my own number. Caller ID says me.
+12/10/99 Wrote 555-0000 on my hand. Tried it. It rings inside the phone.
+Not a board. The board under the board. I think that is where the patch sleeps.
+Leaving the handset off the hook so the line stays open behind me."""
+
+[[host_file]]
+name = "CALLERS.LST"
+description = "Last callers, NIGHT SHIFT"
+body = """LAST CALLERS - NIGHT SHIFT BBS
+DRYWALL     12/07/99  02:31  12 min
+LOWTIDE_KID 12/08/99  23:50  04 min
+WREN        12/10/99  02:14  --  NO CARRIER
+UNKNOWN     12/10/99  02:14  --  NO CARRIER
+UNKNOWN     12/10/99  02:14  --  NO CARRIER
+(all three calls came from the same number)"""
+
+[[host_file]]
+name = "WREN-00.LOG"
+description = "Wren's last log, 12/10/99"
+body = """WREN-00.LOG. 12/10/99, 02:14.
+I dialed a number tonight. 555-0000. It rang from inside my own phone. The handset was in my hand and it was ringing against my ear.
+I answered. I heard the board breathing.
+Something is eating the net. The patch is only its mouth. I'm going down to find what it is.
+If you followed me, don't hang up. You can't anyway.
+- W"""
+
+[choice]
+prompt = "WREN-00.LOG stops there. Philemon watches your cursor."
+
+[[choice.option]]
+text = "Tell Philemon you're scared and you're going anyway."
+stance = "integrate"
+flags = ["admitted_fear"]
+
+[[choice.option]]
+text = "Try to hang up. This is a prank."
+stance = "repress"
+flags = ["tried_to_hang_up"]
+
+[[choice.option]]
+text = "Ask Philemon who he really is."
+stance = "neutral"
+flags = ["asked_philemon"]
+
+[[exit]]
+kind = "calm"
+text = "The stairwell behind the menu, carpeted and humming."
+
+[[exit]]
+kind = "deep"
+text = "The carrier tone, followed down like a rope."
+
+[[exit]]
+kind = "mirror"
+text = "Your reflection in the dark CRT, which blinks first."

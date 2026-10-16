@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+#MISE description="Headless dream: generate levels with the real director"
+#USAGE arg "[args]" var=#true help="Arguments passed to `abraxas pack dream`"
+set -euo pipefail
+cargo run --release -- pack dream "$@"

@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+#MISE description="Build and run ABRAXAS in release mode"
+#USAGE arg "[args]" var=#true help="Arguments passed to abraxas"
+set -euo pipefail
+cargo run --release -- "$@"

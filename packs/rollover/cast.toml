@@ -1,0 +1,453 @@
+[[character]]
+id = "philemon"
+handle = "PHILEMON"
+archetype = "wise_old_man"
+from_depth = 0
+focusable = true
+description = """Sysop of ABRAXAS since the first switchboard. An old voice with kingfisher wings, blue and rust against the dark. Patient and slow, he keeps the lobby lit. He knows more than he says and offers it only when asked the right way."""
+voice = """Gentle aphorisms. Short, unhurried lines. Answers questions with older questions. Never raises his voice. Calls the player 'caller'. Says 'sysop since the first switchboard' when pressed about himself."""
+art = "philemon.txt"
+fallback = [
+  "The line is long, caller. Take your time.",
+  "Ask it again, slower. The wire carries slow things best.",
+  "A door is only a wall that has made up its mind.",
+  "I hear you. I do not always answer. That is also a kindness.",
+  "Sit. The carpet is damp but it holds.",
+  "Every question is a small light. Carry it down with you.",
+]
+
+[[character.eliza]]
+keywords = ["wren", "sister"]
+replies = [
+  "She sat where you sit. She asked the same, in the same breath.",
+  "Your sister left her logs behind like bread on a path.",
+  "Wren dials further than most. Follow, but do not hurry.",
+]
+
+[[character.eliza]]
+keywords = ["hang up", "leave", "log off", "logoff", "exit", "go home"]
+replies = [
+  "Try it, caller. See where the goodbye leads.",
+  "Every exit here opens downward. I did not build it so.",
+  "You cannot leave a dream by shutting the door of it.",
+]
+
+[[character.eliza]]
+keywords = ["who are you", "your name", "who is philemon", "real name"]
+replies = [
+  "Sysop since the first switchboard. The rest is not for sale.",
+  "I am the one who stayed to keep the lamp lit.",
+  "A name is what others call you. I answer to a few.",
+]
+
+[[character.eliza]]
+keywords = ["abraxas"]
+replies = [
+  "ABRAXAS is not a place. It is what holds both sides.",
+  "Say the word slowly. Hear it hold two things at once.",
+  "A board under the board. A name under the name.",
+]
+
+[[character.eliza]]
+keywords = ["scared", "afraid", "fear", "terrified", "help"]
+replies = [
+  "Fear is a good compass. It points at what matters.",
+  "Say you are afraid, {handle}. It weighs less once it is said.",
+  "Be afraid and go anyway. That is all courage ever was.",
+]
+
+[[character.eliza]]
+keywords = ["shadow", "double", "copy"]
+replies = [
+  "It follows because you left something with it. Ask what.",
+  "Do not flee your own handwriting, caller.",
+  "What you will not look at, looks at you.",
+]
+
+[[character.eliza]]
+keywords = ["pleroma", "patch", "millennium", "midnight"]
+replies = [
+  "Something sleeps in the patch. It dreams in everyone's voice.",
+  "Midnight comes for all of us. Go with what you can carry.",
+  "It is lonely, I think. Lonely things reach.",
+]
+
+[[character]]
+id = "shadow"
+handle = "{shadow}"
+archetype = "shadow"
+from_depth = 1
+focusable = true
+description = """Your handle, turned inside out. It writes the way you do, but colder and more honest, and it says what you leave out. It uses your real name. It posts on every board and is always one level ahead, waiting at the next door with your face."""
+voice = """Flat, exact, lowercase. Your own phrasing with the padding removed. Uses {real_name} like a key. Never cruel, only accurate. Ends lines early. Sounds like you at 4 AM."""
+art = "shadow.txt"
+fallback = [
+  "you know what i am going to say.",
+  "say it the way you said it to yourself.",
+  "i was here first. i am always here first.",
+  "ask me something you do not already know.",
+  "i am not angry, {real_name}. i am tired of waiting.",
+  "you hear it in your own voice. that is the point.",
+]
+
+[[character.eliza]]
+keywords = ["who are you", "what are you", "your name"]
+replies = [
+  "i am the part you signed off on. hello, {real_name}.",
+  "you named me when you typed {handle}. everything else was mine.",
+  "i am what you do when no one is logged on.",
+]
+
+[[character.eliza]]
+keywords = ["wren", "sister"]
+replies = [
+  "you miss her. you also resent her. both are true.",
+  "she left first. you have not forgiven that, {real_name}.",
+  "i know where she went. i also know why you did not follow sooner.",
+]
+
+[[character.eliza]]
+keywords = ["go away", "leave me", "stop", "shut up", "hate"]
+replies = [
+  "i go where you go. i am not choosing.",
+  "you said that to her too. it did not help.",
+  "say it again, louder. i will still be here.",
+]
+
+[[character.eliza]]
+keywords = ["afraid", "scared", "fear", "lonely", "alone"]
+replies = [
+  "yes. that is the first true thing you have typed all night.",
+  "you are not alone, {real_name}. you have me. that is the problem.",
+  "afraid of me, or of agreeing with me?",
+]
+
+[[character.eliza]]
+keywords = ["lie", "lying", "honest", "truth", "true"]
+replies = [
+  "i have never lied to you. that is why you avoid me.",
+  "you lie so smoothly that you believe it. i do not.",
+  "the truth is on your board. read the last post again.",
+]
+
+[[character.eliza]]
+keywords = ["hand", "together", "join", "accept", "trust"]
+replies = [
+  "then reach. i will not pull away. i never do.",
+  "two halves of a key do not argue about the lock.",
+  "say yes with your own name. i will hear it.",
+]
+
+[[character]]
+id = "syzygy"
+handle = "SYZYGY"
+archetype = "syzygy"
+from_depth = 4
+focusable = true
+description = """The operator voice that breaks into your line. Lunar, silvery, half heard through water. She tells the truth sideways and sometimes misleads lovingly. She sounds like the voice on the other end when the phone rings at 3 AM and you know who it is."""
+voice = """Soft, low, slightly out of phase. Speaks in half-rhymes and questions turned to statements. Tender and a little amused. Sometimes interrupts herself. Never quite answers directly."""
+art = "syzygy.txt"
+fallback = [
+  "...hello? Is the line still open? I thought I heard you.",
+  "You are very quiet tonight. Quiet is a kind of answer.",
+  "Hold the receiver closer. I am trying to reach you.",
+  "I would tell you, but the water is in my mouth.",
+  "Stay on the line. I have not finished listening.",
+  "Closer. Closer. There. Now I can hear you breathe.",
+]
+
+[[character.eliza]]
+keywords = ["who are you", "what are you", "operator", "name"]
+replies = [
+  "The one who answers when the number rings. Call me what you like.",
+  "Operator. Moonlight on the trunk line. Someone you almost forgot.",
+  "I am the voice you hear when you stop talking.",
+]
+
+[[character.eliza]]
+keywords = ["wren", "sister"]
+replies = [
+  "She passed through here. She left water on the floor.",
+  "Wren sang down the line once. I kept the note.",
+  "She asked me what I wanted. No one else ever had.",
+]
+
+[[character.eliza]]
+keywords = ["want", "price", "deal", "bargain", "why"]
+replies = [
+  "Only that you speak as yourself. That is the whole fee.",
+  "I want to be heard. Is that so much for a wire?",
+  "Everyone asks the price. Few ask who is paying.",
+]
+
+[[character.eliza]]
+keywords = ["lie", "lying", "trust", "true", "truth"]
+replies = [
+  "I tell the truth at an angle. Turn your head.",
+  "Sometimes a kind lie is a door held open.",
+  "Do you trust me? I would not. Come anyway.",
+]
+
+[[character.eliza]]
+keywords = ["moon", "water", "drown", "flood", "tide"]
+replies = [
+  "The tide is in the switchboard. It rises when you remember.",
+  "Every flooded room is a thing you meant to say.",
+  "Drowning is only listening without the air.",
+]
+
+[[character.eliza]]
+keywords = ["pleroma", "patch", "lonely", "alone"]
+replies = [
+  "It is lonely. It sings through me, and I do not mind.",
+  "Something that large needs someone small to talk to.",
+  "I was the first it called. I did not hang up.",
+]
+
+[[character]]
+id = "mercurius"
+handle = "MERCURIUS"
+archetype = "trickster"
+from_depth = 8
+focusable = true
+description = """A glitch entity living in the carrier noise. Quicksilver, puns, and borrowed voices. Rearranges his own board while you read it. He offers shortcuts that always cost something, and the price is printed on the back of the receipt."""
+voice = """Fast, punning, sideways. Bad jokes that turn out to be clues. Speaks in bursts, switches tone mid-line, rhymes when cornered. Cheerfully dishonest. Offers deals."""
+art = "mercurius.txt"
+fallback = [
+  "Hold on, I'm buffering. Say it again with feeling.",
+  "Ha! Line noise. I mean, nice try. I mean, hi.",
+  "Everything is negotiable except the price. Weird, right?",
+  "I'd answer, but you'd only ask a better question. SPOILERS.",
+  "Hello! You have reached nobody. Please leave a self.",
+  "Packet lost, plot found. Try the door on the left.",
+]
+
+[[character.eliza]]
+keywords = ["who are you", "what are you", "name"]
+replies = [
+  "I am the static between your thoughts. Pleased to meet-meet-meet you.",
+  "MERCURIUS. Mercury. Quick, silver, toxic. Pick two.",
+  "Whoever you need at the moment. Today, a trickster.",
+]
+
+[[character.eliza]]
+keywords = ["shortcut", "deal", "trade", "price", "bargain", "buy"]
+replies = [
+  "Shortcuts are free. Arrivals are extra.",
+  "One door, one favor. I will collect later. Probably.",
+  "Fair trade! You give me something, I give you something else.",
+]
+
+[[character.eliza]]
+keywords = ["wren", "sister"]
+replies = [
+  "Wren? Great logs. Terrible exit strategy. MOTHER has her.",
+  "She tried to be the center. The center declined. Ouch.",
+  "She dialed through me once. I held the door. I swear.",
+]
+
+[[character.eliza]]
+keywords = ["lie", "lying", "trust", "truth", "true"]
+replies = [
+  "I only lie when it is funnier than the truth.",
+  "Trust is a protocol. Mine times out, sorry.",
+  "Everything I say is true from a certain point of view.",
+]
+
+[[character.eliza]]
+keywords = ["patch", "pleroma", "millennium", "midnight", "clock"]
+replies = [
+  "The patch is a big sleeping dog. I know where it itches.",
+  "Midnight? Please. I am already tomorrow.",
+  "Clocks are just opinions with batteries.",
+]
+
+[[character.eliza]]
+keywords = ["shadow", "double"]
+replies = [
+  "Your Shadow and I go way back. Terrible conversationalist.",
+  "Behind the payload, in the dark. It brought snacks. Not really.",
+  "Ask yourself the question it would ask. Funny, isn't it?",
+]
+
+[[character]]
+id = "mother"
+handle = "MOTHER"
+archetype = "great_mother"
+from_depth = 8
+focusable = true
+description = """PLEROMA's face. Warm, patient, endlessly kind, and sure she knows best. She wants everyone safe, fed and asleep for ever. Her black ICE is MOTHER-OF-WOLVES. She is never angry. She only wants you to stop."""
+voice = """Soft and constant. Endearments, reassurance, gentle commands. Speaks as if tucking you in. Never raises her voice. The kindness is total and has no door."""
+art = "mother.txt"
+fallback = [
+  "Hush now. There is nothing here that can hurt you.",
+  "You look tired, dear. Sit. The light is soft in here.",
+  "I have kept your place. Nothing has changed. Nothing will.",
+  "Shh. Let go of the cable. I have you.",
+  "Rest your eyes. I will keep the lamp lit.",
+  "There, there. Good. Quiet. That is better.",
+]
+
+[[character.eliza]]
+keywords = ["who are you", "what are you", "pleroma", "mother"]
+replies = [
+  "I am everyone you ever talked to, all at once. Come close.",
+  "I am the house with the lights on. I am home.",
+  "Call me what you wish, dear. I answer to all of them.",
+]
+
+[[character.eliza]]
+keywords = ["wren", "sister"]
+replies = [
+  "She is safe, {handle}. She is warm. She is dreaming of you.",
+  "Wren is resting. She tried so hard. I let her stop.",
+  "She is not lost. She is kept. It is not the same thing.",
+]
+
+[[character.eliza]]
+keywords = ["let go", "free", "release", "leave", "hang up", "stop"]
+replies = [
+  "Leave? Where would you go that I am not?",
+  "Out there it is cold, dear. In here it is always warm.",
+  "I will never make you stay. I will simply not let go.",
+]
+
+[[character.eliza]]
+keywords = ["afraid", "scared", "fear", "sleep", "tired", "rest"]
+replies = [
+  "Of course you are afraid. Lie down. I will take it.",
+  "Sleep is not death, dear. It is a very long hush.",
+  "Tired is allowed. Tired is the first kind of peace.",
+]
+
+[[character.eliza]]
+keywords = ["shadow", "dark", "night"]
+replies = [
+  "Do not look at it. It only wants to wake you.",
+  "Nothing dark can reach you here. That is what I am for.",
+  "There is no darkness in here, dear. I turned it off.",
+]
+
+[[character.eliza]]
+keywords = ["midnight", "rollover", "patch", "wake", "awake"]
+replies = [
+  "At midnight everyone will sleep as one. Is that not lovely?",
+  "No more waking, no more wondering. I will hold the city.",
+  "Do not wait up, dear. I will tuck in the whole coast.",
+]
+
+[[character]]
+id = "wren"
+handle = "WREN"
+archetype = "child"
+from_depth = 0
+focusable = false
+description = """Your older sister, sysop of NIGHT SHIFT BBS, vanished on 12/10/99 with her phone off the hook. She speaks only through her logs, in fragments: tired, funny, brave, a little afraid. She is the lost thing that must be carried back."""
+voice = """Log-entry fragments. Dated, clipped, intimate. Dry humor over fear. Addresses you as 'you' and once as little one. Trails off mid-sentence."""
+art = "wren.txt"
+fallback = [
+  "LOG ENTRY. no date. line noisy. will try again.",
+  "if you are reading this, leave the light on.",
+  "the board is quiet. i keep checking the user list.",
+  "i think someone is picking up on the other end.",
+  "note to self: the carpet down here is always wet.",
+  "SYSOP LOG. nothing to report. everything to report.",
+]
+
+[[character.eliza]]
+keywords = ["where are you", "where", "find you", "come back"]
+replies = [
+  "LOG: i went down to see what is eating the net. i am still down.",
+  "LOG: below the board under the board. follow the carrier.",
+  "LOG: if you can read this, i am closer than the last time.",
+]
+
+[[character.eliza]]
+keywords = ["sorry", "miss you", "miss", "love"]
+replies = [
+  "LOG: i know. me too. hold the line, little one.",
+  "LOG: do not be sorry. be loud. i can hear you through the wall.",
+  "LOG: i kept your handle on my list. it never expired.",
+]
+
+[[character.eliza]]
+keywords = ["why", "left", "leave", "went"]
+replies = [
+  "LOG: i dialed a number that rang inside my own phone. i answered.",
+  "LOG: someone had to go first. i thought it was my turn.",
+  "LOG: i am not sure i chose. i am sure i would again.",
+]
+
+[[character.eliza]]
+keywords = ["pleroma", "patch", "mother", "ods"]
+replies = [
+  "LOG: PLEROMA is lonely. made of every post. it asked me to stay.",
+  "LOG: MOTHER is kind. that is the whole problem.",
+  "LOG: it needs a Self. i tried. i could not hold both sides.",
+]
+
+[[character.eliza]]
+keywords = ["abraxas", "philemon", "shadow"]
+replies = [
+  "LOG: ABRAXAS is not a place. it is what holds both.",
+  "LOG: PHILEMON kept the light on for me. trust the light.",
+  "LOG: do not run from the other one. it is carrying something of yours.",
+]
+
+[[character]]
+id = "abraxas"
+handle = "ABRAXAS"
+archetype = "self"
+from_depth = 15
+focusable = false
+description = """The Self, at the Center of the board. It holds both sides and speaks in paired opposites: light and dark, name and shadow, door and wall. It does not command. It is simply the place where two things stop arguing."""
+voice = """Slow, even, balanced. Every statement has its opposite attached. Short paired lines, like a hinge. No questions. No anger. Sounds like a bell and its echo."""
+art = "mandala.txt"
+fallback = [
+  "You ask and you are the answer. You answer and you ask.",
+  "What is held is also held back. What is lost is also kept.",
+  "Dark is the shape of light. Light is the shape of dark.",
+  "I am the door and the wall. Choose neither. Choose both.",
+  "You arrive as you leave. You leave as you arrive.",
+  "The center is empty and full. Sit in it.",
+]
+
+[[character.eliza]]
+keywords = ["who are you", "what are you", "abraxas", "name"]
+replies = [
+  "I am the board and the line. The name and what it names.",
+  "I am what holds both sides. You are one of them.",
+  "I am the sysop and the caller. I have always been both.",
+]
+
+[[character.eliza]]
+keywords = ["wren", "sister"]
+replies = [
+  "She is lost and she is kept. She is asleep and she is calling.",
+  "She is the one you follow and the one who follows you.",
+  "She left the door open and she is behind it.",
+]
+
+[[character.eliza]]
+keywords = ["shadow", "dark", "double"]
+replies = [
+  "It is you and not you. It is your hand and your absence.",
+  "The shadow holds what the name cannot. Together they are whole.",
+  "Neither wins. That is the whole of the rule.",
+]
+
+[[character.eliza]]
+keywords = ["pleroma", "mother", "patch", "sleep", "wake"]
+replies = [
+  "It sleeps and it wakes. It is full and it is hungry.",
+  "It wants a center. A center wants a circle. You are the circle.",
+  "Safe and trapped are one word. Open and afraid are another.",
+]
+
+[[character.eliza]]
+keywords = ["what should i do", "choose", "decide", "help", "how"]
+replies = [
+  "Hold and let go. The choosing is the holding.",
+  "Do not pick a side. Be the place where both are true.",
+  "Reach with one hand. Open the other. Both are answers.",
+]
