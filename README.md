@@ -6,7 +6,7 @@ A 1999 BBS hacker game that dreams its own levels.
 
 It is 23:00 on 12/31/1999 in Port Hecate, a drowned-coast megacity where cyberdecks dial into the phone network and the phone network is a shared lucid dream. Your sister Wren, sysop of NIGHT SHIFT BBS, vanished on 12/10/99 with her phone off the hook. You dial her board, the line crosses, and you reach ABRAXAS, a board that should not exist. There is no hanging up: every Goodbye leads one level deeper.
 
-The game is a terminal UI styled after a late-90s ANSI BBS: message bases, file libraries, door games, a user list, a sysop to page. You hack hosts through shell commands and ICE mini-games (WORDLOCK, BREACH, PHREAK, DAEMON, ROUTER, DUEL). Between levels you fall through procedural visions (tunnels, plasma, fire, mandalas) and the I Ching casts the omen of the level you land in. Every level is randomised. A local or remote language model writes the words (boards, files, hosts, interludes) and continues the story for ever; without one, an offline generator draws from the story pack's word bank so the game is always playable.
+The game is a terminal UI styled after a late-90s ANSI BBS: message bases, file libraries, door games, a user list, a sysop to page and an IRC network of fserv bots. You hack hosts through shell commands and ICE mini-games (WORDLOCK, BREACH, PHREAK, DAEMON, ROUTER, DUEL). Between levels you fall through procedural visions (tunnels, plasma, fire, mandalas) and the I Ching casts the omen of the level you land in. Every level is randomised. A local or remote language model writes the words (boards, files, hosts, interludes) and continues the story for ever; without one, an offline generator draws from the story pack's word bank so the game is always playable.
 
 ![The BBS menu](docs/screenshots/menu.svg)
 
@@ -40,11 +40,22 @@ Other commands: `abraxas pack check [DIR]` validates a story pack; `abraxas pack
 
    ![Login: the logo and the Handle prompt](docs/screenshots/login.svg)
 
-2. On a level you arrive at the level card, then the BBS menu. Read the **message base** and the **file library** for clues and programs, **page the SysOp** to chat, check the **user list**, then open the **door**: a host you must break into.
+2. On a level you arrive at the level card, then the BBS menu. Read the **message base** and the **file library** for clues and programs, **page the SysOp** to chat, check the **user list**, hang out on **IRC** (below), then open the **door**: a host you must break into.
 
    | | |
    |---|---|
    | ![The level card](docs/screenshots/level-card.svg) | ![The message base, reading the re: front door clue](docs/screenshots/board.svg) |
+
+   **IRC** (`[I]` on the menu) is the level's network: three channels of chatter from the pack's word bank and a few `@` bots, the **fservs**, that sell files and programs for RATIO. `/list` and `/join #chan` move between channels, `/fserv <bot>` shows a bot's stock and `/get <n>` buys an item. An open fserv sells at once. A locked one sells nothing until you crack it: `/hack <bot>` plays one of the host's ICE mini-games (BREACH, PHREAK or DAEMON), and `/teardrop <bot>` crashes it outright for one charge of `TEARDROP.SH`, which the open fserv sells. A cracked fserv's stock is free. It is worth the risk: `.NFO` files give away half of the level's front-door password, zines teach the game's own hacking techniques, and programs fill your deck. What you buy is kept with the run (`/files`, `/read <n>`); `/help` lists every command.
+
+   The IRC trace meter belongs to the visit: it starts at 0% and does not fall on its own. Every `/hack` costs 5 before the game starts, every slip or `Esc` inside it costs more, and `TEARDROP.SH` costs 15. At 100% the server K-lines you: EGO -20 and back to the menu.
+
+   ![IRC: chatter, a bot advertising itself, its stock and the purchase of TEARDROP.SH](docs/screenshots/irc.svg)
+
+   | | |
+   |---|---|
+   | ![/hack: the PHREAK keypad guarding a locked fserv, TRACE already at 5%](docs/screenshots/irc-hack.svg) | ![/teardrop: the locked fserv crashes and its stock is free](docs/screenshots/irc-teardrop.svg) |
+   | ![The .NFO half-reveals the front-door password](docs/screenshots/irc-nfo.svg) | ![K-LINED: the trace found you](docs/screenshots/irc-kline.svg) |
 
 3. In a host you type shell commands (`help` lists them): `scan`, `ls`, `cat`, `connect <node>`, `get <file>`, `put PAYLOAD.PIF`, `ps`, `kill <pid>`, `bounce`, `run ghost`, `deck`, `logout`. Every command raises the trace; at 100% you get DUMP SHOCK (EGO -20) and are thrown back to the menu. `scan` names each adjacent guard and how tough it is (`soft`, `standard`, `hardened`); guards you meet are ICE mini-games. A DAEMON gate is a sandboxed login on the host's own OS: solve it by typing real 1990s commands (`ps`, `kill <pid>` on unix; `SHOW SYSTEM`, `STOP/ID=<pid>` on a VAX; `STATUS`, `CANCEL <job>` on a mainframe; `MEM /C`, `ATTRIB -H` on DOS). `Tab` inside it buys a hint for 4 trace. BLACK ICE duels come in three classes - WOLF (lunges), EYE (its gaze cannot be blocked, but a MIRROR reflects it double) and HYDRA (bites and regrows) - and each attack plays an animation (`--calm` disables them). The `re: front door` password post is a different kind of clue every level: easy masks early, vaguer hints (first/last letter, vowel count, a misleading rumour, nothing) deeper in.
 
@@ -59,7 +70,7 @@ Other commands: `abraxas pack check [DIR]` validates a story pack; `abraxas pack
 
    ![The descent: a vision, the captions and the hexagram](docs/screenshots/descent.svg)
 
-Stats: **EGO** (health, +10 on every arrival; at 0 the run ends and the save is deleted), **RATIO** (KB credit earned from doors, spent on programs in the file library), **INTEGRATION** (your stance toward the Shadow, -10 to 10; it decides the ending), **DECK** (programs: DECRYPT, SNIFFER, BUFFER, GHOST, ICEPICK, MIRROR, MANDALA, METRONOM).
+Stats: **EGO** (health, +10 on every arrival; at 0 the run ends and the save is deleted), **RATIO** (KB credit earned from doors, spent on programs in the file library and on IRC fservs), **INTEGRATION** (your stance toward the Shadow, -10 to 10; it decides the ending), **DECK** (programs: DECRYPT, SNIFFER, BUFFER, GHOST, ICEPICK, MIRROR, MANDALA, METRONOM, and TEARDROP, which only IRC sells).
 
 Levels 0-15 carry the authored story in four alchemical acts (NIGREDO, ALBEDO, CITRINITAS, RUBEDO); after an ending you can continue into THE UNDERBOARD, endless AI levels.
 
@@ -73,6 +84,7 @@ Levels 0-15 carry the authored story in four alchemical acts (NIGREDO, ALBEDO, C
 | Menus | letter hotkeys, arrows, `Enter` |
 | Viewers | `Up`/`Down`, `PgUp`/`PgDn`, `Space` |
 | Text and the shell prompt | `Left`/`Right`/`Home`/`End`/`Backspace`/`Delete`, history with `Up`/`Down`, `Tab` completes commands, node ids and file names, `Ctrl+L` clears |
+| IRC | slash commands (`/help` lists them), `PgUp`/`PgDn` scroll the log, `Esc` clears the line, then leaves |
 | Any transmission | any key completes the current text |
 
 ## AI setup
@@ -299,8 +311,14 @@ With `ai = "off"` the AI is never called for that level and missing fields come 
 | `beats`, `captions` | at most 700 and 48 |
 | `words_5` ... `words_8` | uppercase words matching `^[A-Z]{N}$` |
 | `eliza`, `eliza_fallback` | `{ keywords, replies }` groups and fallback lines for the generic NPC sysop chat |
+| `irc_servers` | server host names, at most 40 characters |
+| `irc_channels` | channel names matching `^#[a-z0-9_-]{2,20}$` |
+| `irc_nicks`, `irc_bots` | handles `^[A-Za-z0-9_-]{2,16}$`: the chatterers and the fserv bots |
+| `irc_chatter` | chat lines, at most 70 characters; may use `{handle}`, `{shadow}` and `{real_name}` |
 
 `[[post]]`, `[[text_file]]`, `[[host_file]]` and `[[exit]]` use the same fields as in anchors; a `[[choice]]` with `[[choice.option]]` must offer exactly one option per stance, and the exits must include every kind.
+
+`[[irc_nfo]]` (release notes; the engine appends the clue to the level's front door) and `[[irc_zines]]` (articles about the game's hacking techniques) use the same fields as `[[text_file]]`.
 
 ### Placeholders
 

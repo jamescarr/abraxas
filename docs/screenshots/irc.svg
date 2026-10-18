@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="450" viewBox="0 0 720 450" font-family="Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="15" shape-rendering="crispEdges" style="white-space:pre">
+<rect x="0" y="0" width="720" height="450" fill="#000000"/>
+<rect x="0" y="0" width="558" height="18" fill="#0000aa"/>
+<text x="0" y="14" fill="#ffffff" textLength="558" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> irc.drywell.edu │ #wardial │ Tester                    TRACE </text>
+<rect x="558" y="0" width="108" height="18" fill="#0000aa"/>
+<rect x="558" y="0" width="108" height="18" fill="#00aaaa" fill-opacity="0.25"/>
+<rect x="666" y="0" width="27" height="18" fill="#0000aa"/>
+<text x="666" y="14" fill="#55ff55" textLength="27" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> 0%</text>
+<rect x="693" y="0" width="27" height="18" fill="#0000aa"/>
+<text x="0" y="32" fill="#555555" textLength="414" lengthAdjust="spacingAndGlyphs" xml:space="preserve">*** Connecting to irc.drywell.edu port 6667...</text>
+<text x="486" y="32" fill="#555555" textLength="9" lengthAdjust="spacingAndGlyphs" xml:space="preserve">│</text>
+<text x="495" y="32" fill="#aa0000" textLength="72" lengthAdjust="spacingAndGlyphs" xml:space="preserve">─ USERS </text>
+<text x="567" y="32" fill="#555555" textLength="153" lengthAdjust="spacingAndGlyphs" xml:space="preserve">─────────────────</text>
+<text x="0" y="50" fill="#555555" textLength="342" lengthAdjust="spacingAndGlyphs" xml:space="preserve">*** Welcome to irc.drywell.edu, Tester</text>
+<text x="486" y="50" fill="#555555" textLength="9" lengthAdjust="spacingAndGlyphs" xml:space="preserve">│</text>
+<text x="504" y="50" fill="#ffff55" textLength="72" lengthAdjust="spacingAndGlyphs" xml:space="preserve">@dustbin</text>
+<text x="0" y="68" fill="#555555" textLength="243" lengthAdjust="spacingAndGlyphs" xml:space="preserve">*** Now talking in #wardial</text>
+<text x="486" y="68" fill="#555555" textLength="9" lengthAdjust="spacingAndGlyphs" xml:space="preserve">│</text>
+<text x="495" y="68" fill="#aaaaaa" textLength="225" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> lowtide                 </text>
+<text x="0" y="86" fill="#555555" textLength="423" lengthAdjust="spacingAndGlyphs" xml:space="preserve">*** Topic: It shines. It is black. Look anyway.</text>
+<text x="486" y="86" fill="#555555" textLength="9" lengthAdjust="spacingAndGlyphs" xml:space="preserve">│</text>
+<text x="495" y="86" fill="#aaaaaa" textLength="225" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> tinfoil                 </text>
+<text x="0" y="104" fill="#555555" textLength="423" lengthAdjust="spacingAndGlyphs" xml:space="preserve">*** Users: @dustbin lowtide tinfoil packet_rat9</text>
+<text x="486" y="104" fill="#555555" textLength="9" lengthAdjust="spacingAndGlyphs" xml:space="preserve">│</text>
+<text x="495" y="104" fill="#aaaaaa" textLength="225" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> packet_rat9             </text>
+<text x="0" y="122" fill="#555555" textLength="171" lengthAdjust="spacingAndGlyphs" xml:space="preserve">9600baud wet_carpet</text>
+<text x="486" y="122" fill="#555555" textLength="9" lengthAdjust="spacingAndGlyphs" xml:space="preserve">│</text>
+<text x="495" y="122" fill="#aaaaaa" textLength="225" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> 9600baud                </text>
+<text x="0" y="140" fill="#aaaaaa" textLength="486" lengthAdjust="spacingAndGlyphs" xml:space="preserve">&lt;9600baud&gt; dont trust anyone with a clean nick.       </text>
+<text x="486" y="140" fill="#555555" textLength="9" lengthAdjust="spacingAndGlyphs" xml:space="preserve">│</text>
+<text x="495" y="140" fill="#aaaaaa" textLength="225" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> wet_carpet              </text>
+<text x="0" y="158" fill="#aaaaaa" textLength="486" lengthAdjust="spacingAndGlyphs" xml:space="preserve">everybody is a bot after 4am                          </text>
+<text x="486" y="158" fill="#555555" textLength="9" lengthAdjust="spacingAndGlyphs" xml:space="preserve">│</text>
+<text x="0" y="176" fill="#aaaaaa" textLength="486" lengthAdjust="spacingAndGlyphs" xml:space="preserve">&lt;packet_rat9&gt; the carpet in here is wet again. has    </text>
+<text x="486" y="176" fill="#555555" textLength="9" lengthAdjust="spacingAndGlyphs" xml:space="preserve">│</text>
+<text x="495" y="176" fill="#aa0000" textLength="81" lengthAdjust="spacingAndGlyphs" xml:space="preserve">─ FSERVS </text>
+<text x="576" y="176" fill="#555555" textLength="144" lengthAdjust="spacingAndGlyphs" xml:space="preserve">────────────────</text>
+<text x="0" y="194" fill="#aaaaaa" textLength="486" lengthAdjust="spacingAndGlyphs" xml:space="preserve">anyone checked the room                               </text>
+<text x="486" y="194" fill="#555555" textLength="9" lengthAdjust="spacingAndGlyphs" xml:space="preserve">│</text>
+<text x="495" y="194" fill="#aaaaaa" textLength="225" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> dustbin open            </text>
+<text x="0" y="212" fill="#ffff55" textLength="126" lengthAdjust="spacingAndGlyphs" xml:space="preserve">&lt;dustbin&gt; open</text>
+<text x="486" y="212" fill="#555555" textLength="9" lengthAdjust="spacingAndGlyphs" xml:space="preserve">│</text>
+<text x="0" y="230" fill="#ffff55" textLength="432" lengthAdjust="spacingAndGlyphs" xml:space="preserve">[1] TEARDROP.SH  64K  IRC: /teardrop crashes one</text>
+<text x="486" y="230" fill="#555555" textLength="9" lengthAdjust="spacingAndGlyphs" xml:space="preserve">│</text>
+<text x="495" y="230" fill="#aa0000" textLength="90" lengthAdjust="spacingAndGlyphs" xml:space="preserve">─ FILES 0 </text>
+<text x="585" y="230" fill="#555555" textLength="135" lengthAdjust="spacingAndGlyphs" xml:space="preserve">───────────────</text>
+<text x="0" y="248" fill="#ffff55" textLength="216" lengthAdjust="spacingAndGlyphs" xml:space="preserve">locked fserv (+15 trace)</text>
+<text x="486" y="248" fill="#555555" textLength="9" lengthAdjust="spacingAndGlyphs" xml:space="preserve">│</text>
+<text x="504" y="248" fill="#555555" textLength="54" lengthAdjust="spacingAndGlyphs" xml:space="preserve">/files</text>
+<text x="0" y="266" fill="#ffff55" textLength="468" lengthAdjust="spacingAndGlyphs" xml:space="preserve">[2] MANDALA.SYS  48K  restore 30 EGO (Self screen U,</text>
+<text x="486" y="266" fill="#555555" textLength="9" lengthAdjust="spacingAndGlyphs" xml:space="preserve">│</text>
+<text x="0" y="284" fill="#ffff55" textLength="135" lengthAdjust="spacingAndGlyphs" xml:space="preserve">or run mandala)</text>
+<text x="486" y="284" fill="#555555" textLength="9" lengthAdjust="spacingAndGlyphs" xml:space="preserve">│</text>
+<text x="0" y="302" fill="#ffff55" textLength="459" lengthAdjust="spacingAndGlyphs" xml:space="preserve">[3] DOCS_03.TXT  8K  BREACH grid notes, hand-copied</text>
+<text x="486" y="302" fill="#555555" textLength="9" lengthAdjust="spacingAndGlyphs" xml:space="preserve">│</text>
+<text x="0" y="320" fill="#555555" textLength="414" lengthAdjust="spacingAndGlyphs" xml:space="preserve">*** type /get &lt;n&gt; to download. your ratio: 96K</text>
+<text x="486" y="320" fill="#555555" textLength="9" lengthAdjust="spacingAndGlyphs" xml:space="preserve">│</text>
+<text x="0" y="338" fill="#555555" textLength="423" lengthAdjust="spacingAndGlyphs" xml:space="preserve">*** DCC SEND TEARDROP.SH from dustbin (64K) ...</text>
+<text x="486" y="338" fill="#555555" textLength="9" lengthAdjust="spacingAndGlyphs" xml:space="preserve">│</text>
+<text x="0" y="356" fill="#555555" textLength="261" lengthAdjust="spacingAndGlyphs" xml:space="preserve">complete. It is in your deck.</text>
+<text x="486" y="356" fill="#555555" textLength="9" lengthAdjust="spacingAndGlyphs" xml:space="preserve">│</text>
+<text x="486" y="374" fill="#555555" textLength="9" lengthAdjust="spacingAndGlyphs" xml:space="preserve">│</text>
+<text x="486" y="392" fill="#555555" textLength="9" lengthAdjust="spacingAndGlyphs" xml:space="preserve">│</text>
+<text x="486" y="410" fill="#555555" textLength="9" lengthAdjust="spacingAndGlyphs" xml:space="preserve">│</text>
+<text x="0" y="428" fill="#ffffff" textLength="99" lengthAdjust="spacingAndGlyphs" xml:space="preserve">[#wardial] </text>
+<rect x="99" y="414" width="9" height="18" fill="#ffffff"/>
+<rect x="0" y="432" width="639" height="18" fill="#00aaaa"/>
+<text x="0" y="446" fill="#000000" textLength="639" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> SOL NIGER │ L03 THE BLACK SUN │ EGO 100 │ 0032K │ 23:12:10 12/31/99 │ </text>
+<text x="639" y="446" fill="#555555" textLength="18" lengthAdjust="spacingAndGlyphs" xml:space="preserve">SD</text>
+<rect x="657" y="432" width="9" height="18" fill="#00aaaa"/>
+<text x="666" y="446" fill="#555555" textLength="18" lengthAdjust="spacingAndGlyphs" xml:space="preserve">RD</text>
+<rect x="684" y="432" width="9" height="18" fill="#00aaaa"/>
+<text x="693" y="446" fill="#555555" textLength="18" lengthAdjust="spacingAndGlyphs" xml:space="preserve">CD</text>
+<rect x="711" y="432" width="9" height="18" fill="#00aaaa"/>
+</svg>

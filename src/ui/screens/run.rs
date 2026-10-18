@@ -145,7 +145,7 @@ fn clock_text(ctx: &Ctx) -> String {
         .map_or_else(String::new, |c| format!("{} {}", c.date, c.hms()))
 }
 
-fn line_style(p: &Palette, style: LineStyle) -> Style {
+pub(super) fn line_style(p: &Palette, style: LineStyle) -> Style {
     p.style(
         match style {
             LineStyle::Normal => Dos::LightGray,
@@ -1917,7 +1917,8 @@ mod tests {
 
     /// The README gallery: twelve screens rendered through `App::render` and written as SVG
     /// under `docs/screenshots` (or `$ABRAXAS_SHOTS_DIR`). Ignored by default; re-run with
-    /// `cargo test --lib write_readme_screenshots -- --ignored` when a screen changes.
+    /// `cargo test --lib write_readme_screenshots -- --ignored` when a screen changes. The same
+    /// command also runs the IRC gallery in `irc.rs`, which writes the `irc*.svg` frames.
     mod screenshots {
         use super::*;
         use crate::ice::duel::Intent;

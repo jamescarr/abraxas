@@ -8,8 +8,8 @@ use ratatui::crossterm::event::KeyEvent;
 use ratatui::layout::Rect;
 
 use super::{
-    ArchiveScreen, BoardScreen, ChatScreen, ExitsScreen, FilesScreen, Nav, PsycheScreen, RunScreen,
-    Screen, ScreenImpl, UsersScreen,
+    ArchiveScreen, BoardScreen, ChatScreen, ExitsScreen, FilesScreen, IrcScreen, Nav, PsycheScreen,
+    RunScreen, Screen, ScreenImpl, UsersScreen,
 };
 use crate::game::state::Phase;
 use crate::pack::model::Archetype;
@@ -100,6 +100,7 @@ impl MenuScreen {
             MenuItem::new('a', "Archive"),
             MenuItem::new('s', "Self"),
             goodbye,
+            MenuItem::new('i', "IRC"),
         ])
         .with_columns(2)
         .with_row_height(2)
@@ -135,6 +136,7 @@ impl MenuScreen {
             's' => Screen::Psyche(PsycheScreen::new(ctx)),
             'd' => Screen::Run(RunScreen::new(ctx)),
             'g' => Screen::Exits(ExitsScreen::new(ctx)),
+            'i' => Screen::Irc(IrcScreen::new(ctx)),
             _ => return Nav::Stay,
         };
         if key == 'g' {
@@ -234,7 +236,7 @@ impl ScreenImpl for MenuScreen {
 
         self.menu.render(
             buf,
-            Rect::new(area.x + MENU_X, area.y + MENU_ROW, MENU_W, 8),
+            Rect::new(area.x + MENU_X, area.y + MENU_ROW, MENU_W, 9),
             &ctx.palette,
             ctx.chrome(),
         );
@@ -337,6 +339,7 @@ mod tests {
             ('A', "Push Archive"),
             ('s', "Push Psyche"),
             ('d', "Push Run"),
+            ('i', "Push Irc"),
         ] {
             let nav = s.handle_key(press_char(key), &mut ctx);
             assert_eq!(nav_name(&nav), want, "key {key}");
@@ -435,6 +438,7 @@ mod tests {
         assert!(r[9].contains("[C] Page the SysOp") && r[9].contains("[U] User list"));
         assert!(r[11].contains("[D] Door: ") && r[11].contains("[A] Archive"));
         assert!(r[13].contains("[S] Self") && r[13].contains("[G] Goodbye"));
+        assert!(r[15].contains("[I] IRC"), "{:?}", r[15]);
         let objective: String = place.host.objective.chars().take(20).collect();
         assert!(r[11].contains(&objective), "{:?}", r[11]);
         assert!(r[16].contains("SYSOP NEWS"));

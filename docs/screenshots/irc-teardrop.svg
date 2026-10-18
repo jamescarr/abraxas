@@ -1,0 +1,81 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="450" viewBox="0 0 720 450" font-family="Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="15" shape-rendering="crispEdges" style="white-space:pre">
+<rect x="0" y="0" width="720" height="450" fill="#000000"/>
+<rect x="0" y="0" width="558" height="18" fill="#0000aa"/>
+<text x="0" y="14" fill="#ffffff" textLength="558" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> irc.drywell.edu │ #phreak │ Tester                     TRACE </text>
+<rect x="558" y="0" width="27" height="18" fill="#0000aa"/>
+<rect x="558" y="0" width="27" height="18" fill="#55ff55"/>
+<rect x="585" y="0" width="81" height="18" fill="#0000aa"/>
+<rect x="585" y="0" width="81" height="18" fill="#00aaaa" fill-opacity="0.25"/>
+<rect x="666" y="0" width="36" height="18" fill="#0000aa"/>
+<text x="666" y="14" fill="#55ff55" textLength="36" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> 25%</text>
+<rect x="702" y="0" width="18" height="18" fill="#0000aa"/>
+<text x="0" y="32" fill="#555555" textLength="234" lengthAdjust="spacingAndGlyphs" xml:space="preserve">*** Now talking in #phreak</text>
+<text x="486" y="32" fill="#555555" textLength="9" lengthAdjust="spacingAndGlyphs" xml:space="preserve">│</text>
+<text x="495" y="32" fill="#aa0000" textLength="72" lengthAdjust="spacingAndGlyphs" xml:space="preserve">─ USERS </text>
+<text x="567" y="32" fill="#555555" textLength="153" lengthAdjust="spacingAndGlyphs" xml:space="preserve">─────────────────</text>
+<text x="0" y="50" fill="#555555" textLength="477" lengthAdjust="spacingAndGlyphs" xml:space="preserve">*** Topic: the board says midnight but every clock in</text>
+<text x="486" y="50" fill="#555555" textLength="9" lengthAdjust="spacingAndGlyphs" xml:space="preserve">│</text>
+<text x="504" y="50" fill="#ffff55" textLength="63" lengthAdjust="spacingAndGlyphs" xml:space="preserve">@serv_0</text>
+<text x="0" y="68" fill="#555555" textLength="216" lengthAdjust="spacingAndGlyphs" xml:space="preserve">here says something else</text>
+<text x="486" y="68" fill="#555555" textLength="9" lengthAdjust="spacingAndGlyphs" xml:space="preserve">│</text>
+<text x="495" y="68" fill="#aaaaaa" textLength="225" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> lamer-x                 </text>
+<text x="0" y="86" fill="#555555" textLength="468" lengthAdjust="spacingAndGlyphs" xml:space="preserve">*** Users: @serv_0 lamer-x hexdump cablecar ironlung</text>
+<text x="486" y="86" fill="#555555" textLength="9" lengthAdjust="spacingAndGlyphs" xml:space="preserve">│</text>
+<text x="495" y="86" fill="#aaaaaa" textLength="225" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> hexdump                 </text>
+<text x="0" y="104" fill="#555555" textLength="180" lengthAdjust="spacingAndGlyphs" xml:space="preserve">halfduplex glasswing</text>
+<text x="486" y="104" fill="#555555" textLength="9" lengthAdjust="spacingAndGlyphs" xml:space="preserve">│</text>
+<text x="495" y="104" fill="#aaaaaa" textLength="225" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> cablecar                </text>
+<text x="0" y="122" fill="#ffff55" textLength="297" lengthAdjust="spacingAndGlyphs" xml:space="preserve">&lt;serv_0&gt; locked (PHREAK standard)</text>
+<text x="486" y="122" fill="#555555" textLength="9" lengthAdjust="spacingAndGlyphs" xml:space="preserve">│</text>
+<text x="495" y="122" fill="#aaaaaa" textLength="225" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> ironlung                </text>
+<text x="0" y="140" fill="#ffff55" textLength="468" lengthAdjust="spacingAndGlyphs" xml:space="preserve">[1] SNIFFER.EXE  64K  WORDLOCK: show likeness of the</text>
+<text x="486" y="140" fill="#555555" textLength="9" lengthAdjust="spacingAndGlyphs" xml:space="preserve">│</text>
+<text x="495" y="140" fill="#aaaaaa" textLength="225" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> halfduplex              </text>
+<text x="0" y="158" fill="#ffff55" textLength="216" lengthAdjust="spacingAndGlyphs" xml:space="preserve">highlighted word (key 2)</text>
+<text x="486" y="158" fill="#555555" textLength="9" lengthAdjust="spacingAndGlyphs" xml:space="preserve">│</text>
+<text x="495" y="158" fill="#aaaaaa" textLength="225" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> glasswing               </text>
+<text x="0" y="176" fill="#ffff55" textLength="468" lengthAdjust="spacingAndGlyphs" xml:space="preserve">[2] SALTMRSH.NFO  8K  release notes, group SALTMARSH</text>
+<text x="486" y="176" fill="#555555" textLength="9" lengthAdjust="spacingAndGlyphs" xml:space="preserve">│</text>
+<text x="0" y="194" fill="#ffff55" textLength="432" lengthAdjust="spacingAndGlyphs" xml:space="preserve">[3] 2600_V17.TXT  8K  2600 vol.17 no.1 (retyped)</text>
+<text x="486" y="194" fill="#555555" textLength="9" lengthAdjust="spacingAndGlyphs" xml:space="preserve">│</text>
+<text x="495" y="194" fill="#aa0000" textLength="81" lengthAdjust="spacingAndGlyphs" xml:space="preserve">─ FSERVS </text>
+<text x="576" y="194" fill="#555555" textLength="144" lengthAdjust="spacingAndGlyphs" xml:space="preserve">────────────────</text>
+<text x="0" y="212" fill="#555555" textLength="396" lengthAdjust="spacingAndGlyphs" xml:space="preserve">*** locked. /hack serv_0 or /teardrop serv_0</text>
+<text x="486" y="212" fill="#555555" textLength="9" lengthAdjust="spacingAndGlyphs" xml:space="preserve">│</text>
+<text x="495" y="212" fill="#aaaaaa" textLength="225" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> serv_0 cracked          </text>
+<text x="0" y="230" fill="#555555" textLength="189" lengthAdjust="spacingAndGlyphs" xml:space="preserve">*** probing serv_0...</text>
+<text x="486" y="230" fill="#555555" textLength="9" lengthAdjust="spacingAndGlyphs" xml:space="preserve">│</text>
+<text x="0" y="248" fill="#555555" textLength="216" lengthAdjust="spacingAndGlyphs" xml:space="preserve">*** you back off serv_0.</text>
+<text x="486" y="248" fill="#555555" textLength="9" lengthAdjust="spacingAndGlyphs" xml:space="preserve">│</text>
+<text x="495" y="248" fill="#aa0000" textLength="90" lengthAdjust="spacingAndGlyphs" xml:space="preserve">─ FILES 0 </text>
+<text x="585" y="248" fill="#555555" textLength="135" lengthAdjust="spacingAndGlyphs" xml:space="preserve">───────────────</text>
+<text x="0" y="266" fill="#555555" textLength="198" lengthAdjust="spacingAndGlyphs" xml:space="preserve">*** teardrop.sh serv_0</text>
+<text x="486" y="266" fill="#555555" textLength="9" lengthAdjust="spacingAndGlyphs" xml:space="preserve">│</text>
+<text x="504" y="266" fill="#555555" textLength="54" lengthAdjust="spacingAndGlyphs" xml:space="preserve">/files</text>
+<text x="0" y="284" fill="#555555" textLength="414" lengthAdjust="spacingAndGlyphs" xml:space="preserve">*** serv_0 has quit (Connection reset by peer)</text>
+<text x="486" y="284" fill="#555555" textLength="9" lengthAdjust="spacingAndGlyphs" xml:space="preserve">│</text>
+<text x="0" y="302" fill="#555555" textLength="261" lengthAdjust="spacingAndGlyphs" xml:space="preserve">*** serv_0 has joined #phreak</text>
+<text x="486" y="302" fill="#555555" textLength="9" lengthAdjust="spacingAndGlyphs" xml:space="preserve">│</text>
+<text x="0" y="320" fill="#ffff55" textLength="144" lengthAdjust="spacingAndGlyphs" xml:space="preserve">&lt;serv_0&gt; cracked</text>
+<text x="486" y="320" fill="#555555" textLength="9" lengthAdjust="spacingAndGlyphs" xml:space="preserve">│</text>
+<text x="0" y="338" fill="#ffff55" textLength="468" lengthAdjust="spacingAndGlyphs" xml:space="preserve">[1] SNIFFER.EXE  64K  WORDLOCK: show likeness of the</text>
+<text x="486" y="338" fill="#555555" textLength="9" lengthAdjust="spacingAndGlyphs" xml:space="preserve">│</text>
+<text x="0" y="356" fill="#ffff55" textLength="216" lengthAdjust="spacingAndGlyphs" xml:space="preserve">highlighted word (key 2)</text>
+<text x="486" y="356" fill="#555555" textLength="9" lengthAdjust="spacingAndGlyphs" xml:space="preserve">│</text>
+<text x="0" y="374" fill="#ffff55" textLength="468" lengthAdjust="spacingAndGlyphs" xml:space="preserve">[2] SALTMRSH.NFO  8K  release notes, group SALTMARSH</text>
+<text x="486" y="374" fill="#555555" textLength="9" lengthAdjust="spacingAndGlyphs" xml:space="preserve">│</text>
+<text x="0" y="392" fill="#ffff55" textLength="432" lengthAdjust="spacingAndGlyphs" xml:space="preserve">[3] 2600_V17.TXT  8K  2600 vol.17 no.1 (retyped)</text>
+<text x="486" y="392" fill="#555555" textLength="9" lengthAdjust="spacingAndGlyphs" xml:space="preserve">│</text>
+<text x="0" y="410" fill="#555555" textLength="261" lengthAdjust="spacingAndGlyphs" xml:space="preserve">*** cracked. /get &lt;n&gt; is free</text>
+<text x="486" y="410" fill="#555555" textLength="9" lengthAdjust="spacingAndGlyphs" xml:space="preserve">│</text>
+<text x="0" y="428" fill="#ffffff" textLength="90" lengthAdjust="spacingAndGlyphs" xml:space="preserve">[#phreak] </text>
+<rect x="90" y="414" width="9" height="18" fill="#ffffff"/>
+<rect x="0" y="432" width="639" height="18" fill="#00aaaa"/>
+<text x="0" y="446" fill="#000000" textLength="639" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> SOL NIGER │ L03 THE BLACK SUN │ EGO 100 │ 0032K │ 23:12:13 12/31/99 │ </text>
+<text x="639" y="446" fill="#555555" textLength="18" lengthAdjust="spacingAndGlyphs" xml:space="preserve">SD</text>
+<rect x="657" y="432" width="9" height="18" fill="#00aaaa"/>
+<text x="666" y="446" fill="#555555" textLength="18" lengthAdjust="spacingAndGlyphs" xml:space="preserve">RD</text>
+<rect x="684" y="432" width="9" height="18" fill="#00aaaa"/>
+<text x="693" y="446" fill="#555555" textLength="18" lengthAdjust="spacingAndGlyphs" xml:space="preserve">CD</text>
+<rect x="711" y="432" width="9" height="18" fill="#00aaaa"/>
+</svg>

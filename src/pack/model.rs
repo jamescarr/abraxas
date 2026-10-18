@@ -517,6 +517,20 @@ pub struct Pool {
     pub words_8: Vec<String>,
     pub eliza: Vec<ElizaGroup>,
     pub eliza_fallback: Vec<String>,
+    /// IRC server host names (`irc.hecate.net`).
+    pub irc_servers: Vec<String>,
+    /// Channel names, `#` plus 2..=20 of `[a-z0-9_-]`.
+    pub irc_channels: Vec<String>,
+    /// Nicks of the chatterers (handle rule, as `sysops`).
+    pub irc_nicks: Vec<String>,
+    /// Nicks of fserv bots (handle rule).
+    pub irc_bots: Vec<String>,
+    /// Chatter lines; may use `{handle}`, `{shadow}`, `{real_name}`.
+    pub irc_chatter: Vec<String>,
+    /// `.NFO` hint files; the engine appends the front-door clue to the body.
+    pub irc_nfo: Vec<FileDef>,
+    /// Zines about hacking technique (the game's own commands and ICE).
+    pub irc_zines: Vec<FileDef>,
 }
 
 impl Pool {
@@ -551,6 +565,13 @@ impl Pool {
             words_8,
             eliza,
             eliza_fallback,
+            irc_servers,
+            irc_channels,
+            irc_nicks,
+            irc_bots,
+            irc_chatter,
+            irc_nfo,
+            irc_zines,
         );
     }
 

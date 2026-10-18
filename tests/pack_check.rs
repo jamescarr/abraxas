@@ -6,6 +6,7 @@ use std::path::{Path, PathBuf};
 
 use abraxas::pack::check::{check_source, run};
 use abraxas::pack::model::{ExitKind, Stance};
+use abraxas::pack::validate::validate;
 use abraxas::pack::{PackIssue, PackSource, load};
 
 fn root(name: &str) -> PathBuf {
@@ -94,10 +95,22 @@ fn rollover_pool_meets_minimum_counts() {
         ("words_8", p.words_8.len(), 40),
         ("eliza", p.eliza.len(), 6),
         ("eliza_fallback", p.eliza_fallback.len(), 8),
+        ("irc_servers", p.irc_servers.len(), 6),
+        ("irc_channels", p.irc_channels.len(), 10),
+        ("irc_nicks", p.irc_nicks.len(), 32),
+        ("irc_bots", p.irc_bots.len(), 12),
+        ("irc_chatter", p.irc_chatter.len(), 60),
+        ("irc_nfo", p.irc_nfo.len(), 6),
+        ("irc_zines", p.irc_zines.len(), 8),
     ];
     for (name, have, need) in counts {
         assert!(have >= need, "{name}: {have} entries, need {need}");
     }
+    let addressed = p.irc_chatter.iter().filter(|l| l.contains("{handle}"));
+    assert!(
+        addressed.count() >= 6,
+        "irc_chatter: need 6 {{handle}} lines"
+    );
     for kind in ExitKind::ALL {
         let n = p.exits_of(kind).count();
         assert!(n >= 10, "exit {}: {n} entries, need 10", kind.as_str());
@@ -322,6 +335,68 @@ fn pool_word_of_wrong_length_is_reported() {
     assert_eq!(
         got,
         vec!["pool.toml: words_5[1]: 'TOOLONG' must match ^[A-Z]{5}$".to_string()]
+    );
+}
+
+#[test]
+fn irc_channel_without_a_hash_is_reported() {
+    let (_t, dir) = scratch("_template");
+    fs::write(
+        dir.join("pool.toml"),
+        "irc_channels = [\"warez\", \"#ok\"]\n",
+    )
+    .unwrap();
+    let got = issues(&dir);
+    assert_eq!(
+        got,
+        vec!["pool.toml: irc_channels[1]: 'warez' must be a channel name like #warez".to_string()]
+    );
+}
+
+#[test]
+fn irc_nicks_and_bots_follow_the_handle_rule() {
+    let (_t, dir) = scratch("_template");
+    fs::write(
+        dir.join("pool.toml"),
+        "irc_nicks = [\"bad nick\"]\nirc_bots = [\"x\"]\n",
+    )
+    .unwrap();
+    let got = issues(&dir);
+    assert_eq!(
+        got,
+        vec![
+            "pool.toml: irc_nicks[1]: 'bad nick' must match ^[A-Za-z0-9_-]{2,16}$".to_string(),
+            "pool.toml: irc_bots[1]: 'x' must match ^[A-Za-z0-9_-]{2,16}$".to_string(),
+        ]
+    );
+}
+
+#[test]
+fn irc_chatter_is_limited_to_70_characters() {
+    let (_t, dir) = scratch("_template");
+    let fits = "x".repeat(70);
+    let over = "y".repeat(71);
+    fs::write(
+        dir.join("pool.toml"),
+        format!("irc_chatter = [\"{fits}\", \"{over}\"]\n"),
+    )
+    .unwrap();
+    let got = issues(&dir);
+    assert_eq!(
+        got,
+        vec!["pool.toml: irc_chatter[2]: 71 characters; the limit is 70".to_string()]
+    );
+}
+
+#[test]
+fn emptied_irc_list_is_reported() {
+    // A custom pack inherits empty lists, so only the embedded pool can fail this rule.
+    let mut pack = load(&PackSource::Embedded).unwrap();
+    pack.pool.irc_nicks.clear();
+    let got: Vec<String> = validate(&pack).iter().map(PackIssue::to_string).collect();
+    assert_eq!(
+        got,
+        vec!["pool.toml: irc_nicks: list must not be empty".to_string()]
     );
 }
 

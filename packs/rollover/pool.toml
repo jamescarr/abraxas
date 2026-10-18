@@ -397,6 +397,116 @@ eliza_fallback = [
   "Careful what you ask the dark. It answers in files.",
 ]
 
+irc_servers = [
+  "irc.hecate.net",
+  "irc.drowned.org",
+  "nightshift.irc.net",
+  "irc.saltmarsh.net",
+  "irc.lowtide.org",
+  "irc.drywell.edu",
+  "chat.halcyon.net",
+  "irc.ferryman.org",
+  "irc.lamplight.net",
+  "relay.kingfisher.net",
+]
+
+irc_channels = [
+  "#warez", "#2600", "#phreak", "#drowned", "#ansi", "#eggdrop", "#hecate", "#rollover",
+  "#y2k", "#fserv", "#vax", "#nightshift", "#carrier", "#wardial", "#lowtide", "#dialup",
+]
+
+irc_nicks = [
+  "phr34k", "cold_fusion", "mothlight", "null_sec", "wrenfan", "acidburn99",
+  "dialtone", "lamer-x", "packet_rat9", "bitrot", "c0ldbaud", "tinfoil",
+  "kestrel", "ghostwire", "nightowl7", "sparkgap", "redbox_", "hexdump",
+  "daemon_k", "silverfish", "lowtide", "glasswing", "static_wolf", "ratbag",
+  "moonbase", "tape_hiss", "9600baud", "blue_screen", "fathom", "rustbelt",
+  "ironlung", "quiet_one", "cablecar", "soft_reset", "wet_carpet", "halfduplex",
+]
+
+irc_bots = [
+  "XDCC-1", "warezbot", "fserv666", "tapeworm", "drowned-fs", "ratbot",
+  "moth-fs", "serv_0", "dustbin", "leech_fs", "0day-bot", "fs-hecate",
+  "quiet-fs", "lowtide-fs",
+]
+
+irc_chatter = [
+  "anyone got the drowned exchange dialup? the one from the nfo",
+  "my modem drops carrier every time the rain starts",
+  "{handle} you still on? the line sounds crossed",
+  "dont kill init on the vax. ask me how i know",
+  "the board says midnight but every clock in here says something else",
+  "new fserv up in the channel, three files, ratio 1:1, trust me",
+  "anyone seen tapeworm? his fserv went dark again",
+  "xdcc packs are 8k now. the price of everything went up",
+  "got my ratio back to green. three nights of leeching",
+  "dont upload zero byte files to an fserv. the bot remembers",
+  "the open fserv has teardrop.sh. the locked ones have worse",
+  "teardrop crashes a locked fserv. the op sees it on the trace",
+  "k-lined again. my trace was already showing, i knew better",
+  "dont hack when the meter is yellow. you know this",
+  "somebody ran teardrop on warezbot and it came back angry",
+  "28.8 on a 14.4 line. the machine does not care",
+  "handshake took forever. the line has weather today",
+  "i can hear another call under mine. someone is breathing",
+  "carrier lost three times since midnight. the net is flaky",
+  "the dial tone never ends on my second line. who is calling",
+  "y2k is a rumor. the rollover is a fact",
+  "set your clocks back. no, forward. no. never mind",
+  "my bios says 1999 and the vax says nineteen thousand",
+  "anyone patch their bios or did you just pray",
+  "the carpet in here is wet again. has anyone checked the room",
+  "the hum is louder after 3am. i checked. its not the fridge",
+  "{shadow} was in here an hour ago asking for you",
+  "someone typed {real_name} on the line. who is that",
+  "{handle} i think you left a window open. rain on the keys",
+  "{handle} your name is in the topic. i did not put it there",
+  "{handle} welcome back. you were never gone",
+  "ping {handle}. pong. no wait, that was me",
+  "{handle} somebody asked for you by your other name",
+  "{handle} the fserv in here remembers you from last time",
+  "does anyone still run eggdrop 1.1? mine greets a nick nobody sees",
+  "anyone running a vax in their garage? asking for a friend",
+  "dos is not dead. dos is resting",
+  "ansi compo is friday. bring your own blinking cursor",
+  "who ate my disk space. i had four megs yesterday",
+  "lamers in the channel asking for passwords again",
+  "if you ask for a password in here i will ban you",
+  "read the nfo first. the nfo knows things",
+  "the front door is always weaker than the walls",
+  "wordlock is just counting. count slower",
+  "i keep the breach path on paper. screens lie",
+  "hum the phreak tones. your ears are faster than your eyes",
+  "tab in a console costs trace. ask me how i learned that",
+  "run ghost before the door, not after",
+  "bounce only works once per host. spend it when it hurts",
+  "my ratio is 0.4 and my pride is 0.1",
+  "somebody uploaded a zine about the daemon commands. read it",
+  "every zine in here was retyped by hand. check for typos in the dates",
+  "the op said the net is clean. the net has never been clean",
+  "i dialed a number out of an nfo. a woman answered, in the rain",
+  "who keeps changing the topic to a phone number",
+  "i lost my password but i know it starts with the first half",
+  "wren was in here once. or someone with her nick. same thing",
+  "the last person to find the front door left their nick in the log",
+  "i have never seen the sysop type. i have only seen him arrive",
+  "the second channel is quieter. i dont like it either",
+  "nobody ever joins at midnight. everybody is already here",
+  "got kicked for typing too fast. the bot said i sounded nervous",
+  "the fserv with the lock has the better files. obviously",
+  "free tip: the op does not look at the meter. the net does",
+  "crack it or crash it. both leave a mark",
+  "the nfo said half the password. the other half said nothing",
+  "that file was 8k and worth it. the zine paid for itself",
+  "i keep a floppy of nothing but nfo files. it is my favorite",
+  "talk later. the line is making that sound again",
+  "dont trust anyone with a clean nick. everybody is a bot after 4am",
+  "the channel topic changed itself again. i am leaving it",
+  "lag on this net is just the distance between us",
+  "i read the zine twice. the second time it had a different ending",
+  "who wants to trade? i have a 2400 baud ringtone, gently used",
+]
+
 [[eliza]]
 keywords = ["hello", "hi ", "hey", "greetings"]
 replies = [
@@ -1669,3 +1779,275 @@ text = "A bathroom mirror in a hotel you have never visited."
 [[exit]]
 kind = "mirror"
 text = "The glassy face of the screen, which pulls you in."
+
+[[irc_nfo]]
+name = "DROWNED.NFO"
+description = "scene release notes"
+body = """
+┌────────────────────────────────────────────┐
+│ D R O W N E D                release notes │
+└────────────────────────────────────────────┘
+ group ....: DROWNED
+ title ....: exchange dialup list, retyped
+ ripped by : mothlight
+ packed ...: 3 disks, one of them warm
+ notes ....: good until the rain stops. the front
+             door is the weak spot, as always.
+             dont ask the sysop. read the notes.
+
+ greets: #drowned #hecate and whoever still picks up"""
+
+[[irc_nfo]]
+name = "HECATE.NFO"
+description = "release notes, group HECATE"
+body = """
+┌────────────────────────────────────────────┐
+│ H E C A T E                      info file │
+└────────────────────────────────────────────┘
+ group ....: HECATE
+ release ..: phone tree of a regional exchange
+ cracked by: null_sec
+ protection: a word on the front door
+ notes ....: the word is in the notes. all of it,
+             if you know how to count to half.
+             we never left a back door. we left
+             a front door and a lot of rain.
+
+ greets: #warez #phreak the night clerk and the hum"""
+
+[[irc_nfo]]
+name = "SALTMRSH.NFO"
+description = "release notes, group SALTMARSH"
+body = """
+┌────────────────────────────────────────────┐
+│ S A L T M A R S H                      nfo │
+└────────────────────────────────────────────┘
+ group ....: SALTMARSH
+ release ..: switching log, 1 of 1, tidal
+ supplier .: wrenfan, who asks that you be kind
+ format ...: plain text, plain damp
+ notes ....: the door at the front is guarded by a
+             word. we found half of it for you.
+             the other half is up to you.
+
+ greets: #rollover #y2k everyone watching the clocks"""
+
+[[irc_nfo]]
+name = "LOWTIDE.NFO"
+description = "release notes, LOW TIDE crew"
+body = """
+┌────────────────────────────────────────────┐
+│ L O W   T I D E                   crew nfo │
+└────────────────────────────────────────────┘
+ crew .....: LOW TIDE
+ release ..: board list, unsorted, unwashed
+ ripped ...: from a drive that was still spinning
+ notes ....: we do not own the door. we know where
+             it is, and how many letters it wants.
+             this file says where, and which half.
+             the rest is in your head.
+
+ greets: #carrier #fserv the ones who read to the end"""
+
+[[irc_nfo]]
+name = "CARRIER.NFO"
+description = "carrier lost: release notes"
+body = """
+┌────────────────────────────────────────────┐
+│ C A R R I E R   L O S T             readme │
+└────────────────────────────────────────────┘
+ group ....: CARRIER LOST
+ release ..: the one with the long distance bill
+ tested ...: 28800, then 14400, then rain
+ notes ....: front doors are only ever as strong
+             as their password. ours is shorter
+             than yours. so is theirs.
+             read the line at the bottom.
+
+ greets: #2600 #wardial and the ones on hold"""
+
+[[irc_nfo]]
+name = "FERRYMAN.NFO"
+description = "ferryman group info file"
+body = """
+┌────────────────────────────────────────────┐
+│ F E R R Y M A N                       info │
+└────────────────────────────────────────────┘
+ group ....: FERRYMAN
+ release ..: a map of one front door
+ courier ..: acidburn99, on foot, at night
+ notes ....: we cross people. we do not carry
+             anything but a hint. the hint is
+             below. the toll is your attention.
+
+ greets: #ansi #eggdrop whoever is still awake"""
+
+[[irc_nfo]]
+name = "NIGHTSFT.NFO"
+description = "nightshift crew release notes"
+body = """
+┌────────────────────────────────────────────┐
+│ N I G H T S H I F T                   crew │
+└────────────────────────────────────────────┘
+ crew .....: NIGHTSHIFT
+ release ..: front door notes, hand typed
+ packed ...: in a lunchbox, with the sandwich
+ notes ....: the password is a word. a word is a
+             door. we leave the door ajar:
+             the first half is below.
+             do not tell the sysop it was us.
+
+ greets: #nightshift #vax the clerk who never sleeps"""
+
+[[irc_zines]]
+name = "2600_V16.TXT"
+description = "2600 vol.16 no.3 (retyped)"
+body = """
+THE WATCHER ON THE LOGIN: UNIX
+
+Every box that matters runs a watcher. It sits in the process table pretending to be something dull. Type ps. The odd name with the long TIME is yours. kill -9 and the pid from the first column.
+
+It comes back. The watcher respawns under a new name and a new pid, and the line it prints tells you which. Read the output. Kill that one too.
+
+No watcher? Look at what the admin forgot.
+  ls -a        the dotfiles. .rhosts names a trusted neighbour
+  cat .rhosts  then rlogin to the name inside
+  cat /etc/passwd   root has no password. finger root, then su
+
+Every step is a word the machine already said. Listen to it.
+
+-- retyped from the paper copy. the coffee stain is not a typo."""
+
+[[irc_zines]]
+name = "PHRK_48.TXT"
+description = "PHRK issue 48 file 6 (retyped)"
+body = """
+STOPPING THE GUARD ON A VAX
+
+SHOW SYSTEM lists the processes. The guard is the one in state CUR that is not the swapper and not opcom. STOP/ID= and its process id, the eight digits in the first column.
+
+It respawns. The message names the child and the child's id. STOP/ID= again.
+
+Nothing running? Then the guard is armed from the login file.
+  DIRECTORY         what is in SYS$LOGIN
+  TYPE LOGIN.COM    a DEFINE/SYSTEM is hiding in it
+  DEASSIGN/SYSTEM   the logical it names
+
+Or catch the watcher by its terminal: SHOW USERS, SHOW PROCESS/ID= on the operator, then STOP/ID=.
+
+SHO and DIR are short forms the machine accepts. Old hands type them without looking."""
+
+[[irc_zines]]
+name = "DOCS_01.TXT"
+description = "TSO crib sheet, photocopied"
+body = """
+TSO FOR THE IMPATIENT
+
+You are not at a prompt. You are at READY. Be polite.
+
+STATUS lists the jobs. One of them is the watch job: it is the one that is not you. CANCEL and its name. The reply tells you it came back as another job. CANCEL that one too.
+
+No watch job? A control dataset arms the guard.
+  LISTCAT          list the catalog
+  DELETE 'name'    the GUARD.CNTL dataset, quotes included
+  LISTCAT          verify. the machine tells you to, and it is right
+
+A broadcast may say DO NOT CANCEL. LISTBC reads it. It was written by the people who are afraid of you. Cancel it anyway.
+
+-- operators hate this one trick."""
+
+[[irc_zines]]
+name = "2600_V17.TXT"
+description = "2600 vol.17 no.1 (retyped)"
+body = """
+DOS IS NOT DEAD, IT IS RESIDENT
+
+Type MEM /C. Whatever sits resident and is not MSDOS or COMMAND is the guard. TYPE AUTOEXEC.BAT shows who loads it at boot. REN AUTOEXEC.BAT AUTOEXEC.OLD and it never loads again.
+
+Hidden guard? DIR /A shows the files plain DIR hides. A hidden file needs its attributes stripped before it will die:
+  ATTRIB -H GUARD.COM     add -R if it is read-only too
+  DEL GUARD.COM
+
+Or the guard hides behind a batch file. DIR *.BAT, TYPE it, then DEL or REN it.
+
+Three ways in. The prompt does not care which one you pick. It only cares that you read what it printed."""
+
+[[irc_zines]]
+name = "PHRK_51.TXT"
+description = "PHRK issue 51 file 3 (retyped)"
+body = """
+LIVING WITH A TRACE
+
+The trace is not a threat. It is a bill. Every locked door, wrong command and lost second adds to it. Pay it down before it comes due.
+
+bounce re-routes the trace through the relays. Solve the route and 30 points come off. You get one bounce per host.
+
+run ghost loads GHOST.COM. Your trace rate drops to 0.6 of normal for the rest of that session. One charge. Run it before you need it, not after.
+
+Hints cost trace. Quitting costs trace. Panic costs trace, mostly.
+
+Do the sums at the door, not at the exit."""
+
+[[irc_zines]]
+name = "DOCS_02.TXT"
+description = "How to read a WORDLOCK, v2"
+body = """
+READING A WORDLOCK
+
+A wall of junk, a handful of words, four tries. Do not guess. Count.
+
+Pick a word and the machine answers with a likeness: how many letters sit in the same place as in the password. A likeness of 0 means every word that shares a letter with it, in the same place, is a dud. A 3 means the password agrees with your pick in three places.
+
+Brackets in the junk, ( ) [ ] < > and the curly pair, are a gift. Pick a pair and the machine either throws out a dud or hands you another try.
+
+DECRYPT.COM throws out a dud. SNIFFER.EXE shows the likeness before you spend a try.
+
+The scene boards print half the password in their NFO files. Half is enough."""
+
+[[irc_zines]]
+name = "DOCS_03.TXT"
+description = "BREACH grid notes, hand-copied"
+body = """
+BREACH: PLAN THE PATH
+
+Your first pick comes from the top row. After that the picks alternate: the next code must sit in the same column as the last, the one after that in the same row, and so on across the grid.
+
+The code you need, BACKDOOR, is a short run that must sit unbroken in your buffer. Find it in the grid first, then work out which path gets you there. The clock starts at your first pick, so do the thinking before it.
+
+A full buffer without the run costs trace. A dead clock costs trace and EGO.
+
+Side runs pay: DATAMINE adds to your ratio, TRACE WIPE takes trace off. Take one only when the path allows it.
+
+BUFFER.EXE gives you one more slot. One slot has ended more runs than ICE ever did."""
+
+[[irc_zines]]
+name = "PHRK_52.TXT"
+description = "PHRK issue 52 file 9 (retyped)"
+body = """
+TONES
+
+A phone keypad is a grid, and every key is two tones played at once: a row tone and a column tone. 697, 770, 852 and 941 Hz for the rows. 1209, 1336 and 1477 for the columns. Your ear can learn it in an evening.
+
+The relay flashes a short run of keys. Repeat it. Then it flashes the same run with one more key on the end. Repeat that. The run grows until you can no longer see it, only hear it.
+
+Miss one and the relay throws the run away and starts a fresh one from the beginning. You pay in trace for every miss.
+
+Hum the keys as they flash. A hummed tone is a tone you can repeat.
+
+METRONOM.EXE lets you press R once per round, to hear the run again."""
+
+[[irc_zines]]
+name = "DOCS_04.TXT"
+description = "The nets: a short guide"
+body = """
+THE NETS: A SHORT GUIDE
+
+An fserv is a bot that sells files for ratio. Some are open. Some are locked, and a locked bot will not sell until it is cracked.
+
+Crack it with the same ICE you know from the hosts: /hack the bot, and play. Win and its stock is free. Lose, or quit, and the server notices.
+
+TEARDROP.SH is faster and louder. It crashes a locked fserv outright, one charge, and the op sees the crash on the trace.
+
+Every /hack costs trace before the first move. Fill the meter and the op K-lines you. You leave with less of you than you came with.
+
+In a console, Tab asks for a hint. A hint costs 4 trace. Ask only when the clock is not the problem."""
