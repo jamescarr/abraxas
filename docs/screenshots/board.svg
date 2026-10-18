@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="720" height="450" viewBox="0 0 720 450" font-family="Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="15" style="white-space:pre">
-<rect width="720" height="450" fill="#000000"/>
+<rect x="0" y="0" width="720" height="450" fill="#000000"/>
 <rect x="0" y="0" width="720" height="18" fill="#0000aa"/>
 <text x="0" y="14" fill="#ffffff" textLength="720" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> ABRAXAS ─ Message Bases                                                        </text>
 <text x="0" y="50" fill="#ffff55" textLength="135" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> Message 5 of 5</text>

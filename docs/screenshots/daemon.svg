@@ -1,9 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="720" height="450" viewBox="0 0 720 450" font-family="Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="15" style="white-space:pre">
-<rect width="720" height="450" fill="#000000"/>
+<rect x="0" y="0" width="720" height="450" fill="#000000"/>
 <rect x="0" y="0" width="558" height="18" fill="#0000aa"/>
 <text x="0" y="14" fill="#ffffff" textLength="558" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> ODS MILLENNIUM BUILD SERVER │ unix │ node: portal0     TRACE </text>
 <rect x="558" y="0" width="108" height="18" fill="#0000aa"/>
-<text x="558" y="14" fill="#00aaaa" textLength="108" lengthAdjust="spacingAndGlyphs" xml:space="preserve">░░░░░░░░░░░░</text>
+<rect x="558" y="0" width="108" height="18" fill="#00aaaa" fill-opacity="0.25"/>
 <rect x="666" y="0" width="27" height="18" fill="#0000aa"/>
 <text x="666" y="14" fill="#55ff55" textLength="27" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> 2%</text>
 <rect x="693" y="0" width="27" height="18" fill="#0000aa"/>
@@ -19,7 +19,8 @@
 <text x="0" y="176" fill="#aaaaaa" textLength="720" lengthAdjust="spacingAndGlyphs" xml:space="preserve">  88 ?    00:00:00 cron                                                         </text>
 <text x="0" y="194" fill="#aaaaaa" textLength="720" lengthAdjust="spacingAndGlyphs" xml:space="preserve">  183 ?    00:00:41 sentryd                                                     </text>
 <text x="0" y="212" fill="#aaaaaa" textLength="720" lengthAdjust="spacingAndGlyphs" xml:space="preserve">  305 tty1 00:00:00 -sh                                                         </text>
-<text x="18" y="392" fill="#ffffff" textLength="27" lengthAdjust="spacingAndGlyphs" xml:space="preserve">% █</text>
+<text x="18" y="392" fill="#ffffff" textLength="18" lengthAdjust="spacingAndGlyphs" xml:space="preserve">% </text>
+<rect x="36" y="378" width="9" height="18" fill="#ffffff"/>
 <text x="0" y="410" fill="#aaaaaa" textLength="720" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> [Enter] run   [Tab] hint (+4 trace)   [Esc] abort                              </text>
 <rect x="0" y="432" width="639" height="18" fill="#00aaaa"/>
 <text x="0" y="446" fill="#000000" textLength="639" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> HELIOPOLIS │ L11 THE SUN A... │ EGO 100 │ 0096K │ 23:44:00 12/31/99 │ </text>
