@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="450" viewBox="0 0 720 450" font-family="Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="15" style="white-space:pre">
+<rect width="720" height="450" fill="#000000"/>
+<text x="36" y="32" fill="#aa0000" textLength="648" lengthAdjust="spacingAndGlyphs" xml:space="preserve">╔══════════════════════════════════════════════════════════════════════╗</text>
+<text x="36" y="50" fill="#aa0000" textLength="288" lengthAdjust="spacingAndGlyphs" xml:space="preserve">║                               </text>
+<text x="324" y="50" fill="#ffffff" textLength="72" lengthAdjust="spacingAndGlyphs" xml:space="preserve">LEVEL 00</text>
+<text x="396" y="50" fill="#aa0000" textLength="288" lengthAdjust="spacingAndGlyphs" xml:space="preserve">                               ║</text>
+<text x="36" y="68" fill="#aa0000" textLength="648" lengthAdjust="spacingAndGlyphs" xml:space="preserve">║                              THE LOBBY                               ║</text>
+<text x="36" y="86" fill="#aa0000" textLength="261" lengthAdjust="spacingAndGlyphs" xml:space="preserve">║                            </text>
+<text x="297" y="86" fill="#aaaaaa" textLength="126" lengthAdjust="spacingAndGlyphs" xml:space="preserve">▓░░░░  CLASS 1</text>
+<text x="423" y="86" fill="#aa0000" textLength="261" lengthAdjust="spacingAndGlyphs" xml:space="preserve">                            ║</text>
+<text x="36" y="104" fill="#aa0000" textLength="162" lengthAdjust="spacingAndGlyphs" xml:space="preserve">║                 </text>
+<text x="198" y="104" fill="#aaaaaa" textLength="324" lengthAdjust="spacingAndGlyphs" xml:space="preserve">Safe │ Secure │ Minimal entity count</text>
+<text x="522" y="104" fill="#aa0000" textLength="162" lengthAdjust="spacingAndGlyphs" xml:space="preserve">                 ║</text>
+<text x="36" y="122" fill="#aa0000" textLength="648" lengthAdjust="spacingAndGlyphs" xml:space="preserve">╚══════════════════════════════════════════════════════════════════════╝</text>
+<text x="0" y="158" fill="#aaaaaa" textLength="486" lengthAdjust="spacingAndGlyphs" xml:space="preserve">   Field note: Level 0 is a lobby with a              </text>
+<text x="486" y="158" fill="#aa0000" textLength="144" lengthAdjust="spacingAndGlyphs" xml:space="preserve">  ███████████   </text>
+<text x="0" y="176" fill="#aaaaaa" textLength="486" lengthAdjust="spacingAndGlyphs" xml:space="preserve">   menu. The carpet is damp. One fluorescent          </text>
+<text x="486" y="176" fill="#aa0000" textLength="144" lengthAdjust="spacingAndGlyphs" xml:space="preserve">  ████   ████   </text>
+<text x="0" y="194" fill="#aaaaaa" textLength="486" lengthAdjust="spacingAndGlyphs" xml:space="preserve">   tube hums a note flat of anything you              </text>
+<text x="486" y="194" fill="#aa0000" textLength="144" lengthAdjust="spacingAndGlyphs" xml:space="preserve">  ████   ████   </text>
+<text x="0" y="212" fill="#aaaaaa" textLength="486" lengthAdjust="spacingAndGlyphs" xml:space="preserve">   know. The board says it has always been            </text>
+<text x="486" y="212" fill="#aa0000" textLength="144" lengthAdjust="spacingAndGlyphs" xml:space="preserve">  ███████████   </text>
+<text x="0" y="230" fill="#aaaaaa" textLength="486" lengthAdjust="spacingAndGlyphs" xml:space="preserve">   here, and that you called it. There is a           </text>
+<text x="486" y="230" fill="#aa0000" textLength="144" lengthAdjust="spacingAndGlyphs" xml:space="preserve">  ████   ████   </text>
+<text x="0" y="248" fill="#aaaaaa" textLength="486" lengthAdjust="spacingAndGlyphs" xml:space="preserve">   door marked D. There is no door marked             </text>
+<text x="486" y="248" fill="#aa0000" textLength="144" lengthAdjust="spacingAndGlyphs" xml:space="preserve">  ████   ████   </text>
+<text x="0" y="266" fill="#aaaaaa" textLength="486" lengthAdjust="spacingAndGlyphs" xml:space="preserve">   Hang Up.                                           </text>
+<text x="486" y="284" fill="#aa0000" textLength="144" lengthAdjust="spacingAndGlyphs" xml:space="preserve">52 KEEPING STILL</text>
+<text x="72" y="320" fill="#555555" textLength="576" lengthAdjust="spacingAndGlyphs" xml:space="preserve">motifs: a dial tone with no end; yellowed wallpaper that repeats</text>
+<text x="297" y="356" fill="#55ffff" textLength="117" lengthAdjust="spacingAndGlyphs" xml:space="preserve">press any key</text>
+<text x="36" y="392" fill="#555555" textLength="639" lengthAdjust="spacingAndGlyphs" xml:space="preserve">[place offline: test] [passage offline: test] [interlude offline: test]</text>
+<rect x="0" y="432" width="639" height="18" fill="#00aaaa"/>
+<text x="0" y="446" fill="#000000" textLength="639" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> ABRAXAS │ L00 THE LOBBY │ EGO 100 │ 0096K │ 23:00:01 12/31/99 │       </text>
+<text x="639" y="446" fill="#555555" textLength="18" lengthAdjust="spacingAndGlyphs" xml:space="preserve">SD</text>
+<rect x="657" y="432" width="9" height="18" fill="#00aaaa"/>
+<text x="666" y="446" fill="#555555" textLength="18" lengthAdjust="spacingAndGlyphs" xml:space="preserve">RD</text>
+<rect x="684" y="432" width="9" height="18" fill="#00aaaa"/>
+<text x="693" y="446" fill="#555555" textLength="18" lengthAdjust="spacingAndGlyphs" xml:space="preserve">CD</text>
+<rect x="711" y="432" width="9" height="18" fill="#00aaaa"/>
+</svg>

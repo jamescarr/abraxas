@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="450" viewBox="0 0 720 450" font-family="Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="15" style="white-space:pre">
+<rect width="720" height="450" fill="#000000"/>
+<rect x="0" y="0" width="558" height="18" fill="#0000aa"/>
+<text x="0" y="14" fill="#ffffff" textLength="558" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> ODS MILLENNIUM BUILD SERVER │ unix │ node: portal0     TRACE </text>
+<rect x="558" y="0" width="108" height="18" fill="#0000aa"/>
+<text x="558" y="14" fill="#00aaaa" textLength="108" lengthAdjust="spacingAndGlyphs" xml:space="preserve">░░░░░░░░░░░░</text>
+<rect x="666" y="0" width="27" height="18" fill="#0000aa"/>
+<text x="666" y="14" fill="#55ff55" textLength="27" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> 2%</text>
+<rect x="693" y="0" width="27" height="18" fill="#0000aa"/>
+<text x="0" y="32" fill="#555555" textLength="36" lengthAdjust="spacingAndGlyphs" xml:space="preserve">──[ </text>
+<text x="36" y="32" fill="#55ffff" textLength="180" lengthAdjust="spacingAndGlyphs" xml:space="preserve">DAEMON  UNIX CONSOLE</text>
+<text x="216" y="32" fill="#555555" textLength="504" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> ]──────────────────────────────────────────────────────</text>
+<text x="18" y="50" fill="#55ffff" textLength="630" lengthAdjust="spacingAndGlyphs" xml:space="preserve">A watchdog guards this login. Find it, kill it, kill what respawns it.</text>
+<text x="18" y="86" fill="#ffff55" textLength="270" lengthAdjust="spacingAndGlyphs" xml:space="preserve">STEP 2/3   WRONG 0/3   HINTS 2</text>
+<text x="468" y="86" fill="#ffff55" textLength="72" lengthAdjust="spacingAndGlyphs" xml:space="preserve">TIME 69s</text>
+<text x="18" y="122" fill="#55ff55" textLength="36" lengthAdjust="spacingAndGlyphs" xml:space="preserve">% ps</text>
+<text x="0" y="140" fill="#aaaaaa" textLength="720" lengthAdjust="spacingAndGlyphs" xml:space="preserve">  PID TTY      TIME CMD                                                         </text>
+<text x="0" y="158" fill="#aaaaaa" textLength="720" lengthAdjust="spacingAndGlyphs" xml:space="preserve">  1 ?    00:00:02 init                                                          </text>
+<text x="0" y="176" fill="#aaaaaa" textLength="720" lengthAdjust="spacingAndGlyphs" xml:space="preserve">  88 ?    00:00:00 cron                                                         </text>
+<text x="0" y="194" fill="#aaaaaa" textLength="720" lengthAdjust="spacingAndGlyphs" xml:space="preserve">  183 ?    00:00:41 sentryd                                                     </text>
+<text x="0" y="212" fill="#aaaaaa" textLength="720" lengthAdjust="spacingAndGlyphs" xml:space="preserve">  305 tty1 00:00:00 -sh                                                         </text>
+<text x="18" y="392" fill="#ffffff" textLength="27" lengthAdjust="spacingAndGlyphs" xml:space="preserve">% █</text>
+<text x="0" y="410" fill="#aaaaaa" textLength="720" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> [Enter] run   [Tab] hint (+4 trace)   [Esc] abort                              </text>
+<rect x="0" y="432" width="639" height="18" fill="#00aaaa"/>
+<text x="0" y="446" fill="#000000" textLength="639" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> HELIOPOLIS │ L11 THE SUN A... │ EGO 100 │ 0096K │ 23:44:00 12/31/99 │ </text>
+<text x="639" y="446" fill="#555555" textLength="18" lengthAdjust="spacingAndGlyphs" xml:space="preserve">SD</text>
+<rect x="657" y="432" width="9" height="18" fill="#00aaaa"/>
+<text x="666" y="446" fill="#555555" textLength="18" lengthAdjust="spacingAndGlyphs" xml:space="preserve">RD</text>
+<rect x="684" y="432" width="9" height="18" fill="#00aaaa"/>
+<text x="693" y="446" fill="#555555" textLength="18" lengthAdjust="spacingAndGlyphs" xml:space="preserve">CD</text>
+<rect x="711" y="432" width="9" height="18" fill="#00aaaa"/>
+</svg>

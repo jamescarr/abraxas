@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="450" viewBox="0 0 720 450" font-family="Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="15" style="white-space:pre">
+<rect width="720" height="450" fill="#000000"/>
+<rect x="0" y="0" width="558" height="18" fill="#0000aa"/>
+<text x="0" y="14" fill="#ffffff" textLength="558" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> ODS MOTH STREET OFFICE │ unix │ node: portal0          TRACE </text>
+<rect x="558" y="0" width="108" height="18" fill="#0000aa"/>
+<text x="558" y="14" fill="#00aaaa" textLength="108" lengthAdjust="spacingAndGlyphs" xml:space="preserve">░░░░░░░░░░░░</text>
+<rect x="666" y="0" width="27" height="18" fill="#0000aa"/>
+<text x="666" y="14" fill="#55ff55" textLength="27" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> 2%</text>
+<rect x="693" y="0" width="27" height="18" fill="#0000aa"/>
+<text x="0" y="32" fill="#555555" textLength="36" lengthAdjust="spacingAndGlyphs" xml:space="preserve">──[ </text>
+<text x="36" y="32" fill="#55ffff" textLength="135" lengthAdjust="spacingAndGlyphs" xml:space="preserve">BREACH PROTOCOL</text>
+<text x="171" y="32" fill="#555555" textLength="549" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> ]───────────────────────────────────────────────────────────</text>
+<text x="18" y="50" fill="#ffffff" textLength="90" lengthAdjust="spacingAndGlyphs" xml:space="preserve">TIME  45.0</text>
+<text x="0" y="86" fill="#aaaaaa" textLength="81" lengthAdjust="spacingAndGlyphs" xml:space="preserve">  BUFFER </text>
+<text x="81" y="86" fill="#55ff55" textLength="36" lengthAdjust="spacingAndGlyphs" xml:space="preserve">[1C]</text>
+<text x="117" y="86" fill="#555555" textLength="216" lengthAdjust="spacingAndGlyphs" xml:space="preserve">[  ][  ][  ][  ][  ][  ]</text>
+<text x="414" y="86" fill="#55ffff" textLength="63" lengthAdjust="spacingAndGlyphs" xml:space="preserve">DAEMONS</text>
+<text x="18" y="122" fill="#ffff55" textLength="162" lengthAdjust="spacingAndGlyphs" xml:space="preserve">PICK FROM COLUMN 4</text>
+<text x="414" y="122" fill="#ffffff" textLength="72" lengthAdjust="spacingAndGlyphs" xml:space="preserve">BACKDOOR</text>
+<text x="0" y="140" fill="#aaaaaa" textLength="504" lengthAdjust="spacingAndGlyphs" xml:space="preserve">                                              7A 1C 1C  </text>
+<text x="504" y="140" fill="#555555" textLength="126" lengthAdjust="spacingAndGlyphs" xml:space="preserve">clears the ICE</text>
+<text x="0" y="158" fill="#aaaaaa" textLength="162" lengthAdjust="spacingAndGlyphs" xml:space="preserve">    7A   E9   1C  </text>
+<text x="162" y="158" fill="#555555" textLength="36" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> 1C </text>
+<text x="198" y="158" fill="#aaaaaa" textLength="522" lengthAdjust="spacingAndGlyphs" xml:space="preserve">  1C   1C                                                 </text>
+<text x="414" y="176" fill="#ffffff" textLength="72" lengthAdjust="spacingAndGlyphs" xml:space="preserve">DATAMINE</text>
+<text x="0" y="194" fill="#aaaaaa" textLength="162" lengthAdjust="spacingAndGlyphs" xml:space="preserve">    FF   BD   55  </text>
+<rect x="162" y="180" width="36" height="18" fill="#55ffff"/>
+<text x="162" y="194" fill="#000000" textLength="36" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> E9 </text>
+<text x="198" y="194" fill="#aaaaaa" textLength="216" lengthAdjust="spacingAndGlyphs" xml:space="preserve">  E9   7A               </text>
+<text x="414" y="194" fill="#55ff55" textLength="27" lengthAdjust="spacingAndGlyphs" xml:space="preserve">1C </text>
+<text x="441" y="194" fill="#aaaaaa" textLength="36" lengthAdjust="spacingAndGlyphs" xml:space="preserve">55  </text>
+<text x="477" y="194" fill="#555555" textLength="45" lengthAdjust="spacingAndGlyphs" xml:space="preserve">+16KB</text>
+<text x="0" y="230" fill="#aaaaaa" textLength="162" lengthAdjust="spacingAndGlyphs" xml:space="preserve">    1C   1C   FF  </text>
+<rect x="162" y="216" width="36" height="18" fill="#0000aa"/>
+<text x="162" y="230" fill="#ffffff" textLength="36" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> 7A </text>
+<text x="198" y="230" fill="#aaaaaa" textLength="522" lengthAdjust="spacingAndGlyphs" xml:space="preserve">  55   55                                                 </text>
+<text x="0" y="266" fill="#aaaaaa" textLength="162" lengthAdjust="spacingAndGlyphs" xml:space="preserve">    7A   1C   7A  </text>
+<rect x="162" y="252" width="36" height="18" fill="#0000aa"/>
+<text x="162" y="266" fill="#ffffff" textLength="36" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> BD </text>
+<text x="198" y="266" fill="#aaaaaa" textLength="522" lengthAdjust="spacingAndGlyphs" xml:space="preserve">  BD   E9                                                 </text>
+<text x="0" y="302" fill="#aaaaaa" textLength="162" lengthAdjust="spacingAndGlyphs" xml:space="preserve">    BD   1C   55  </text>
+<rect x="162" y="288" width="36" height="18" fill="#0000aa"/>
+<text x="162" y="302" fill="#ffffff" textLength="36" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> 7A </text>
+<text x="198" y="302" fill="#aaaaaa" textLength="522" lengthAdjust="spacingAndGlyphs" xml:space="preserve">  BD   55                                                 </text>
+<text x="0" y="338" fill="#aaaaaa" textLength="162" lengthAdjust="spacingAndGlyphs" xml:space="preserve">    E9   1C   BD  </text>
+<rect x="162" y="324" width="36" height="18" fill="#0000aa"/>
+<text x="162" y="338" fill="#ffffff" textLength="36" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> FF </text>
+<text x="198" y="338" fill="#aaaaaa" textLength="522" lengthAdjust="spacingAndGlyphs" xml:space="preserve">  55   7A                                                 </text>
+<text x="0" y="410" fill="#aaaaaa" textLength="720" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> [arrows] move  [Enter/Space] pick  [Esc] abort                                 </text>
+<rect x="0" y="432" width="639" height="18" fill="#00aaaa"/>
+<text x="0" y="446" fill="#000000" textLength="639" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> NEON ORCHARD │ L10 THE BAS... │ EGO 100 │ 0096K │ 23:40:00 12/31/99 │ </text>
+<text x="639" y="446" fill="#555555" textLength="18" lengthAdjust="spacingAndGlyphs" xml:space="preserve">SD</text>
+<rect x="657" y="432" width="9" height="18" fill="#00aaaa"/>
+<text x="666" y="446" fill="#555555" textLength="18" lengthAdjust="spacingAndGlyphs" xml:space="preserve">RD</text>
+<rect x="684" y="432" width="9" height="18" fill="#00aaaa"/>
+<text x="693" y="446" fill="#555555" textLength="18" lengthAdjust="spacingAndGlyphs" xml:space="preserve">CD</text>
+<rect x="711" y="432" width="9" height="18" fill="#00aaaa"/>
+</svg>
