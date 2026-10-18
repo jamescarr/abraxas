@@ -19,6 +19,8 @@ pub const ICEPICK_BONUS: i32 = 6;
 pub const DEFEND_BONUS: i32 = 4;
 /// Damage used for MIRROR before the player has attacked.
 pub const DEFAULT_LAST_ATTACK: i32 = 10;
+/// Percentage of max strength a Hydra REGROW heals.
+pub const REGEN_PCT: i32 = 10;
 const MAX_LOG: usize = 40;
 
 /// What the opponent is.
@@ -30,15 +32,47 @@ pub enum DuelKind {
     Shadow,
 }
 
-/// Artwork choice for black ICE.
+/// Which black ICE creature this is. The class is assigned per node by the host generator and
+/// drives art, the intent cycle and strength.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum IceAvatar {
+pub enum BlackClass {
     /// `assets/ice-wolf.txt`.
     Wolf,
     /// `assets/ice-eye.txt`.
     Eye,
     /// `assets/ice-hydra.txt`.
     Hydra,
+}
+
+impl BlackClass {
+    pub const ALL: [BlackClass; 3] = [BlackClass::Wolf, BlackClass::Eye, BlackClass::Hydra];
+
+    /// Display label.
+    pub fn label(self) -> &'static str {
+        match self {
+            BlackClass::Wolf => "WOLF",
+            BlackClass::Eye => "EYE",
+            BlackClass::Hydra => "HYDRA",
+        }
+    }
+
+    /// The intent cycle this creature runs.
+    pub fn cycle(self) -> [Intent; 4] {
+        match self {
+            BlackClass::Wolf => [Intent::Stalk, Intent::Lunge, Intent::Lunge, Intent::Strike],
+            BlackClass::Eye => [Intent::Probe, Intent::Gaze, Intent::Strike, Intent::Charge],
+            BlackClass::Hydra => [Intent::Bite, Intent::Bite, Intent::Regrow, Intent::Crush],
+        }
+    }
+
+    /// Strength as a percentage of the danger class's ICE strength.
+    pub fn strength_pct(self) -> i32 {
+        match self {
+            BlackClass::Wolf => 75,
+            BlackClass::Eye => 90,
+            BlackClass::Hydra => 90,
+        }
+    }
 }
 
 /// The kind of action the opponent has announced.
@@ -52,6 +86,16 @@ pub enum Intent {
     Charge,
     /// Black ICE: double attack.
     Crush,
+    /// Wolf: circles, waiting to lunge.
+    Stalk,
+    /// Wolf: one and a half times attack; DEFEND quarters instead of halving.
+    Lunge,
+    /// Eye: a full attack that DEFEND cannot blunt; a MIRROR reflects it for double.
+    Gaze,
+    /// Hydra: three quarters attack, three quick bites.
+    Bite,
+    /// Hydra: heals `REGEN_PCT`% of its max strength.
+    Regrow,
     /// Shadow: hits for your last attack damage.
     Mirror,
     /// Shadow: reaches for you; ACCEPT now to integrate.
@@ -66,10 +110,25 @@ impl Intent {
             Intent::Strike => "STRIKE",
             Intent::Charge => "CHARGE",
             Intent::Crush => "CRUSH",
+            Intent::Stalk => "STALK",
+            Intent::Lunge => "LUNGE",
+            Intent::Gaze => "GAZE",
+            Intent::Bite => "BITE",
+            Intent::Regrow => "REGROW",
             Intent::Mirror => "MIRROR",
             Intent::Reach => "REACH",
         }
     }
+}
+
+/// One executed opponent action, drained by the view to drive the attack animation.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct Hit {
+    pub intent: Intent,
+    /// Damage dealt to EGO (after defense), the amount healed for REGROW, else 0.
+    pub amount: i32,
+    /// True when a MIRROR charge consumed the hit.
+    pub reflected: bool,
 }
 
 /// The DUEL game state.
@@ -89,10 +148,11 @@ pub struct Duel {
     idx: usize,
     attack: i32,
     danger: u8,
-    avatar: Option<IceAvatar>,
+    class: Option<BlackClass>,
     last_attack: Option<i32>,
     defended_last: bool,
     ego_delta: i32,
+    hits: Vec<Hit>,
     log: Vec<String>,
     rng: Rng,
     loadout: Loadout,
@@ -101,24 +161,22 @@ pub struct Duel {
 }
 
 impl Duel {
-    /// Start a duel. `ego` is the player's current EGO.
+    /// Start a duel. `ego` is the player's current EGO. `class` names the black ICE creature
+    /// (ignored for the Shadow, whose art comes from the pack).
     pub fn generate(
         rng: &mut Rng,
         params: &DangerParams,
         kind: DuelKind,
         loadout: Loadout,
         ego: i32,
+        class: BlackClass,
     ) -> Self {
         let mut own = Rng::seed_from_u64(rng.random());
-        let (cycle, strength, avatar) = match kind {
+        let (cycle, strength, class) = match kind {
             DuelKind::Black => (
-                [Intent::Probe, Intent::Strike, Intent::Charge, Intent::Crush],
-                params.ice_strength,
-                Some(match own.random_range(0..3u8) {
-                    0 => IceAvatar::Wolf,
-                    1 => IceAvatar::Eye,
-                    _ => IceAvatar::Hydra,
-                }),
+                class.cycle(),
+                params.ice_strength * class.strength_pct() / 100,
+                Some(class),
             ),
             DuelKind::Shadow => (
                 [Intent::Mirror, Intent::Reach, Intent::Strike, Intent::Reach],
@@ -137,10 +195,11 @@ impl Duel {
             idx,
             attack: params.ice_attack,
             danger: params.danger,
-            avatar,
+            class,
             last_attack: None,
             defended_last: false,
             ego_delta: 0,
+            hits: Vec::new(),
             log: Vec::new(),
             rng: own,
             loadout,
@@ -171,8 +230,11 @@ impl Duel {
                 DuelKind::Shadow => self.base_attack(),
             },
             Intent::Crush => self.attack * 2,
+            Intent::Lunge => self.attack * 3 / 2,
+            Intent::Gaze => self.attack,
+            Intent::Bite => self.attack / 2,
             Intent::Mirror => self.last_attack.unwrap_or(DEFAULT_LAST_ATTACK),
-            Intent::Charge | Intent::Reach => 0,
+            Intent::Charge | Intent::Reach | Intent::Stalk | Intent::Regrow => 0,
         }
     }
 
@@ -186,9 +248,9 @@ impl Duel {
             }
     }
 
-    /// Black ICE artwork; `None` for the Shadow (the UI uses the pack art mirrored).
-    pub fn avatar(&self) -> Option<IceAvatar> {
-        self.avatar
+    /// The black ICE creature; `None` for the Shadow (the UI uses the pack art mirrored).
+    pub fn class(&self) -> Option<BlackClass> {
+        self.class
     }
 
     /// Total EGO change from this duel so far (zero or negative).
@@ -211,6 +273,17 @@ impl Duel {
         std::mem::take(&mut self.pending_trace)
     }
 
+    /// Executed opponent actions since the last call.
+    pub fn take_hits(&mut self) -> Vec<Hit> {
+        std::mem::take(&mut self.hits)
+    }
+
+    /// Force the announced intent (tests and the view's animation tests).
+    #[cfg(test)]
+    pub(crate) fn set_intent(&mut self, intent: Intent) {
+        self.cycle[self.idx] = intent;
+    }
+
     /// SLEAZE success chance for this danger class.
     pub fn sleaze_chance(&self) -> f64 {
         0.55 - 0.08 * f64::from(self.danger)
@@ -219,6 +292,8 @@ impl Duel {
     fn describe(&self, intent: Intent) -> String {
         match intent {
             Intent::Charge => "CHARGE (gathering power)".into(),
+            Intent::Stalk => "STALK (circling)".into(),
+            Intent::Regrow => format!("REGROW (heals {})", self.max_strength * REGEN_PCT / 100),
             Intent::Reach => "REACH (it holds out a hand)".into(),
             other => format!("{} ({})", other.label(), self.intent_damage(other)),
         }
@@ -263,25 +338,53 @@ impl Duel {
     }
 
     /// The opponent executes its displayed intent. `multiplier` doubles damage for a refused
-    /// ACCEPT; `defending` halves it.
+    /// ACCEPT; `defending` halves it (quarters a LUNGE, and cannot blunt a GAZE).
     fn enemy_turn(&mut self, multiplier: i32, defending: bool) {
         let intent = self.current_intent();
-        let mut dmg = self.intent_damage(intent) * multiplier;
-        if defending {
-            dmg /= 2;
-        }
+        let dmg = match (intent, defending) {
+            (Intent::Gaze, _) => self.intent_damage(intent) * multiplier,
+            (Intent::Lunge, true) => self.intent_damage(intent) * multiplier / 4,
+            (_, true) => self.intent_damage(intent) * multiplier / 2,
+            _ => self.intent_damage(intent) * multiplier,
+        };
         match intent {
             Intent::Charge => self.push("It gathers power.".into()),
+            Intent::Stalk => self.push("It circles you.".into()),
             Intent::Reach => self.push("It reaches for you.".into()),
+            Intent::Regrow => {
+                let heal =
+                    (self.max_strength * REGEN_PCT / 100).min(self.max_strength - self.strength);
+                self.strength = (self.strength + heal).min(self.max_strength);
+                self.push(format!("It regrows a head (+{heal})."));
+                self.hits.push(Hit {
+                    intent,
+                    amount: heal,
+                    reflected: false,
+                });
+            }
             _ => {
                 if self.mirror_armed {
                     self.mirror_armed = false;
-                    self.strength -= dmg;
-                    self.push(format!("{} reflected: {dmg} damage to it.", intent.label()));
+                    let bounced = if intent == Intent::Gaze { dmg * 2 } else { dmg };
+                    self.strength -= bounced;
+                    self.push(format!(
+                        "{} reflected: {bounced} damage to it.",
+                        intent.label()
+                    ));
+                    self.hits.push(Hit {
+                        intent,
+                        amount: bounced,
+                        reflected: true,
+                    });
                 } else {
                     self.ego -= dmg;
                     self.ego_delta -= dmg;
                     self.push(format!("{} hits you for {dmg}.", intent.label()));
+                    self.hits.push(Hit {
+                        intent,
+                        amount: dmg,
+                        reflected: false,
+                    });
                 }
             }
         }
@@ -384,16 +487,156 @@ impl IceGame for Duel {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::game::danger::params;
+    use crate::game::danger::{IceGrade, params};
     use crate::rng::substream;
 
     fn duel(seed: u64, d: u8, kind: DuelKind, loadout: Loadout) -> Duel {
         let mut rng = substream(seed, 0, "duel-test", 0);
-        Duel::generate(&mut rng, &params(d), kind, loadout, 100)
+        // The generic mechanics tests keep the original cycle; class behaviour is tested
+        // separately against the real cycles.
+        let mut g = Duel::generate(&mut rng, &params(d), kind, loadout, 100, BlackClass::Hydra);
+        if kind == DuelKind::Black {
+            g.cycle = [Intent::Probe, Intent::Strike, Intent::Charge, Intent::Crush];
+        }
+        g
     }
 
     fn at(d: &mut Duel, intent: Intent) {
         d.idx = d.cycle.iter().position(|i| *i == intent).unwrap();
+    }
+
+    #[test]
+    fn classes_exist_and_label() {
+        assert_eq!(BlackClass::Wolf.label(), "WOLF");
+        assert_eq!(BlackClass::Eye.label(), "EYE");
+        assert_eq!(BlackClass::Hydra.label(), "HYDRA");
+        assert_eq!(BlackClass::ALL.len(), 3);
+    }
+
+    fn class_duel(seed: u64, d: u8, grade: IceGrade, class: BlackClass, ego: i32) -> Duel {
+        let mut rng = substream(seed, 0, "duel-class", 0);
+        Duel::generate(
+            &mut rng,
+            &params(d).graded(grade),
+            DuelKind::Black,
+            Loadout::default(),
+            ego,
+            class,
+        )
+    }
+
+    #[test]
+    fn each_class_has_its_own_cycle() {
+        assert_eq!(
+            BlackClass::Wolf.cycle(),
+            [Intent::Stalk, Intent::Lunge, Intent::Lunge, Intent::Strike]
+        );
+        assert_eq!(
+            BlackClass::Eye.cycle(),
+            [Intent::Probe, Intent::Gaze, Intent::Strike, Intent::Charge]
+        );
+        assert_eq!(
+            BlackClass::Hydra.cycle(),
+            [Intent::Bite, Intent::Bite, Intent::Regrow, Intent::Crush]
+        );
+        for class in BlackClass::ALL {
+            let g = class_duel(1, 3, IceGrade::Standard, class, 100);
+            assert_eq!(g.max_strength, 50 * class.strength_pct() / 100);
+        }
+    }
+
+    #[test]
+    fn wolf_lunge_defended_takes_a_quarter() {
+        let mut g = class_duel(1, 3, IceGrade::Standard, BlackClass::Wolf, 100);
+        assert_eq!(g.intent_damage(Intent::Lunge), 15);
+        at(&mut g, Intent::Lunge);
+        g.handle(IceInput::Char('d'));
+        assert_eq!(
+            g.ego,
+            97,
+            "defended lunge deals a quarter: {}",
+            g.log().last().unwrap()
+        );
+        let hits = g.take_hits();
+        assert_eq!(hits.len(), 1);
+        assert_eq!(hits[0].intent, Intent::Lunge);
+        assert_eq!(hits[0].amount, 3);
+        assert!(!hits[0].reflected);
+    }
+
+    #[test]
+    fn eye_gaze_ignores_defend_but_mirror_reflects_it_double() {
+        let mut g = class_duel(1, 3, IceGrade::Standard, BlackClass::Eye, 100);
+        at(&mut g, Intent::Gaze);
+        g.handle(IceInput::Char('d'));
+        assert_eq!(g.ego, 90, "gaze ignores defend");
+        // Arm a mirror during a harmless CHARGE so it survives until the next gaze.
+        g.loadout.mirror = 1;
+        at(&mut g, Intent::Charge);
+        g.handle(IceInput::Char('p'));
+        assert!(g.mirror_armed);
+        at(&mut g, Intent::Gaze);
+        let before = g.strength;
+        g.handle(IceInput::Char('d'));
+        assert_eq!(g.strength, before - 20, "gaze reflected for double");
+        assert_eq!(g.ego, 90);
+        let hits = g.take_hits();
+        assert!(hits.last().unwrap().reflected);
+    }
+
+    #[test]
+    fn hydra_regrow_heals_and_caps_at_max() {
+        let mut g = class_duel(1, 3, IceGrade::Standard, BlackClass::Hydra, 100);
+        g.strength = 20;
+        at(&mut g, Intent::Regrow);
+        g.handle(IceInput::Char('d'));
+        assert_eq!(g.strength, 20 + 45 * REGEN_PCT / 100);
+        // Near max: capped.
+        g.strength = g.max_strength - 1;
+        at(&mut g, Intent::Regrow);
+        g.handle(IceInput::Char('d'));
+        assert_eq!(g.strength, g.max_strength);
+        let hits = g.take_hits();
+        assert!(
+            hits.iter()
+                .any(|h| h.intent == Intent::Regrow && h.amount > 0)
+        );
+    }
+
+    /// The referee: a fixed policy (DEFEND when a LUNGE or CRUSH is announced, else ATTACK)
+    /// must beat every class at every grade and danger with no programs and 100 EGO.
+    /// This pins class and grade multipliers to a winnable range; tune those constants,
+    /// not this test.
+    #[test]
+    fn fixed_policy_beats_every_class_grade_and_danger() {
+        let mut worst_ego = 100;
+        for class in BlackClass::ALL {
+            for grade in [IceGrade::Soft, IceGrade::Standard, IceGrade::Hardened] {
+                for d in 1..=5u8 {
+                    for seed in 0..200u64 {
+                        let mut g = class_duel(seed, d, grade, class, 100);
+                        for _ in 0..1000 {
+                            if g.outcome().is_some() {
+                                break;
+                            }
+                            let input = match g.current_intent() {
+                                Intent::Crush | Intent::Lunge => IceInput::Char('d'),
+                                _ => IceInput::Char('a'),
+                            };
+                            g.handle(input);
+                        }
+                        assert_eq!(
+                            g.outcome(),
+                            Some(IceOutcome::Cleared),
+                            "lost: {class:?} {grade:?} D{d} seed {seed} ego {}",
+                            g.ego
+                        );
+                        worst_ego = worst_ego.min(g.ego);
+                    }
+                }
+            }
+        }
+        assert!(worst_ego > 0, "worst EGO {worst_ego}");
     }
 
     #[test]
@@ -411,8 +654,11 @@ mod tests {
                         assert_eq!(w[0], Intent::Charge);
                     }
                 }
-                assert_eq!(g.max_strength, params(d).ice_strength);
-                assert!(g.avatar().is_some());
+                assert_eq!(
+                    g.max_strength,
+                    params(d).ice_strength * BlackClass::Hydra.strength_pct() / 100
+                );
+                assert!(g.class().is_some());
             }
         }
     }
@@ -431,7 +677,7 @@ mod tests {
         for seed in 0..50 {
             let mut g = duel(seed, 2, DuelKind::Shadow, Loadout::default());
             assert_eq!(g.max_strength, 50);
-            assert!(g.avatar().is_none());
+            assert!(g.class().is_none());
             at(&mut g, Intent::Reach);
             g.handle(IceInput::Char('x'));
             assert_eq!(g.outcome(), Some(IceOutcome::Integrated));
@@ -576,7 +822,15 @@ mod tests {
     #[test]
     fn ego_zero_fails_the_duel() {
         let mut rng = substream(1, 0, "duel-test", 0);
-        let mut g = Duel::generate(&mut rng, &params(5), DuelKind::Black, Loadout::default(), 5);
+        let mut g = Duel::generate(
+            &mut rng,
+            &params(5),
+            DuelKind::Black,
+            Loadout::default(),
+            5,
+            BlackClass::Hydra,
+        );
+        g.cycle = [Intent::Probe, Intent::Strike, Intent::Charge, Intent::Crush];
         at(&mut g, Intent::Crush);
         g.handle(IceInput::Char('D'));
         assert_eq!(g.outcome(), Some(IceOutcome::Failed { trace: 0.0, ego: 0 }));

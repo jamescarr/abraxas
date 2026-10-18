@@ -14,7 +14,7 @@ use ratatui::crossterm::event::KeyEvent;
 use ratatui::layout::Rect;
 use ratatui::style::Style;
 
-use super::ice_view::{IceView, VIEW_ROWS, ice_input};
+use super::ice_view::{DuelArt, IceView, VIEW_ROWS, ice_input};
 use super::{BeatScreen, Nav, Screen, ScreenImpl};
 use crate::game::danger::{self, params};
 use crate::game::host::{HostSession, IceKindAt, PlayerView, PromptColor};
@@ -24,7 +24,7 @@ use crate::game::shell::{
 };
 use crate::game::state::{Level, LevelSeed, Phase};
 use crate::ice::Loadout;
-use crate::ice::duel::DuelKind;
+use crate::ice::duel::{BlackClass, DuelKind};
 use crate::pack::model::{ExitKind, HostOs, ObjectiveKind};
 use crate::palette::{Dos, Palette};
 use crate::rng::substream;
@@ -270,6 +270,24 @@ impl RunScreen {
         self.mini = MapGrid::build(&self.session.map_layout(), MapScale::Mini);
     }
 
+    /// The guarded node of the running ICE view (tests).
+    #[cfg(test)]
+    pub(crate) fn ice_node(&self) -> Option<usize> {
+        match &self.mode {
+            Mode::Ice { node, .. } => *node,
+            _ => None,
+        }
+    }
+
+    /// The DAEMON console's step solutions, when a DAEMON view is running (tests).
+    #[cfg(test)]
+    pub(crate) fn daemon_solution(&self) -> Option<Vec<String>> {
+        match &self.mode {
+            Mode::Ice { view, .. } => view.daemon_game().map(|g| g.solution()),
+            _ => None,
+        }
+    }
+
     // ----- mini-games ----------------------------------------------------------------------
 
     fn launch_ice(&mut self, node: usize, kind: IceKindAt, ctx: &mut Ctx) {
@@ -280,18 +298,23 @@ impl RunScreen {
         let id = self.session.nodes()[node].id.clone();
         let mut rng = substream(run.seed, run.depth, &format!("ice-{id}"), self.launches);
         let loadout = Loadout::from_deck(&run.deck);
-        let run_params = params(self.session.run_danger());
         let base = ctx.level().map_or(1, |l| l.seed.base_danger);
+        let (grade, class) = {
+            let n = &self.session.nodes()[node];
+            (n.grade, n.class)
+        };
+        let run_params = params(self.session.run_danger()).graded(grade);
         let view = match kind {
             IceKindAt::Wordlock => {
                 let (words, password) = ctx
                     .place()
                     .map(|p| (p.words.clone(), p.password.clone()))
                     .unwrap_or_default();
-                IceView::wordlock(&mut rng, &params(base), &words, &password, loadout)
+                IceView::wordlock(&mut rng, &params(base), &words, &password, loadout, grade)
             }
             IceKindAt::Breach => IceView::breach(&mut rng, &run_params, loadout),
             IceKindAt::Phreak => IceView::phreak(&mut rng, &run_params, loadout),
+            IceKindAt::Daemon => IceView::daemon(&mut rng, self.session.os(), grade),
             IceKindAt::Black | IceKindAt::Shadow => {
                 let duel = if kind == IceKindAt::Black {
                     DuelKind::Black
@@ -309,8 +332,11 @@ impl RunScreen {
                     duel,
                     loadout,
                     run.stats.ego,
-                    &ctx.palette,
-                    art,
+                    DuelArt {
+                        palette: &ctx.palette,
+                        shadow_art: art,
+                    },
+                    class.unwrap_or(BlackClass::Wolf),
                 )
             }
         };
@@ -318,6 +344,9 @@ impl RunScreen {
             view: Box::new(view),
             node: Some(node),
         };
+        if let Mode::Ice { view, .. } = &mut self.mode {
+            view.set_calm(ctx.calm());
+        }
     }
 
     fn launch_router(&mut self, ctx: &mut Ctx) {
@@ -331,6 +360,9 @@ impl RunScreen {
             view: Box::new(view),
             node: None,
         };
+        if let Mode::Ice { view, .. } = &mut self.mode {
+            view.set_calm(ctx.calm());
+        }
     }
 
     /// Drain the running game's side effects and, once it has an outcome, apply it to the
@@ -663,7 +695,11 @@ impl ScreenImpl for RunScreen {
     }
 
     fn in_text_input(&self) -> bool {
-        matches!(self.mode, Mode::Shell)
+        match &self.mode {
+            Mode::Shell => true,
+            Mode::Ice { view, .. } => view.wants_text(),
+            _ => false,
+        }
     }
 }
 
@@ -1336,6 +1372,7 @@ mod tests {
         let expect = [
             (IceKindAt::Breach, "BREACH PROTOCOL"),
             (IceKindAt::Phreak, "PHREAK  RELAY LINE"),
+            (IceKindAt::Daemon, "CONSOLE"),
             (IceKindAt::Black, "DUEL  BLACK ICE"),
             (IceKindAt::Shadow, "DUEL  YOUR SHADOW"),
         ];
@@ -1366,6 +1403,70 @@ mod tests {
         for (want, _) in expect {
             assert!(seen.contains(&want), "never met {want:?}; saw {seen:?}");
         }
+    }
+
+    /// Connect to a DAEMON gate somewhere; the first seed/depth that has one is enough.
+    fn open_daemon_guard(r: &mut Rig) -> Option<usize> {
+        r.skip_login();
+        if !connect_to_guard(r, IceKindAt::Daemon) {
+            return None;
+        }
+        assert!(r.run().in_text_input(), "typed ICE keeps ? as a character");
+        let node = r.run().ice_node().expect("ice view");
+        Some(node)
+    }
+
+    #[test]
+    fn daemon_console_is_playable_through_the_real_key_path() {
+        for seed_depth in [9u32, 10, 11, 13, 14, 2, 6, 3, 5, 7, 12, 15, 4, 8] {
+            let mut r = rig_with(seed_depth, |_| {});
+            let Some(node) = open_daemon_guard(&mut r) else {
+                continue;
+            };
+            let solution = r.run().daemon_solution().expect("daemon view");
+            for step in solution {
+                r.type_line(&step);
+            }
+            assert!(r.in_shell(), "daemon solved at depth {seed_depth}");
+            assert!(!r.run().session.nodes()[node].guarded(), "the gate opened");
+            let t = r.text();
+            assert!(
+                t.contains(&format!(
+                    "access granted: {}",
+                    r.run().session.nodes()[node].id
+                )),
+                "{t}"
+            );
+            return;
+        }
+        panic!("no seed/depth produced a DAEMON gate");
+    }
+
+    #[test]
+    fn daemon_wrong_commands_lock_out_with_trace_and_keep_the_node_guarded() {
+        for seed_depth in [9u32, 10, 11, 13, 14, 2, 6, 3, 5, 7, 12, 15, 4, 8] {
+            let mut r = rig_with(seed_depth, |_| {});
+            let Some(node) = open_daemon_guard(&mut r) else {
+                continue;
+            };
+            let before = r.run().session.trace();
+            for _ in 0..5 {
+                r.type_line("zzz");
+            }
+            assert!(r.in_shell(), "the console locked out");
+            assert!(
+                r.run().session.nodes()[node].guarded(),
+                "the gate stays shut"
+            );
+            assert!(
+                r.run().session.trace() >= before + 12.0,
+                "the lockout adds trace: {} -> {}",
+                before,
+                r.run().session.trace()
+            );
+            return;
+        }
+        panic!("no seed/depth produced a DAEMON gate");
     }
 
     #[test]

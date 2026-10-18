@@ -7,7 +7,7 @@ use rand::SeedableRng;
 use rand::seq::{IndexedRandom, SliceRandom};
 
 use super::{IceGame, IceInput, IceOutcome, Loadout};
-use crate::game::danger::DangerParams;
+use crate::game::danger::{DangerParams, IceGrade};
 use crate::rng::Rng;
 
 /// Rows per column.
@@ -95,6 +95,10 @@ pub struct Wordlock {
     pub cursor: Cursor,
     /// Attempts left.
     pub attempts: u8,
+    /// Attempts per layout for this instance's grade.
+    pub max_attempts: u8,
+    /// Chance a cleared bracket pair replenishes the allowance (per grade).
+    pub heal_chance: f64,
     /// Terminal log, oldest first.
     pub log: Vec<String>,
     /// Regeneration counter (starts at the constructor argument).
@@ -224,9 +228,15 @@ impl Wordlock {
         password: &str,
         attempt: u32,
         loadout: Loadout,
+        grade: IceGrade,
     ) -> Self {
         let mut own = Rng::seed_from_u64(rng.random());
         let (lines, slots) = layout(&mut own, words, password, params.wordlock_words);
+        let (max_attempts, heal_chance) = match grade {
+            IceGrade::Soft => (5, 0.35),
+            IceGrade::Standard => (ATTEMPTS, 0.25),
+            IceGrade::Hardened => (3, 0.15),
+        };
         Self {
             lines,
             words: slots,
@@ -235,7 +245,9 @@ impl Wordlock {
                 row: 0,
                 ch: 0,
             },
-            attempts: ATTEMPTS,
+            attempts: max_attempts,
+            max_attempts,
+            heal_chance,
             log: Vec::new(),
             attempt,
             lockout: None,
@@ -382,8 +394,8 @@ impl Wordlock {
 
     fn select_bracket(&mut self, line: usize, a: usize, b: usize) {
         self.lines[line][a..=b].iter_mut().for_each(|c| *c = '.');
-        if self.attempts < ATTEMPTS && self.rng.random_bool(0.25) {
-            self.attempts = ATTEMPTS;
+        if self.attempts < self.max_attempts && self.rng.random_bool(self.heal_chance) {
+            self.attempts = self.max_attempts;
             self.push_log(">Allowance replenished.".into());
         } else if self.remove_dud() {
             self.push_log(">Dud removed.".into());
@@ -419,7 +431,7 @@ impl Wordlock {
         let (lines, words) = layout(&mut self.rng, &self.pool, &self.password, self.word_count);
         self.lines = lines;
         self.words = words;
-        self.attempts = ATTEMPTS;
+        self.attempts = self.max_attempts;
         self.lockout = None;
         self.log.clear();
     }
@@ -517,7 +529,51 @@ mod tests {
         let mut rng = substream(seed, 0, "wl-test", 0);
         let words = make_words(p.wordlock_len, 2 * p.wordlock_words, &mut rng);
         let password = words[0].clone();
-        Wordlock::generate(&mut rng, &p, &words, &password, 0, loadout)
+        Wordlock::generate(
+            &mut rng,
+            &p,
+            &words,
+            &password,
+            0,
+            loadout,
+            IceGrade::Standard,
+        )
+    }
+
+    #[test]
+    fn grade_sets_attempts_and_lockout_uses_them() {
+        for (grade, want) in [
+            (IceGrade::Soft, 5),
+            (IceGrade::Standard, 4),
+            (IceGrade::Hardened, 3),
+        ] {
+            let p = params(3);
+            let mut rng = substream(7, 0, "wl-grade", 0);
+            let words = make_words(p.wordlock_len, 2 * p.wordlock_words, &mut rng);
+            let password = words[0].clone();
+            let mut g = Wordlock::generate(
+                &mut rng,
+                &p,
+                &words,
+                &password,
+                0,
+                Loadout::default(),
+                grade,
+            );
+            assert_eq!(g.max_attempts, want, "{grade:?}");
+            let duds: Vec<_> = g
+                .words
+                .iter()
+                .filter(|w| !w.is_password)
+                .map(|w| (w.line, w.start))
+                .collect();
+            for (line, start) in duds.iter().take(want as usize) {
+                goto(&mut g, *line, *start);
+                g.handle(IceInput::Enter);
+            }
+            assert!(g.locked(), "{grade:?}");
+            assert_eq!(g.take_trace(), 15.0);
+        }
     }
 
     fn goto(g: &mut Wordlock, line: usize, ch: usize) {

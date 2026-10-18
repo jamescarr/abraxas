@@ -258,25 +258,140 @@ pub fn sysop_for(ctx: &GenContext, requested: &str) -> Sysop {
     }
 }
 
-/// The engine's password-clue post: from `anonymous`, `re: front door`, with the password masked
-/// to 2 revealed letters (3 for words of 7 or more letters); every other letter is `_`.
-pub fn clue_post(place_host_name: &str, password: &str, rng: &mut Rng) -> PostDef {
+/// The shape of the engine's `re: front door` password clue.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+pub enum ClueKind {
+    /// 2 letters revealed (3 for passwords of 7+ letters).
+    Mask2,
+    /// 1 letter revealed.
+    Mask1,
+    /// First and last letters named.
+    Ends,
+    /// The likeness (positional matches) of one decoy word is stated.
+    Likeness,
+    /// Length and vowel count only.
+    Shape,
+    /// Names a decoy word and claims it was the old password (it is not).
+    Rumor,
+    /// No information.
+    Silent,
+}
+
+/// Clue kinds per base danger (index `clamp(1,5) - 1`): later levels get vaguer clues.
+const CLUE_POOLS: [&[ClueKind]; 5] = [
+    &[ClueKind::Mask2, ClueKind::Mask2, ClueKind::Ends],
+    &[ClueKind::Mask2, ClueKind::Ends, ClueKind::Likeness],
+    &[
+        ClueKind::Mask1,
+        ClueKind::Likeness,
+        ClueKind::Shape,
+        ClueKind::Rumor,
+    ],
+    &[
+        ClueKind::Mask1,
+        ClueKind::Shape,
+        ClueKind::Rumor,
+        ClueKind::Silent,
+    ],
+    &[
+        ClueKind::Shape,
+        ClueKind::Rumor,
+        ClueKind::Silent,
+        ClueKind::Silent,
+    ],
+];
+
+/// Pick the clue kind for a level's base danger.
+pub fn clue_kind(base_danger: u8, rng: &mut Rng) -> ClueKind {
+    let pool = CLUE_POOLS[usize::from(base_danger.clamp(1, 5)) - 1];
+    pool[rng.random_range(0..pool.len())]
+}
+
+/// The engine's password-clue post: from `anonymous`, `re: front door`, worded by the kind drawn
+/// for `base_danger`. `words` is the final WORDLOCK candidate list (used by decoy clues).
+pub fn clue_post(
+    place_host_name: &str,
+    password: &str,
+    words: &[String],
+    base_danger: u8,
+    rng: &mut Rng,
+) -> PostDef {
+    clue_post_of(
+        clue_kind(base_danger, rng),
+        place_host_name,
+        password,
+        words,
+        rng,
+    )
+}
+
+/// [`clue_post`] with an explicit kind (tests, and the fallback inside decoy kinds).
+pub fn clue_post_of(
+    kind: ClueKind,
+    place_host_name: &str,
+    password: &str,
+    words: &[String],
+    rng: &mut Rng,
+) -> PostDef {
     let letters: Vec<char> = password.chars().collect();
-    let reveal = if letters.len() <= 6 { 2 } else { 3 }.min(letters.len());
-    let mut positions: Vec<usize> = (0..letters.len()).collect();
-    positions.shuffle(rng);
-    let shown = &positions[..reveal];
-    let mask: String = letters
-        .iter()
-        .enumerate()
-        .map(|(i, c)| if shown.contains(&i) { *c } else { '_' })
-        .collect();
+    let mut mask = |reveal: usize| -> String {
+        let mut positions: Vec<usize> = (0..letters.len()).collect();
+        positions.shuffle(rng);
+        let shown = &positions[..reveal.min(letters.len())];
+        letters
+            .iter()
+            .enumerate()
+            .map(|(i, c)| if shown.contains(&i) { *c } else { '_' })
+            .collect()
+    };
+    let decoy = words.iter().map(String::as_str).find(|w| *w != password);
+    let host = place_host_name;
+    let body = match kind {
+        ClueKind::Mask2 | ClueKind::Mask1 => {
+            let reveal = match kind {
+                ClueKind::Mask1 => 1,
+                _ if letters.len() <= 6 => 2,
+                _ => 3,
+            };
+            format!(
+                "whoever runs {host} never changed the front door. last time i looked it was {}.",
+                mask(reveal)
+            )
+        }
+        ClueKind::Ends => format!(
+            "whoever runs {host} never changed the front door. it starts with {} and ends with {}.",
+            letters[0],
+            letters[letters.len() - 1]
+        ),
+        ClueKind::Likeness => match decoy {
+            Some(d) => format!(
+                "whoever runs {host} never changed the front door. i watched {d} bounce off it. {} of {} letters were in the right place.",
+                crate::ice::wordlock::likeness(d, password),
+                letters.len()
+            ),
+            None => clue_post_of(ClueKind::Mask2, host, password, words, rng).body,
+        },
+        ClueKind::Shape => {
+            let vowels = letters.iter().filter(|c| "AEIOU".contains(**c)).count();
+            format!(
+                "whoever runs {host} never changed the front door. it is {} letters long and {vowels} of them are vowels.",
+                letters.len()
+            )
+        }
+        ClueKind::Rumor => match decoy {
+            Some(d) => format!(
+                "whoever runs {host} changed the front door last week. people say it used to be {d}. that was before."
+            ),
+            None => clue_post_of(ClueKind::Mask2, host, password, words, rng).body,
+        },
+        ClueKind::Silent => format!(
+            "whoever runs {host} will not tell anyone the front door. nobody is meant to know it."
+        ),
+    };
     PostDef {
         from: "anonymous".to_string(),
         subject: "re: front door".to_string(),
-        body: format!(
-            "whoever runs {place_host_name} never changed the front door. last time i looked it was {mask}."
-        ),
+        body,
     }
 }
 
@@ -549,7 +664,13 @@ impl PlaceBuilder<'_, '_> {
         // Posts, then the clue.
         let mut posts = self.posts(anchor.map_or(&[][..], |a| &a.post), cand.posts);
         let mut clue_rng = substream(ctx.run.seed, ctx.depth(), "clue", 0);
-        posts.push(clue_post(&host_name, &password, &mut clue_rng));
+        posts.push(clue_post(
+            &host_name,
+            &password,
+            &words,
+            ctx.seed.base_danger,
+            &mut clue_rng,
+        ));
 
         Place {
             title,
@@ -1257,13 +1378,6 @@ pub(crate) mod tests {
         parse_place(&v.to_string(), &ctx).unwrap()
     }
 
-    fn mask_of(place: &Place) -> String {
-        let clue = place.posts.last().unwrap();
-        let body = &clue.body;
-        let start = body.find("it was ").unwrap() + "it was ".len();
-        body[start..body.len() - 1].to_string()
-    }
-
     #[test]
     fn extract_json_handles_fences_preamble_and_think() {
         let raw = "Sure! Here you go:\n```json\n{\"a\": {\"b\": 1}}\n```\nHope that helps.";
@@ -1312,7 +1426,6 @@ pub(crate) mod tests {
         assert_eq!(sorted.len(), 20, "duplicates in {:?}", place.words);
         assert_eq!(&place.words[..2], ["RAVENS", "CINDER"]);
         assert!(["RAVENS", "CINDER"].contains(&place.password.as_str()));
-        assert_eq!(mask_of(&place).len(), 6);
     }
 
     #[test]
@@ -1328,7 +1441,7 @@ pub(crate) mod tests {
     fn clue_mask_reveals_two_or_three_letters() {
         let mut rng = substream(1, 1, "t", 0);
         for (word, shown) in [("OWLET", 2), ("RAVENS", 2), ("TOWERED", 3), ("MIDNIGHT", 3)] {
-            let post = clue_post("ODS X", word, &mut rng);
+            let post = clue_post_of(ClueKind::Mask2, "ODS X", word, &[], &mut rng);
             assert_eq!(post.from, "anonymous");
             assert_eq!(post.subject, "re: front door");
             let body = post.body;
@@ -1346,14 +1459,81 @@ pub(crate) mod tests {
     }
 
     #[test]
-    fn clue_is_the_fourth_post_and_matches_the_password() {
+    fn mask1_reveals_exactly_one_letter() {
+        let mut rng = substream(1, 1, "t", 0);
+        let post = clue_post_of(ClueKind::Mask1, "ODS X", "RAVENS", &[], &mut rng);
+        let body = post.body;
+        let mask = body
+            ["whoever runs ODS X never changed the front door. last time i looked it was ".len()..]
+            .trim_end_matches('.');
+        assert_eq!(mask.len(), 6);
+        assert_eq!(mask.chars().filter(|c| *c != '_').count(), 1);
+    }
+
+    #[test]
+    fn ends_names_first_and_last_and_shape_counts_vowels() {
+        let mut rng = substream(1, 1, "t", 0);
+        let ends = clue_post_of(ClueKind::Ends, "ODS X", "RAVENS", &[], &mut rng).body;
+        assert!(ends.contains("starts with R and ends with S."), "{ends}");
+        let shape = clue_post_of(ClueKind::Shape, "ODS X", "TOWERED", &[], &mut rng).body;
+        assert!(
+            shape.contains("7 letters long and 3 of them are vowels."),
+            "{shape}"
+        );
+    }
+
+    #[test]
+    fn likeness_clue_states_the_true_likeness_and_rumor_names_a_decoy() {
+        let words = ["RAVENS", "TRAVEL", "REASON"]
+            .iter()
+            .map(|s| s.to_string())
+            .collect::<Vec<_>>();
+        let mut rng = substream(1, 1, "t", 0);
+        let post = clue_post_of(ClueKind::Likeness, "ODS X", "RAVENS", &words, &mut rng);
+        let body = post.body;
+        let k: usize = body
+            .split_whitespace()
+            .find_map(|w| w.parse().ok())
+            .expect("likeness number");
+        assert!(body.contains("TRAVEL"), "{body}");
+        assert!(body.contains("of 6 letters"), "{body}");
+        assert!(k <= 6);
+        let rumor = clue_post_of(ClueKind::Rumor, "ODS X", "RAVENS", &words, &mut rng).body;
+        assert!(rumor.contains("it used to be "), "{rumor}");
+        assert!(!rumor.contains("never changed"), "{rumor}");
+    }
+
+    #[test]
+    fn clue_is_the_fourth_post_and_mentions_the_host() {
         let place = parse(5, |_| {}, place_json());
         assert_eq!(place.posts.len(), 4);
         assert_eq!(place.posts[3].subject, "re: front door");
+        assert_eq!(place.posts[3].from, "anonymous");
         assert!(place.posts[3].body.contains("ODS TEST EXCHANGE"));
-        for (m, w) in mask_of(&place).chars().zip(place.password.chars()) {
-            assert!(m == '_' || m == w);
+    }
+
+    #[test]
+    fn clue_pools_scale_with_danger() {
+        for seed in 0..2000u64 {
+            let mut rng = substream(seed, 0, "clue-pool", 0);
+            let d1 = clue_kind(1, &mut rng);
+            assert!(matches!(d1, ClueKind::Mask2 | ClueKind::Ends));
+            let d5 = clue_kind(5, &mut rng);
+            assert!(!matches!(
+                d5,
+                ClueKind::Mask2 | ClueKind::Mask1 | ClueKind::Ends | ClueKind::Likeness
+            ));
         }
+        let mut seen = std::collections::BTreeSet::new();
+        for seed in 0..2000u64 {
+            let mut rng = substream(seed, 0, "clue-pool", 0);
+            seen.insert(clue_kind(5, &mut rng));
+        }
+        assert!(
+            seen.contains(&ClueKind::Shape)
+                && seen.contains(&ClueKind::Rumor)
+                && seen.contains(&ClueKind::Silent)
+        );
     }
 
     #[test]

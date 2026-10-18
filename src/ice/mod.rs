@@ -1,6 +1,7 @@
 //! ICE mini-games: pure logic, driven by the UI through `IceInput` and `tick`.
 
 pub mod breach;
+pub mod daemon;
 pub mod duel;
 pub mod phreak;
 pub mod router;
@@ -21,6 +22,7 @@ pub enum IceInput {
     Space,
     Esc,
     Tab,
+    Backspace,
     Char(char),
 }
 
