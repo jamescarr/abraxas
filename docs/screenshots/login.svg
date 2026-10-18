@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="450" viewBox="0 0 720 450" font-family="Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="15" style="white-space:pre">
+<rect width="720" height="450" fill="#000000"/>
+<text x="54" y="14" fill="#aa0000" textLength="594" lengthAdjust="spacingAndGlyphs" xml:space="preserve">           █████╗ ██████╗ ██████╗  █████╗ ██╗  ██╗ █████╗ ███████╗</text>
+<text x="54" y="32" fill="#aa0000" textLength="603" lengthAdjust="spacingAndGlyphs" xml:space="preserve">           ██╔══██╗██╔══██╗██╔══██╗██╔══██╗╚██╗██╔╝██╔══██╗██╔════╝</text>
+<text x="54" y="50" fill="#ff5555" textLength="603" lengthAdjust="spacingAndGlyphs" xml:space="preserve">           ███████║██████╔╝██████╔╝███████║ ╚███╔╝ ███████║███████╗</text>
+<text x="54" y="68" fill="#ff5555" textLength="603" lengthAdjust="spacingAndGlyphs" xml:space="preserve">           ██╔══██║██╔══██╗██╔══██╗██╔══██║ ██╔██╗ ██╔══██║╚════██║</text>
+<text x="54" y="86" fill="#ffff55" textLength="603" lengthAdjust="spacingAndGlyphs" xml:space="preserve">           ██║  ██║██████╔╝██║  ██║██║  ██║██╔╝ ██╗██║  ██║███████║</text>
+<text x="54" y="104" fill="#ffff55" textLength="603" lengthAdjust="spacingAndGlyphs" xml:space="preserve">           ╚═╝  ╚═╝╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝╚══════╝</text>
+<text x="54" y="140" fill="#aa5500" textLength="54" lengthAdjust="spacingAndGlyphs" xml:space="preserve">     Θ</text>
+<text x="108" y="140" fill="#555555" textLength="144" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> ══════════════ </text>
+<text x="252" y="140" fill="#aaaaaa" textLength="189" lengthAdjust="spacingAndGlyphs" xml:space="preserve">what holds both sides</text>
+<text x="441" y="140" fill="#555555" textLength="144" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> ══════════════ </text>
+<text x="585" y="140" fill="#aa5500" textLength="9" lengthAdjust="spacingAndGlyphs" xml:space="preserve">Θ</text>
+<text x="90" y="176" fill="#555555" textLength="540" lengthAdjust="spacingAndGlyphs" xml:space="preserve">┌─[ LAST CALLERS ]─────────────────────────────────────────┐</text>
+<text x="90" y="194" fill="#555555" textLength="540" lengthAdjust="spacingAndGlyphs" xml:space="preserve">│                                                          │</text>
+<text x="90" y="212" fill="#555555" textLength="540" lengthAdjust="spacingAndGlyphs" xml:space="preserve">│  no callers yet. you would be the first.                 │</text>
+<text x="90" y="230" fill="#555555" textLength="540" lengthAdjust="spacingAndGlyphs" xml:space="preserve">│                                                          │</text>
+<text x="90" y="248" fill="#555555" textLength="540" lengthAdjust="spacingAndGlyphs" xml:space="preserve">│                                                          │</text>
+<text x="90" y="266" fill="#555555" textLength="540" lengthAdjust="spacingAndGlyphs" xml:space="preserve">│                                                          │</text>
+<text x="90" y="284" fill="#555555" textLength="540" lengthAdjust="spacingAndGlyphs" xml:space="preserve">└──────────────────────────────────────────────────────────┘</text>
+<text x="18" y="320" fill="#ffffff" textLength="72" lengthAdjust="spacingAndGlyphs" xml:space="preserve">Handle: </text>
+<rect x="90" y="306" width="9" height="18" fill="#ffffff"/>
+</svg>

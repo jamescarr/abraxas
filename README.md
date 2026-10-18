@@ -6,6 +6,19 @@ It is 23:00 on 12/31/1999 in Port Hecate, a drowned-coast megacity where cyberde
 
 The game is a terminal UI styled after a late-90s ANSI BBS: message bases, file libraries, door games, a user list, a sysop to page. You hack hosts through shell commands and ICE mini-games (WORDLOCK, BREACH, PHREAK, DAEMON, ROUTER, DUEL). Between levels you fall through procedural visions (tunnels, plasma, fire, mandalas) and the I Ching casts the omen of the level you land in. Every level is randomised. A local or remote language model writes the words (boards, files, hosts, interludes) and continues the story for ever; without one, an offline generator draws from the story pack's word bank so the game is always playable.
 
+## Screenshots
+
+Rendered by the game's own screen code into SVG (`cargo test --lib write_readme_screenshots -- --ignored` rewrites them under `docs/screenshots/`).
+
+| | |
+|---|---|
+| ![Login](docs/screenshots/login.svg) | ![Level card](docs/screenshots/level-card.svg) |
+| ![BBS menu](docs/screenshots/menu.svg) | ![Message base](docs/screenshots/board.svg) |
+| ![SysOp chat](docs/screenshots/chat.svg) | ![Host shell](docs/screenshots/shell.svg) |
+| ![WORDLOCK](docs/screenshots/wordlock.svg) | ![BREACH](docs/screenshots/breach.svg) |
+| ![DAEMON console](docs/screenshots/daemon.svg) | ![DUEL vs EYE](docs/screenshots/duel.svg) |
+| ![Descent](docs/screenshots/descent.svg) | ![The Self](docs/screenshots/psyche.svg) |
+
 ## Install and run
 
 You need a terminal of at least 80x25 with truecolor (16 colours also work), on macOS or Linux, and a Rust toolchain. The repo pins the toolchain with [mise](https://mise.jdx.dev):

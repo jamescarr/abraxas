@@ -5,6 +5,8 @@ pub mod canvas;
 pub mod crt;
 pub mod keys;
 pub mod screens;
+#[cfg(test)]
+pub(crate) mod shots;
 pub mod status;
 pub mod widgets;
 

@@ -1914,4 +1914,247 @@ mod tests {
         let mut s = RunScreen::new(&mut ctx);
         assert!(matches!(s.tick(FRAME, &mut ctx), Nav::Back));
     }
+
+    /// The README gallery: twelve screens rendered through `App::render` and written as SVG
+    /// under `docs/screenshots` (or `$ABRAXAS_SHOTS_DIR`). Ignored by default; re-run with
+    /// `cargo test --lib write_readme_screenshots -- --ignored` when a screen changes.
+    mod screenshots {
+        use super::*;
+        use crate::ice::duel::Intent;
+        use crate::ui::screens::{
+            BoardScreen, ChatScreen, DescentScreen, LevelCardScreen, MenuScreen, PsycheScreen,
+        };
+        use crate::ui::shots;
+        use ratatui::crossterm::event::KeyEvent;
+        use std::path::{Path, PathBuf};
+
+        /// Depths tried, in order, when a shot needs a particular guard on the host.
+        const DEPTHS: [u32; 14] = [9, 10, 11, 13, 14, 2, 6, 3, 5, 7, 12, 15, 4, 8];
+
+        fn buffer(app: &mut App) -> Buffer {
+            let mut term = Terminal::new(TestBackend::new(80, 25)).unwrap();
+            term.draw(|f| app.render(f)).unwrap();
+            term.backend().buffer().clone()
+        }
+
+        /// Truecolor, and calm so menu glitches, dissolves and vision clocks are deterministic.
+        fn truecolor(ctx: &mut Ctx) {
+            ctx.palette = Palette::new(true);
+            ctx.config.display.calm = true;
+        }
+
+        /// An app on `make`'s screen over a registered run at `depth`.
+        fn screen_app(
+            depth: u32,
+            make: impl FnOnce(&mut Ctx) -> Screen,
+        ) -> (tempfile::TempDir, App) {
+            let dir = tempfile::tempdir().unwrap();
+            let mut ctx = test_ctx(dir.path());
+            install_test_run(&mut ctx, depth);
+            truecolor(&mut ctx);
+            let screen = make(&mut ctx);
+            (dir, App::with_screen(ctx, screen))
+        }
+
+        fn step(app: &mut App, key: Option<KeyEvent>) {
+            app.step(key.map(Event::Key), FRAME);
+        }
+
+        fn type_line(app: &mut App, text: &str) {
+            for c in text.chars() {
+                step(app, Some(press_char(c)));
+            }
+            step(app, Some(press(KeyCode::Enter)));
+        }
+
+        fn wait(app: &mut App, secs: f32) {
+            let mut left = secs;
+            while left > 0.0 {
+                let dt = left.min(0.1);
+                app.step(None, Duration::from_secs_f32(dt));
+                left -= dt;
+            }
+        }
+
+        /// A logged-in rig at the first of `DEPTHS` whose host guards with `want`, connected to
+        /// that guard. `prep` runs on each candidate before the connect.
+        fn rig_at_guard(want: IceKindAt, prep: impl Fn(&mut Rig)) -> Rig {
+            for depth in DEPTHS {
+                let mut r = rig_with(depth, truecolor);
+                r.skip_login();
+                prep(&mut r);
+                if connect_to_guard(&mut r, want) {
+                    return r;
+                }
+            }
+            panic!("no depth in {DEPTHS:?} guards with {want:?}");
+        }
+
+        fn shot(dir: &Path, name: &str, app: &mut App) {
+            shots::write(dir, name, &buffer(app));
+        }
+
+        #[test]
+        #[ignore = "writes docs/screenshots; run on demand"]
+        fn write_readme_screenshots() {
+            let out = std::env::var_os("ABRAXAS_SHOTS_DIR")
+                .map(PathBuf::from)
+                .unwrap_or_else(|| {
+                    PathBuf::from(concat!(env!("CARGO_MANIFEST_DIR"), "/docs/screenshots"))
+                });
+
+            // Boot, dial NIGHT SHIFT, let the line cross: the logo and `Handle:`.
+            {
+                let dir = tempfile::tempdir().unwrap();
+                let mut ctx = test_ctx(dir.path());
+                truecolor(&mut ctx);
+                let mut app = App::new(ctx);
+                app.step(None, Duration::from_millis(500));
+                step(&mut app, Some(press_char(' ')));
+                assert_eq!(app.screen.name(), "Dialer");
+                step(&mut app, Some(press(KeyCode::Enter)));
+                assert_eq!(app.screen.name(), "Dialing");
+                for _ in 0..200 {
+                    if app.screen.name() == "Login" {
+                        break;
+                    }
+                    step(&mut app, Some(press_char(' ')));
+                }
+                assert_eq!(app.screen.name(), "Login");
+                step(&mut app, None);
+                shot(&out, "login", &mut app);
+            }
+
+            {
+                let (_dir, mut app) = screen_app(0, |c| Screen::LevelCard(LevelCardScreen::new(c)));
+                wait(&mut app, 2.0);
+                assert_eq!(app.screen.name(), "LevelCard");
+                shot(&out, "level-card", &mut app);
+            }
+
+            {
+                let (_dir, mut app) = screen_app(0, |c| Screen::Menu(MenuScreen::new(c)));
+                step(&mut app, None);
+                shot(&out, "menu", &mut app);
+            }
+
+            // The last post is the engine's `re: front door` clue.
+            {
+                let (_dir, mut app) = screen_app(0, |c| Screen::Board(BoardScreen::new(c)));
+                step(&mut app, Some(press(KeyCode::End)));
+                step(&mut app, Some(press(KeyCode::Enter)));
+                step(&mut app, None);
+                shot(&out, "board", &mut app);
+            }
+
+            // Paging ends after 1.5 s; the offline director answers at once.
+            {
+                let (_dir, mut app) = screen_app(0, |c| Screen::Chat(ChatScreen::new(c)));
+                wait(&mut app, 2.0);
+                type_line(&mut app, "who are you?");
+                for _ in 0..100 {
+                    if app.screen.in_text_input() {
+                        break;
+                    }
+                    step(&mut app, None);
+                }
+                assert!(app.screen.in_text_input(), "the sysop answered");
+                shot(&out, "chat", &mut app);
+            }
+
+            // The shell after `scan`: graded guard labels in the scrollback, the mini-map.
+            {
+                let mut r = rig_with(7, truecolor);
+                r.skip_login();
+                r.type_line("scan");
+                r.press(press_char(' '));
+                assert!(r.in_shell());
+                shot(&out, "shell", &mut r.app);
+            }
+
+            // The portal's WORDLOCK, before login.
+            {
+                let mut r = rig_with(3, truecolor);
+                r.press(press_char(' '));
+                shot(&out, "wordlock", &mut r.app);
+            }
+
+            // BREACH with one code picked, so the clock runs.
+            {
+                let mut r = rig_at_guard(IceKindAt::Breach, |_| {});
+                r.press(press(KeyCode::Enter));
+                shot(&out, "breach", &mut r.app);
+            }
+
+            // The DAEMON console on unix after its first step; the `ps` card (the process
+            // table) when any depth deals it, else the first console found.
+            {
+                let mut found: Option<Rig> = None;
+                for depth in DEPTHS {
+                    let mut r = rig_with(depth, truecolor);
+                    r.skip_login();
+                    r.run().session.os = HostOs::Unix;
+                    if !connect_to_guard(&mut r, IceKindAt::Daemon) {
+                        continue;
+                    }
+                    let ps = r
+                        .run()
+                        .daemon_solution()
+                        .is_some_and(|s| s[0].starts_with("ps"));
+                    if ps || found.is_none() {
+                        found = Some(r);
+                    }
+                    if ps {
+                        break;
+                    }
+                }
+                let mut r = found.expect("a DAEMON gate at some depth");
+                let first = r.run().daemon_solution().expect("daemon view")[0].clone();
+                r.type_line(&first);
+                shot(&out, "daemon", &mut r.app);
+            }
+
+            // A DUEL against EYE mid-GAZE: the beam is drawn only while the animation runs.
+            {
+                let mut r = rig_at_guard(IceKindAt::Black, |r| {
+                    for node in &mut r.run().session.nodes {
+                        if node.ice == Some(IceKindAt::Black) {
+                            node.class = Some(BlackClass::Eye);
+                        }
+                    }
+                });
+                let Mode::Ice { view, .. } = &mut r.run().mode else {
+                    panic!("the duel is running")
+                };
+                view.set_calm(false);
+                view.duel_mut().expect("duel").set_intent(Intent::Gaze);
+                r.press(press_char('a'));
+                wait(&mut r.app, 0.4);
+                shot(&out, "duel", &mut r.app);
+            }
+
+            // The fall between levels: the vision, the captions, the hexagram.
+            {
+                let dir = tempfile::tempdir().unwrap();
+                let mut ctx = test_ctx(dir.path());
+                install_test_run(&mut ctx, 3);
+                truecolor(&mut ctx);
+                let pack = ctx.pack.clone();
+                let run = ctx.run.as_mut().unwrap();
+                assert!(run.apply_choice(&pack, 0));
+                assert!(run.apply_exit(1));
+                let screen = Screen::Descent(DescentScreen::new(&mut ctx));
+                let mut app = App::with_screen(ctx, screen);
+                wait(&mut app, 2.3);
+                assert_eq!(app.screen.name(), "Descent");
+                shot(&out, "descent", &mut app);
+            }
+
+            {
+                let (_dir, mut app) = screen_app(0, |c| Screen::Psyche(PsycheScreen::new(c)));
+                step(&mut app, None);
+                shot(&out, "psyche", &mut app);
+            }
+        }
+    }
 }
