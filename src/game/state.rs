@@ -92,6 +92,30 @@ pub struct PlayerPost {
     pub body: String,
 }
 
+/// What the player took from fservs: cracked bots (`"{depth}:{bot}"`) and pulled files.
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+pub struct IrcProgress {
+    pub cracked: BTreeSet<String>,
+    pub files: Vec<IrcFile>,
+}
+
+impl IrcProgress {
+    /// True when `file` from fserv `bot` at `depth` was already pulled.
+    pub fn has_file(&self, depth: u32, bot: &str, file: &str) -> bool {
+        self.files
+            .iter()
+            .any(|f| f.depth == depth && f.bot == bot && f.file.name == file)
+    }
+}
+
+/// A file pulled from an fserv, kept for `/files` and `/read`.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct IrcFile {
+    pub depth: u32,
+    pub bot: String,
+    pub file: FileDef,
+}
+
 /// Where a generated part came from.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum GenSource {
@@ -297,6 +321,9 @@ pub struct RunState {
     pub player_posts: Vec<PlayerPost>,
     /// Pool entries already used, so the offline generator avoids repeats.
     pub used_pool: BTreeSet<String>,
+    /// What the player took from IRC fservs.
+    #[serde(default)]
+    pub irc: IrcProgress,
     /// Id of the ending reached, once there is one.
     pub ending: Option<String>,
     pub completed: bool,
@@ -329,6 +356,7 @@ impl RunState {
             flags: BTreeSet::new(),
             player_posts: Vec::new(),
             used_pool: BTreeSet::new(),
+            irc: IrcProgress::default(),
             ending: None,
             completed: false,
         }
@@ -531,6 +559,30 @@ mod tests {
         assert!(!r.buy(Program::IcePick));
         assert!(!r.buy(Program::Ghost));
         assert_eq!(r.stats.ratio_kb, 16);
+    }
+
+    #[test]
+    fn irc_progress_round_trips_and_old_saves_load_without_it() {
+        let mut r = run();
+        r.irc.cracked.insert("3:warezbot".into());
+        r.irc.files.push(IrcFile {
+            depth: 3,
+            bot: "warezbot".into(),
+            file: FileDef {
+                name: "PHRK_48.TXT".into(),
+                description: "zine".into(),
+                body: "text".into(),
+            },
+        });
+        assert!(r.irc.has_file(3, "warezbot", "PHRK_48.TXT"));
+        assert!(!r.irc.has_file(4, "warezbot", "PHRK_48.TXT"));
+        let mut value = serde_json::to_value(&r).unwrap();
+        let back: RunState = serde_json::from_value(value.clone()).unwrap();
+        assert_eq!(back.irc, r.irc);
+        // A save written before IRC existed has no `irc` key.
+        value.as_object_mut().unwrap().remove("irc");
+        let old: RunState = serde_json::from_value(value).unwrap();
+        assert_eq!(old.irc, IrcProgress::default());
     }
 
     #[test]

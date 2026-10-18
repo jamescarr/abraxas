@@ -1,0 +1,83 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="450" viewBox="0 0 720 450" font-family="Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="15" shape-rendering="crispEdges" style="white-space:pre">
+<rect x="0" y="0" width="720" height="450" fill="#000000"/>
+<rect x="0" y="0" width="558" height="18" fill="#0000aa"/>
+<text x="0" y="14" fill="#ffffff" textLength="558" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> irc.drywell.edu │ #phreak │ Tester                     TRACE </text>
+<rect x="558" y="0" width="108" height="18" fill="#0000aa"/>
+<rect x="558" y="0" width="108" height="18" fill="#ff5555"/>
+<rect x="666" y="0" width="45" height="18" fill="#0000aa"/>
+<text x="666" y="14" fill="#ff5555" textLength="45" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> 100%</text>
+<rect x="711" y="0" width="9" height="18" fill="#0000aa"/>
+<text x="0" y="32" fill="#555555" textLength="396" lengthAdjust="spacingAndGlyphs" xml:space="preserve">*** locked. /hack serv_0 or /teardrop serv_0</text>
+<text x="486" y="32" fill="#555555" textLength="9" lengthAdjust="spacingAndGlyphs" xml:space="preserve">│</text>
+<text x="495" y="32" fill="#aa0000" textLength="72" lengthAdjust="spacingAndGlyphs" xml:space="preserve">─ USERS </text>
+<text x="567" y="32" fill="#555555" textLength="153" lengthAdjust="spacingAndGlyphs" xml:space="preserve">─────────────────</text>
+<text x="0" y="50" fill="#555555" textLength="189" lengthAdjust="spacingAndGlyphs" xml:space="preserve">*** probing serv_0...</text>
+<text x="486" y="50" fill="#555555" textLength="9" lengthAdjust="spacingAndGlyphs" xml:space="preserve">│</text>
+<text x="504" y="50" fill="#ffff55" textLength="63" lengthAdjust="spacingAndGlyphs" xml:space="preserve">@serv_0</text>
+<text x="0" y="68" fill="#555555" textLength="216" lengthAdjust="spacingAndGlyphs" xml:space="preserve">*** you back off serv_0.</text>
+<text x="486" y="68" fill="#555555" textLength="9" lengthAdjust="spacingAndGlyphs" xml:space="preserve">│</text>
+<text x="495" y="68" fill="#aaaaaa" textLength="225" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> lamer-x                 </text>
+<text x="0" y="86" fill="#555555" textLength="189" lengthAdjust="spacingAndGlyphs" xml:space="preserve">*** probing serv_0...</text>
+<text x="486" y="86" fill="#555555" textLength="9" lengthAdjust="spacingAndGlyphs" xml:space="preserve">│</text>
+<text x="495" y="86" fill="#aaaaaa" textLength="225" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> hexdump                 </text>
+<text x="0" y="104" fill="#555555" textLength="216" lengthAdjust="spacingAndGlyphs" xml:space="preserve">*** you back off serv_0.</text>
+<text x="486" y="104" fill="#555555" textLength="9" lengthAdjust="spacingAndGlyphs" xml:space="preserve">│</text>
+<text x="495" y="104" fill="#aaaaaa" textLength="225" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> cablecar                </text>
+<text x="0" y="122" fill="#555555" textLength="189" lengthAdjust="spacingAndGlyphs" xml:space="preserve">*** probing serv_0...</text>
+<text x="486" y="122" fill="#555555" textLength="9" lengthAdjust="spacingAndGlyphs" xml:space="preserve">│</text>
+<text x="495" y="122" fill="#aaaaaa" textLength="225" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> ironlung                </text>
+<text x="0" y="140" fill="#555555" textLength="216" lengthAdjust="spacingAndGlyphs" xml:space="preserve">*** you back off serv_0.</text>
+<text x="486" y="140" fill="#555555" textLength="9" lengthAdjust="spacingAndGlyphs" xml:space="preserve">│</text>
+<text x="495" y="140" fill="#aaaaaa" textLength="225" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> halfduplex              </text>
+<rect x="0" y="144" width="486" height="18" fill="#aa0000"/>
+<text x="486" y="158" fill="#555555" textLength="9" lengthAdjust="spacingAndGlyphs" xml:space="preserve">│</text>
+<text x="495" y="158" fill="#aaaaaa" textLength="225" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> glasswing               </text>
+<rect x="0" y="162" width="486" height="18" fill="#aa0000"/>
+<text x="0" y="176" fill="#ffffff" textLength="486" lengthAdjust="spacingAndGlyphs" xml:space="preserve">                   *** K-LINED ***                    </text>
+<text x="486" y="176" fill="#555555" textLength="9" lengthAdjust="spacingAndGlyphs" xml:space="preserve">│</text>
+<rect x="0" y="180" width="486" height="18" fill="#aa0000"/>
+<text x="486" y="194" fill="#555555" textLength="9" lengthAdjust="spacingAndGlyphs" xml:space="preserve">│</text>
+<text x="495" y="194" fill="#aa0000" textLength="81" lengthAdjust="spacingAndGlyphs" xml:space="preserve">─ FSERVS </text>
+<text x="576" y="194" fill="#555555" textLength="144" lengthAdjust="spacingAndGlyphs" xml:space="preserve">────────────────</text>
+<rect x="0" y="198" width="486" height="18" fill="#aa0000"/>
+<text x="0" y="212" fill="#ffffff" textLength="486" lengthAdjust="spacingAndGlyphs" xml:space="preserve">      The trace found you. The server drops you.      </text>
+<text x="486" y="212" fill="#555555" textLength="9" lengthAdjust="spacingAndGlyphs" xml:space="preserve">│</text>
+<text x="495" y="212" fill="#aaaaaa" textLength="225" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> serv_0 locked           </text>
+<rect x="0" y="216" width="486" height="18" fill="#aa0000"/>
+<text x="0" y="230" fill="#ffffff" textLength="486" lengthAdjust="spacingAndGlyphs" xml:space="preserve">                       EGO -20                        </text>
+<text x="486" y="230" fill="#555555" textLength="9" lengthAdjust="spacingAndGlyphs" xml:space="preserve">│</text>
+<rect x="0" y="234" width="486" height="18" fill="#aa0000"/>
+<text x="486" y="248" fill="#555555" textLength="9" lengthAdjust="spacingAndGlyphs" xml:space="preserve">│</text>
+<text x="495" y="248" fill="#aa0000" textLength="90" lengthAdjust="spacingAndGlyphs" xml:space="preserve">─ FILES 0 </text>
+<text x="585" y="248" fill="#555555" textLength="135" lengthAdjust="spacingAndGlyphs" xml:space="preserve">───────────────</text>
+<rect x="0" y="252" width="486" height="18" fill="#aa0000"/>
+<text x="0" y="266" fill="#ffffff" textLength="486" lengthAdjust="spacingAndGlyphs" xml:space="preserve">                     press a key                      </text>
+<text x="486" y="266" fill="#555555" textLength="9" lengthAdjust="spacingAndGlyphs" xml:space="preserve">│</text>
+<text x="504" y="266" fill="#555555" textLength="54" lengthAdjust="spacingAndGlyphs" xml:space="preserve">/files</text>
+<text x="0" y="284" fill="#555555" textLength="216" lengthAdjust="spacingAndGlyphs" xml:space="preserve">*** you back off serv_0.</text>
+<text x="486" y="284" fill="#555555" textLength="9" lengthAdjust="spacingAndGlyphs" xml:space="preserve">│</text>
+<text x="0" y="302" fill="#555555" textLength="189" lengthAdjust="spacingAndGlyphs" xml:space="preserve">*** probing serv_0...</text>
+<text x="486" y="302" fill="#555555" textLength="9" lengthAdjust="spacingAndGlyphs" xml:space="preserve">│</text>
+<text x="0" y="320" fill="#555555" textLength="216" lengthAdjust="spacingAndGlyphs" xml:space="preserve">*** you back off serv_0.</text>
+<text x="486" y="320" fill="#555555" textLength="9" lengthAdjust="spacingAndGlyphs" xml:space="preserve">│</text>
+<text x="0" y="338" fill="#555555" textLength="189" lengthAdjust="spacingAndGlyphs" xml:space="preserve">*** probing serv_0...</text>
+<text x="486" y="338" fill="#555555" textLength="9" lengthAdjust="spacingAndGlyphs" xml:space="preserve">│</text>
+<text x="0" y="356" fill="#555555" textLength="216" lengthAdjust="spacingAndGlyphs" xml:space="preserve">*** you back off serv_0.</text>
+<text x="486" y="356" fill="#555555" textLength="9" lengthAdjust="spacingAndGlyphs" xml:space="preserve">│</text>
+<text x="0" y="374" fill="#555555" textLength="189" lengthAdjust="spacingAndGlyphs" xml:space="preserve">*** probing serv_0...</text>
+<text x="486" y="374" fill="#555555" textLength="9" lengthAdjust="spacingAndGlyphs" xml:space="preserve">│</text>
+<text x="0" y="392" fill="#555555" textLength="216" lengthAdjust="spacingAndGlyphs" xml:space="preserve">*** you back off serv_0.</text>
+<text x="486" y="392" fill="#555555" textLength="9" lengthAdjust="spacingAndGlyphs" xml:space="preserve">│</text>
+<text x="0" y="410" fill="#ff5555" textLength="297" lengthAdjust="spacingAndGlyphs" xml:space="preserve">*** K-LINED: the trace found you.</text>
+<text x="486" y="410" fill="#555555" textLength="9" lengthAdjust="spacingAndGlyphs" xml:space="preserve">│</text>
+<text x="0" y="428" fill="#ffffff" textLength="90" lengthAdjust="spacingAndGlyphs" xml:space="preserve">[#phreak] </text>
+<rect x="90" y="414" width="9" height="18" fill="#ffffff"/>
+<rect x="0" y="432" width="639" height="18" fill="#00aaaa"/>
+<text x="0" y="446" fill="#000000" textLength="639" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> SOL NIGER │ L03 THE BLACK SUN │ EGO 080 │ 0096K │ 23:12:05 12/31/99 │ </text>
+<text x="639" y="446" fill="#555555" textLength="18" lengthAdjust="spacingAndGlyphs" xml:space="preserve">SD</text>
+<rect x="657" y="432" width="9" height="18" fill="#00aaaa"/>
+<text x="666" y="446" fill="#555555" textLength="18" lengthAdjust="spacingAndGlyphs" xml:space="preserve">RD</text>
+<rect x="684" y="432" width="9" height="18" fill="#00aaaa"/>
+<text x="693" y="446" fill="#555555" textLength="18" lengthAdjust="spacingAndGlyphs" xml:space="preserve">CD</text>
+<rect x="711" y="432" width="9" height="18" fill="#00aaaa"/>
+</svg>

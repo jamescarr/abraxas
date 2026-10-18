@@ -30,6 +30,16 @@ pub fn valid_handle(s: &str) -> bool {
             .all(|b| b.is_ascii_alphanumeric() || b == b'_' || b == b'-')
 }
 
+/// An IRC channel name: `#` plus 2-20 characters of `[a-z0-9_-]`.
+pub fn valid_channel(s: &str) -> bool {
+    s.strip_prefix('#').is_some_and(|name| {
+        (2..=20).contains(&name.len())
+            && name
+                .bytes()
+                .all(|b| b.is_ascii_lowercase() || b.is_ascii_digit() || b == b'_' || b == b'-')
+    })
+}
+
 /// A DOS 8.3 name: `^[A-Z0-9_-]{1,8}\.[A-Z0-9]{1,3}$`.
 pub fn is_83_name(s: &str) -> bool {
     let Some((base, ext)) = s.split_once('.') else {
@@ -581,6 +591,21 @@ mod tests {
         assert!(!is_83_name("AB.TEXT"));
         assert!(!is_83_name(".TXT"));
         assert!(!is_83_name("A.B.C"));
+    }
+
+    #[test]
+    fn channel_names() {
+        assert!(valid_channel("#warez"));
+        assert!(valid_channel("#ab"));
+        assert!(valid_channel("#a_b-9"));
+        assert!(valid_channel(&format!("#{}", "x".repeat(20))));
+        assert!(!valid_channel("warez"));
+        assert!(!valid_channel("#a"));
+        assert!(!valid_channel("#"));
+        assert!(!valid_channel(&format!("#{}", "x".repeat(21))));
+        assert!(!valid_channel("#Warez"));
+        assert!(!valid_channel("#two words"));
+        assert!(!valid_channel("##warez"));
     }
 
     #[test]

@@ -23,6 +23,8 @@ pub enum Program {
     Mandala,
     #[serde(rename = "METRONOM.EXE")]
     Metronom,
+    #[serde(rename = "TEARDROP.SH")]
+    Teardrop,
 }
 
 /// How a program is consumed.
@@ -35,7 +37,7 @@ pub enum ProgramKind {
 }
 
 impl Program {
-    pub const ALL: [Program; 8] = [
+    pub const ALL: [Program; 9] = [
         Program::Decrypt,
         Program::Sniffer,
         Program::Buffer,
@@ -44,6 +46,7 @@ impl Program {
         Program::Mirror,
         Program::Mandala,
         Program::Metronom,
+        Program::Teardrop,
     ];
 
     /// The DOS file name shown in the file library.
@@ -57,6 +60,7 @@ impl Program {
             Program::Mirror => "MIRROR.EXE",
             Program::Mandala => "MANDALA.SYS",
             Program::Metronom => "METRONOM.EXE",
+            Program::Teardrop => "TEARDROP.SH",
         }
     }
 
@@ -70,7 +74,7 @@ impl Program {
     pub fn cost_kb(self) -> u32 {
         match self {
             Program::Decrypt | Program::Mandala => 48,
-            Program::Sniffer | Program::Buffer | Program::Metronom => 64,
+            Program::Sniffer | Program::Buffer | Program::Metronom | Program::Teardrop => 64,
             Program::IcePick => 80,
             Program::Ghost | Program::Mirror => 96,
         }
@@ -79,13 +83,20 @@ impl Program {
     pub fn kind(self) -> ProgramKind {
         match self {
             Program::Decrypt | Program::Sniffer => ProgramKind::Charges(2),
-            Program::Ghost | Program::Mirror | Program::Mandala => ProgramKind::Charges(1),
+            Program::Ghost | Program::Mirror | Program::Mandala | Program::Teardrop => {
+                ProgramKind::Charges(1)
+            }
             Program::Buffer | Program::IcePick | Program::Metronom => ProgramKind::Persistent,
         }
     }
 
     pub fn is_persistent(self) -> bool {
         self.kind() == ProgramKind::Persistent
+    }
+
+    /// Whether the BBS file library may offer it (TEARDROP.SH is IRC-only).
+    pub fn sold_on_bbs(self) -> bool {
+        self != Program::Teardrop
     }
 
     /// One-line description shown in the file library and by `deck`.
@@ -99,6 +110,7 @@ impl Program {
             Program::Mirror => "DUEL: reflect the next ICE hit",
             Program::Mandala => "restore 30 EGO (Self screen U, or run mandala)",
             Program::Metronom => "PHREAK: R replays the sequence once per round",
+            Program::Teardrop => "IRC: /teardrop crashes one locked fserv (+15 trace)",
         }
     }
 }
@@ -183,6 +195,10 @@ mod tests {
         assert_eq!(Program::from_file_name("ghost.com"), Some(Program::Ghost));
         for p in Program::ALL {
             assert_eq!(Program::from_file_name(p.file_name()), Some(p));
+            assert_eq!(
+                serde_json::to_string(&p).unwrap(),
+                format!("\"{}\"", p.file_name())
+            );
         }
     }
 }

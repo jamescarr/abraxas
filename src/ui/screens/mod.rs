@@ -38,6 +38,7 @@ pub mod exits;
 pub mod files;
 pub mod help;
 pub mod ice_view;
+pub mod irc;
 pub mod level_card;
 pub mod login;
 pub mod menu;
@@ -58,6 +59,7 @@ pub use dialing::DialingScreen;
 pub use ending::EndingScreen;
 pub use exits::ExitsScreen;
 pub use files::FilesScreen;
+pub use irc::IrcScreen;
 pub use level_card::LevelCardScreen;
 pub use login::LoginScreen;
 pub use menu::MenuScreen;
@@ -165,6 +167,7 @@ screens! {
     Board(BoardScreen),
     Files(FilesScreen),
     Chat(ChatScreen),
+    Irc(IrcScreen),
     Users(UsersScreen),
     Archive(ArchiveScreen),
     Psyche(PsycheScreen),

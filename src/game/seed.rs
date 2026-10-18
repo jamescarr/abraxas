@@ -112,8 +112,9 @@ fn level_seed_for(
 }
 
 /// The two programs a level's file library offers: the anchor's locked list when it has one,
-/// otherwise two distinct programs picked by `substream(.., "programs")`. Owned persistent
-/// programs are filtered out at display time, not here.
+/// otherwise two distinct programs the BBS sells (`Program::sold_on_bbs`) picked by
+/// `substream(.., "programs")`. Owned persistent programs are filtered out at display time, not
+/// here.
 pub fn programs_for_sale(run: &RunState, pack: &StoryPack, depth: u32) -> Vec<Program> {
     programs_for_sale_for(run.seed, pack, depth)
 }
@@ -124,7 +125,10 @@ fn programs_for_sale_for(run_seed: u64, pack: &StoryPack, depth: u32) -> Vec<Pro
     {
         return entry.anchor.programs.clone();
     }
-    let mut all = Program::ALL.to_vec();
+    let mut all: Vec<Program> = Program::ALL
+        .into_iter()
+        .filter(|p| p.sold_on_bbs())
+        .collect();
     all.shuffle(&mut substream(run_seed, depth, "programs", 0));
     all.truncate(2);
     all
@@ -256,6 +260,21 @@ mod tests {
             if pack.anchor_at(depth).is_none() {
                 assert_eq!(p.len(), 2);
                 assert_ne!(p[0], p[1]);
+            }
+        }
+    }
+
+    #[test]
+    fn the_bbs_never_offers_irc_only_programs() {
+        let pack = pack::embedded().unwrap();
+        for depth in 0..40 {
+            let offered = programs_for_sale_for(42, &pack, depth);
+            assert!(
+                offered.iter().all(|p| p.sold_on_bbs()),
+                "depth {depth}: {offered:?}"
+            );
+            if pack.anchor_at(depth).is_none() {
+                assert_eq!(offered.len(), 2, "depth {depth}");
             }
         }
     }

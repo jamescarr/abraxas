@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="450" viewBox="0 0 720 450" font-family="Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="15" shape-rendering="crispEdges" style="white-space:pre">
+<rect x="0" y="0" width="720" height="450" fill="#000000"/>
+<rect x="0" y="0" width="558" height="18" fill="#0000aa"/>
+<text x="0" y="14" fill="#ffffff" textLength="558" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> irc.drywell.edu │ #phreak │ Tester                     TRACE </text>
+<rect x="558" y="0" width="9" height="18" fill="#0000aa"/>
+<rect x="558" y="0" width="9" height="18" fill="#55ff55"/>
+<rect x="567" y="0" width="99" height="18" fill="#0000aa"/>
+<rect x="567" y="0" width="99" height="18" fill="#00aaaa" fill-opacity="0.25"/>
+<rect x="666" y="0" width="27" height="18" fill="#0000aa"/>
+<text x="666" y="14" fill="#55ff55" textLength="27" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> 5%</text>
+<rect x="693" y="0" width="27" height="18" fill="#0000aa"/>
+<text x="0" y="32" fill="#555555" textLength="36" lengthAdjust="spacingAndGlyphs" xml:space="preserve">──[ </text>
+<text x="36" y="32" fill="#55ffff" textLength="162" lengthAdjust="spacingAndGlyphs" xml:space="preserve">PHREAK  RELAY LINE</text>
+<text x="198" y="32" fill="#555555" textLength="522" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> ]────────────────────────────────────────────────────────</text>
+<rect x="54" y="72" width="45" height="18" fill="#ffff55"/>
+<text x="54" y="86" fill="#000000" textLength="45" lengthAdjust="spacingAndGlyphs" xml:space="preserve">┌───┐</text>
+<text x="99" y="86" fill="#aaaaaa" textLength="189" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> ┌───┐ ┌───┐         </text>
+<text x="288" y="86" fill="#ffffff" textLength="81" lengthAdjust="spacingAndGlyphs" xml:space="preserve">ROUND 1/4</text>
+<rect x="54" y="90" width="45" height="18" fill="#ffff55"/>
+<text x="54" y="104" fill="#000000" textLength="45" lengthAdjust="spacingAndGlyphs" xml:space="preserve">│ 1 │</text>
+<text x="99" y="104" fill="#aaaaaa" textLength="27" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> │ </text>
+<text x="126" y="104" fill="#ffffff" textLength="9" lengthAdjust="spacingAndGlyphs" xml:space="preserve">2</text>
+<text x="135" y="104" fill="#aaaaaa" textLength="45" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> │ │ </text>
+<text x="180" y="104" fill="#ffffff" textLength="9" lengthAdjust="spacingAndGlyphs" xml:space="preserve">3</text>
+<text x="189" y="104" fill="#aaaaaa" textLength="531" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> │         3 tones                                         </text>
+<rect x="54" y="108" width="45" height="18" fill="#ffff55"/>
+<text x="54" y="122" fill="#000000" textLength="45" lengthAdjust="spacingAndGlyphs" xml:space="preserve">└───┘</text>
+<text x="99" y="122" fill="#aaaaaa" textLength="621" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> └───┘ └───┘                                                         </text>
+<text x="0" y="140" fill="#aaaaaa" textLength="288" lengthAdjust="spacingAndGlyphs" xml:space="preserve">      ┌───┐ ┌───┐ ┌───┐         </text>
+<text x="288" y="140" fill="#ffff55" textLength="126" lengthAdjust="spacingAndGlyphs" xml:space="preserve">WATCH THE LINE</text>
+<text x="0" y="158" fill="#aaaaaa" textLength="72" lengthAdjust="spacingAndGlyphs" xml:space="preserve">      │ </text>
+<text x="72" y="158" fill="#ffffff" textLength="9" lengthAdjust="spacingAndGlyphs" xml:space="preserve">4</text>
+<text x="81" y="158" fill="#aaaaaa" textLength="45" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> │ │ </text>
+<text x="126" y="158" fill="#ffffff" textLength="9" lengthAdjust="spacingAndGlyphs" xml:space="preserve">5</text>
+<text x="135" y="158" fill="#aaaaaa" textLength="45" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> │ │ </text>
+<text x="180" y="158" fill="#ffffff" textLength="9" lengthAdjust="spacingAndGlyphs" xml:space="preserve">6</text>
+<text x="189" y="158" fill="#aaaaaa" textLength="531" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> │                                                         </text>
+<text x="0" y="176" fill="#aaaaaa" textLength="288" lengthAdjust="spacingAndGlyphs" xml:space="preserve">      └───┘ └───┘ └───┘         </text>
+<text x="288" y="176" fill="#55ffff" textLength="144" lengthAdjust="spacingAndGlyphs" xml:space="preserve">697 Hz + 1209 Hz</text>
+<text x="0" y="194" fill="#aaaaaa" textLength="720" lengthAdjust="spacingAndGlyphs" xml:space="preserve">      ┌───┐ ┌───┐ ┌───┐                                                         </text>
+<text x="0" y="212" fill="#aaaaaa" textLength="72" lengthAdjust="spacingAndGlyphs" xml:space="preserve">      │ </text>
+<text x="72" y="212" fill="#ffffff" textLength="9" lengthAdjust="spacingAndGlyphs" xml:space="preserve">7</text>
+<text x="81" y="212" fill="#aaaaaa" textLength="45" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> │ │ </text>
+<text x="126" y="212" fill="#ffffff" textLength="9" lengthAdjust="spacingAndGlyphs" xml:space="preserve">8</text>
+<text x="135" y="212" fill="#aaaaaa" textLength="45" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> │ │ </text>
+<text x="180" y="212" fill="#ffffff" textLength="9" lengthAdjust="spacingAndGlyphs" xml:space="preserve">9</text>
+<text x="189" y="212" fill="#aaaaaa" textLength="99" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> │         </text>
+<text x="288" y="212" fill="#ffffff" textLength="54" lengthAdjust="spacingAndGlyphs" xml:space="preserve">○ ○ ○ </text>
+<text x="0" y="230" fill="#aaaaaa" textLength="720" lengthAdjust="spacingAndGlyphs" xml:space="preserve">      └───┘ └───┘ └───┘         YOU:                                            </text>
+<text x="0" y="248" fill="#aaaaaa" textLength="720" lengthAdjust="spacingAndGlyphs" xml:space="preserve">      ┌───┐ ┌───┐ ┌───┐                                                         </text>
+<text x="0" y="266" fill="#aaaaaa" textLength="72" lengthAdjust="spacingAndGlyphs" xml:space="preserve">      │ </text>
+<text x="72" y="266" fill="#ffffff" textLength="9" lengthAdjust="spacingAndGlyphs" xml:space="preserve">*</text>
+<text x="81" y="266" fill="#aaaaaa" textLength="45" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> │ │ </text>
+<text x="126" y="266" fill="#ffffff" textLength="9" lengthAdjust="spacingAndGlyphs" xml:space="preserve">0</text>
+<text x="135" y="266" fill="#aaaaaa" textLength="45" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> │ │ </text>
+<text x="180" y="266" fill="#ffffff" textLength="9" lengthAdjust="spacingAndGlyphs" xml:space="preserve">#</text>
+<text x="189" y="266" fill="#aaaaaa" textLength="99" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> │         </text>
+<text x="288" y="266" fill="#555555" textLength="81" lengthAdjust="spacingAndGlyphs" xml:space="preserve">ATTEMPT 1</text>
+<text x="0" y="284" fill="#aaaaaa" textLength="720" lengthAdjust="spacingAndGlyphs" xml:space="preserve">      └───┘ └───┘ └───┘                                                         </text>
+<text x="0" y="410" fill="#aaaaaa" textLength="720" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> [0-9 * #] key  [Esc] abort                                                     </text>
+<rect x="0" y="432" width="639" height="18" fill="#00aaaa"/>
+<text x="0" y="446" fill="#000000" textLength="639" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> SOL NIGER │ L03 THE BLACK SUN │ EGO 100 │ 0032K │ 23:12:12 12/31/99 │ </text>
+<text x="639" y="446" fill="#555555" textLength="18" lengthAdjust="spacingAndGlyphs" xml:space="preserve">SD</text>
+<rect x="657" y="432" width="9" height="18" fill="#00aaaa"/>
+<text x="666" y="446" fill="#555555" textLength="18" lengthAdjust="spacingAndGlyphs" xml:space="preserve">RD</text>
+<rect x="684" y="432" width="9" height="18" fill="#00aaaa"/>
+<text x="693" y="446" fill="#555555" textLength="18" lengthAdjust="spacingAndGlyphs" xml:space="preserve">CD</text>
+<rect x="711" y="432" width="9" height="18" fill="#00aaaa"/>
+</svg>

@@ -11,6 +11,7 @@ use super::model::{
 use crate::game::danger;
 use crate::text::{
     check_placeholders, contains_words, is_83_name, is_cp437, pipe_size, strip_pipe_codes,
+    valid_channel,
 };
 
 /// Placeholders allowed in every authored text.
@@ -716,7 +717,7 @@ impl Validator {
     fn pool(&mut self, pack: &StoryPack) {
         const F: &str = "pool.toml";
         let p = &pack.pool;
-        let lists: [(&str, usize); 23] = [
+        let lists: [(&str, usize); 30] = [
             ("titles", p.titles.len()),
             ("bbs_names", p.bbs_names.len()),
             ("taglines", p.taglines.len()),
@@ -740,6 +741,13 @@ impl Validator {
             ("words_8", p.words_8.len()),
             ("eliza", p.eliza.len()),
             ("eliza_fallback", p.eliza_fallback.len()),
+            ("irc_servers", p.irc_servers.len()),
+            ("irc_channels", p.irc_channels.len()),
+            ("irc_nicks", p.irc_nicks.len()),
+            ("irc_bots", p.irc_bots.len()),
+            ("irc_chatter", p.irc_chatter.len()),
+            ("irc_nfo", p.irc_nfo.len()),
+            ("irc_zines", p.irc_zines.len()),
         ];
         for (name, n) in lists {
             if n == 0 {
@@ -763,12 +771,29 @@ impl Validator {
         simple(self, "beats", &p.beats, 700, &BASE);
         simple(self, "captions", &p.captions, 48, &BASE);
         simple(self, "eliza_fallback", &p.eliza_fallback, ANY, &BASE);
-        for (i, s) in p.sysops.iter().enumerate() {
-            if !is_handle(s) {
+        simple(self, "irc_servers", &p.irc_servers, 40, &BASE);
+        simple(self, "irc_chatter", &p.irc_chatter, 70, &BASE);
+        for (name, list) in [
+            ("sysops", &p.sysops),
+            ("irc_nicks", &p.irc_nicks),
+            ("irc_bots", &p.irc_bots),
+        ] {
+            for (i, s) in list.iter().enumerate() {
+                if !is_handle(s) {
+                    self.add(
+                        F,
+                        &format!("{name}[{}]", i + 1),
+                        format!("'{s}' must match ^[A-Za-z0-9_-]{{2,16}}$"),
+                    );
+                }
+            }
+        }
+        for (i, s) in p.irc_channels.iter().enumerate() {
+            if !valid_channel(s) {
                 self.add(
                     F,
-                    &format!("sysops[{}]", i + 1),
-                    format!("'{s}' must match ^[A-Za-z0-9_-]{{2,16}}$"),
+                    &format!("irc_channels[{}]", i + 1),
+                    format!("'{s}' must be a channel name like #warez"),
                 );
             }
         }
@@ -793,6 +818,12 @@ impl Validator {
         }
         for (i, f) in p.host_file.iter().enumerate() {
             self.file_def(F, &format!("host_file[{}]", i + 1), f, &BASE);
+        }
+        for (i, f) in p.irc_nfo.iter().enumerate() {
+            self.file_def(F, &format!("irc_nfo[{}]", i + 1), f, &BASE);
+        }
+        for (i, f) in p.irc_zines.iter().enumerate() {
+            self.file_def(F, &format!("irc_zines[{}]", i + 1), f, &BASE);
         }
         for (i, c) in p.choice.iter().enumerate() {
             let f = format!("choice[{}]", i + 1);
