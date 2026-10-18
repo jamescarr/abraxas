@@ -169,10 +169,16 @@ pub fn execute(session: &mut HostSession, line: &str) -> Vec<ShellEffect> {
         "scan" => {
             if session.bump(0.5, true, &mut out) {
                 let cur = session.current_node();
-                let adj: Vec<&str> = cur
+                let adj: Vec<String> = cur
                     .neighbors
                     .iter()
-                    .map(|&i| session.nodes[i].id.as_str())
+                    .map(|&i| {
+                        let node = &session.nodes[i];
+                        match (node.guarded(), node.guard_desc()) {
+                            (true, Some(desc)) => format!("{} [{desc}]", node.id),
+                            _ => node.id.clone(),
+                        }
+                    })
                     .collect();
                 say(&mut out, &format!("adjacent: {}", adj.join(" ")));
                 out.push(ShellEffect::Scan);
@@ -228,14 +234,18 @@ pub fn execute(session: &mut HostSession, line: &str) -> Vec<ShellEffect> {
     out
 }
 
-fn unknown(os: HostOs, cmd: &str, out: &mut Vec<ShellEffect>) {
-    let text = match os {
+/// The OS-specific "command not found" line.
+pub(crate) fn unknown_text(os: HostOs, cmd: &str) -> String {
+    match os {
         HostOs::Unix => format!("{cmd}: command not found"),
         HostOs::Vax => format!("%DCL-W-IVVERB, unrecognized command verb - {cmd}"),
         HostOs::Mainframe => "?SYNTAX ERROR".to_string(),
         HostOs::Dos => "Bad command or file name".to_string(),
-    };
-    err(out, &text);
+    }
+}
+
+fn unknown(os: HostOs, cmd: &str, out: &mut Vec<ShellEffect>) {
+    err(out, &unknown_text(os, cmd));
 }
 
 fn help(out: &mut Vec<ShellEffect>) {
@@ -335,12 +345,12 @@ fn connect(session: &mut HostSession, rest: &str, out: &mut Vec<ShellEffect>) {
         return;
     }
     let node = &session.nodes[target];
-    if let (true, Some(kind)) = (node.guarded(), node.ice) {
+    if let (true, Some(kind)) = (node.guarded(), node.ice)
+        && let Some(desc) = node.guard_desc()
+    {
         out.push(ShellEffect::highlight(format!(
             "{} [{}]: {} holds the way.",
-            node.id,
-            node.display,
-            kind.label()
+            node.id, node.display, desc
         )));
         out.push(ShellEffect::StartIce { node: target, kind });
         return;
@@ -788,6 +798,7 @@ fn candidates(session: &HostSession, first_word: bool, head: &str, prefix: &str)
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::game::danger::IceGrade;
     use crate::game::host::{ObjectiveState, PlayerView, PromptColor};
     use crate::game::state::{HostInfo, Level, LevelSeed, Place, Sysop};
     use crate::ice::IceOutcome;
@@ -1061,7 +1072,11 @@ mod tests {
                 *counts.entry(n.kind).or_insert(0) += 1;
                 match n.kind {
                     NodeKind::Archive => assert_eq!(n.ice, None),
-                    NodeKind::Gate => assert_eq!(n.ice, Some(IceKindAt::Breach)),
+                    NodeKind::Gate => assert!(
+                        matches!(n.ice, Some(IceKindAt::Breach | IceKindAt::Daemon)),
+                        "{:?}",
+                        n.ice
+                    ),
                     NodeKind::Relay => {
                         assert_ne!(rd, 1);
                         assert_eq!(n.ice, Some(IceKindAt::Phreak));
@@ -1164,6 +1179,58 @@ mod tests {
             }
             assert_eq!(s.current(), i);
         }
+    }
+
+    #[test]
+    fn guards_carry_grades_and_black_ice_carries_a_class() {
+        for seed in 0..40u64 {
+            let l = level(ObjectiveKind::Retrieve, None, None, HostOs::Unix);
+            let s = gen_with(&l, 3, None, seed);
+            for n in s.nodes() {
+                match n.ice {
+                    None => {
+                        assert_eq!(n.grade, IceGrade::Standard);
+                        assert_eq!(n.class, None);
+                    }
+                    Some(IceKindAt::Shadow) => {
+                        assert_eq!(n.grade, IceGrade::Standard);
+                        assert_eq!(n.class, None);
+                    }
+                    Some(IceKindAt::Black) => {
+                        assert!(n.class.is_some(), "black ICE needs a class: {}", n.id)
+                    }
+                    Some(_) => assert_eq!(n.class, None, "{}", n.id),
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn scan_lists_guard_class_and_grade() {
+        let mut s = mk(ObjectiveKind::Retrieve, 3, None, 7);
+        let obj = s.objective_node();
+        // Stand next to the objective (its BFS parent through the portal).
+        let mut prev = vec![usize::MAX; s.nodes().len()];
+        let mut q = std::collections::VecDeque::from([0usize]);
+        prev[0] = 0;
+        while let Some(u) = q.pop_front() {
+            for &v in &s.nodes()[u].neighbors {
+                if prev[v] == usize::MAX {
+                    prev[v] = u;
+                    q.push_back(v);
+                }
+            }
+        }
+        let parent = prev[obj];
+        s.apply_ice_outcome(0, IceOutcome::Cleared);
+        s.current = parent;
+        let t = text(&execute(&mut s, "scan"));
+        assert!(t.contains(&format!("{} [BLACK/", s.nodes()[obj].id)), "{t}");
+        assert!(
+            t.contains("standard") || t.contains("soft") || t.contains("hardened"),
+            "{t}"
+        );
+        assert_eq!(s.nodes()[obj].ice, Some(IceKindAt::Black));
     }
 
     #[test]

@@ -9,11 +9,12 @@ use std::time::Duration;
 use rand::RngExt;
 use rand::seq::{IndexedRandom, SliceRandom};
 
-use crate::game::danger::params;
+use crate::game::danger::{IceGrade, params, roll_grade};
 use crate::game::programs::Deck;
 use crate::game::shell::ShellEffect;
 use crate::game::state::Level;
 use crate::ice::IceOutcome;
+use crate::ice::duel::BlackClass;
 use crate::pack::model::{ExitKind, HostOs, ObjectiveIce, ObjectiveKind};
 use crate::rng::{Rng, substream};
 
@@ -69,6 +70,7 @@ pub enum IceKindAt {
     Wordlock,
     Breach,
     Phreak,
+    Daemon,
     Black,
     Shadow,
 }
@@ -79,6 +81,7 @@ impl IceKindAt {
             IceKindAt::Wordlock => "WORDLOCK",
             IceKindAt::Breach => "BREACH",
             IceKindAt::Phreak => "PHREAK",
+            IceKindAt::Daemon => "DAEMON",
             IceKindAt::Black => "BLACK ICE",
             IceKindAt::Shadow => "SHADOW",
         }
@@ -111,6 +114,10 @@ pub struct Node {
     pub display: String,
     pub kind: NodeKind,
     pub ice: Option<IceKindAt>,
+    /// Per-instance difficulty of the guard (Standard when the node has no ICE).
+    pub grade: IceGrade,
+    /// The black ICE creature; `Some` only when `ice` is `Black`.
+    pub class: Option<BlackClass>,
     pub cleared: bool,
     pub files: Vec<HostFile>,
     pub neighbors: Vec<usize>,
@@ -120,6 +127,20 @@ impl Node {
     /// True while an ICE still guards the node.
     pub fn guarded(&self) -> bool {
         self.ice.is_some() && !self.cleared
+    }
+
+    /// `scan` / `connect` description of the guard: `None` without ICE, else
+    /// `KIND grade`, `BLACK/CLASS grade`, or just `SHADOW`.
+    pub fn guard_desc(&self) -> Option<String> {
+        self.ice.map(|ice| match ice {
+            IceKindAt::Shadow => "SHADOW".to_string(),
+            IceKindAt::Black => format!(
+                "BLACK/{} {}",
+                self.class.unwrap_or(BlackClass::Wolf).label(),
+                self.grade.label()
+            ),
+            other => format!("{} {}", other.label(), self.grade.label()),
+        })
     }
 }
 
@@ -312,6 +333,31 @@ impl HostSession {
             nodes_total += 1;
         }
 
+        // Per-instance grades and black ICE classes, drawn from their own stream so the graph,
+        // files and objective draws above are untouched. Two in five BREACH gates become a
+        // DAEMON console instead.
+        let mut grng = substream(seed, level.seed.depth, "ice-grade", attempt);
+        for (i, ice) in ices.iter_mut().enumerate() {
+            if kinds[i] == NodeKind::Gate
+                && *ice == Some(IceKindAt::Breach)
+                && grng.random_range(0..100u32) < 40
+            {
+                *ice = Some(IceKindAt::Daemon);
+            }
+        }
+        let mut grades: Vec<IceGrade> = vec![IceGrade::Standard; nodes_total];
+        let mut classes: Vec<Option<BlackClass>> = vec![None; nodes_total];
+        for i in 0..nodes_total {
+            match ices[i] {
+                Some(IceKindAt::Shadow) => {}
+                Some(_) => grades[i] = roll_grade(run_danger, &mut grng),
+                None => {}
+            }
+            if ices[i] == Some(IceKindAt::Black) {
+                classes[i] = Some(BlackClass::ALL[grng.random_range(0..3)]);
+            }
+        }
+
         // Display names.
         let names: &[String] = host.map_or(&[], |h| h.node_names.as_slice());
         let mut nodes: Vec<Node> = (0..nodes_total)
@@ -331,6 +377,8 @@ impl HostSession {
                     display,
                     kind: kinds[i],
                     ice: ices[i],
+                    grade: grades[i],
+                    class: classes[i],
                     cleared: false,
                     files: Vec::new(),
                     neighbors: adj[i].clone(),

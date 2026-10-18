@@ -20,7 +20,7 @@ pub const KEYS: &[(&str, &str)] = &[
     ("PgUp PgDn Space", "Scroll text"),
     ("Any key", "Finish a transmission"),
     ("Up Down", "Shell: history"),
-    ("Tab", "Shell: complete"),
+    ("Tab", "Complete / hint"),
     ("Ctrl+L", "Shell: clear"),
     ("1  2", "WORDLOCK programs"),
     ("Space Enter", "ROUTER: rotate"),

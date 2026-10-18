@@ -192,6 +192,11 @@ fn level_block(d: &Dreamer, depth: u32) -> anyhow::Result<String> {
         .posts
         .iter()
         .any(|p| p.subject.eq_ignore_ascii_case("re: front door"));
+    let clue_body = place
+        .posts
+        .iter()
+        .find(|p| p.subject.eq_ignore_ascii_case("re: front door"))
+        .map_or("", |p| p.body.as_str());
     let yes_no = |b: bool| if b { "yes" } else { "no" };
     out.push_str(&format!(
         "board   posts {} (shadow: {}, clue: {}) │ files {} │ host files {}\n",
@@ -201,6 +206,7 @@ fn level_block(d: &Dreamer, depth: u32) -> anyhow::Result<String> {
         place.text_files.len(),
         place.host_files.len()
     ));
+    out.push_str(&format!("clue    {clue_body}\n"));
     out.push_str(&format!(
         "passage [{}]\n",
         tag(level.passage_source.as_ref())

@@ -11,15 +11,17 @@ use ratatui::buffer::Buffer;
 use ratatui::layout::Rect;
 use ratatui::style::Style;
 
-use crate::game::danger::DangerParams;
+use crate::game::danger::{DangerParams, IceGrade};
 use crate::game::programs::Program;
 use crate::game::shell::wrap_lines;
 use crate::ice::breach::{Axis, Breach, DaemonKind};
-use crate::ice::duel::{Duel, DuelKind, IceAvatar, Intent};
+use crate::ice::daemon;
+use crate::ice::duel::{BlackClass, Duel, DuelKind, Intent, REGEN_PCT};
 use crate::ice::phreak::{self, Phreak};
 use crate::ice::router::Router;
 use crate::ice::wordlock::{self, Wordlock};
 use crate::ice::{IceGame, IceInput, IceOutcome, Loadout};
+use crate::pack::model::HostOs;
 use crate::palette::{Dos, Palette};
 use crate::rng::Rng;
 use crate::ui::canvas::put_str;
@@ -51,6 +53,7 @@ pub fn ice_input(key: Key) -> Option<IceInput> {
         Key::Enter => Some(IceInput::Enter),
         Key::Esc => Some(IceInput::Esc),
         Key::Tab => Some(IceInput::Tab),
+        Key::Backspace => Some(IceInput::Backspace),
         Key::Char(' ') => Some(IceInput::Space),
         Key::Char(c) => Some(IceInput::Char(c)),
         _ => None,
@@ -63,7 +66,26 @@ enum Game {
     Breach(Box<Breach>),
     Phreak(Box<Phreak>),
     Router(Box<Router>),
+    Daemon(Box<daemon::Daemon>),
     Duel(Box<Duel>, Vec<ArtRow>),
+}
+
+/// How long a duel attack animation runs.
+const ANIM_SECS: f32 = 0.9;
+
+/// One running duel attack animation (pure display state, advanced in `tick`).
+#[derive(Debug, Clone, Copy)]
+struct AttackAnim {
+    intent: Intent,
+    reflected: bool,
+    t: f32,
+}
+
+/// How a duel's opponent art is drawn: the palette and the pack's Shadow art (mirrored).
+#[derive(Debug, Clone, Copy)]
+pub struct DuelArt<'a> {
+    pub palette: &'a Palette,
+    pub shadow_art: Option<&'a str>,
 }
 
 /// One running mini-game and its view.
@@ -73,6 +95,10 @@ pub struct IceView {
     /// Charges already reported through `take_spent`.
     accounted: Loadout,
     ego_seen: i32,
+    /// The duel attack animation in flight, if any.
+    anim: Option<AttackAnim>,
+    /// `--calm`: no animation runs and none is drawn.
+    calm: bool,
 }
 
 impl IceView {
@@ -83,8 +109,9 @@ impl IceView {
         words: &[String],
         password: &str,
         loadout: Loadout,
+        grade: IceGrade,
     ) -> Self {
-        let game = Wordlock::generate(rng, params, words, password, 0, loadout);
+        let game = Wordlock::generate(rng, params, words, password, 0, loadout, grade);
         Self::with(Game::Wordlock(Box::new(game)), loadout)
     }
 
@@ -103,19 +130,26 @@ impl IceView {
         Self::with(Game::Router(Box::new(game)), Loadout::default())
     }
 
-    /// A duel. `shadow_art` is the pack's pipe-coded Shadow art (mirrored for the opponent).
+    /// A DAEMON console on the host's OS (`grade` picks the card length, clock and budget).
+    pub fn daemon(rng: &mut Rng, os: HostOs, grade: IceGrade) -> Self {
+        let game = daemon::Daemon::generate(rng, os, grade);
+        Self::with(Game::Daemon(Box::new(game)), Loadout::default())
+    }
+
+    /// A duel. `art.palette` colours the pack's pipe-coded Shadow art (mirrored for the
+    /// opponent); `class` names the black ICE creature (ignored for the Shadow).
     pub fn duel(
         rng: &mut Rng,
         params: &DangerParams,
         kind: DuelKind,
         loadout: Loadout,
         ego: i32,
-        palette: &Palette,
-        shadow_art: Option<&str>,
+        art: DuelArt,
+        class: BlackClass,
     ) -> Self {
-        let game = Duel::generate(rng, params, kind, loadout, ego);
-        let art = duel_art(game.avatar(), shadow_art, palette);
-        Self::with(Game::Duel(Box::new(game), art), loadout)
+        let game = Duel::generate(rng, params, kind, loadout, ego, class);
+        let rendered = duel_art(game.class(), art.shadow_art, art.palette);
+        Self::with(Game::Duel(Box::new(game), rendered), loadout)
     }
 
     fn with(game: Game, start: Loadout) -> Self {
@@ -123,7 +157,14 @@ impl IceView {
             game,
             accounted: start,
             ego_seen: 0,
+            anim: None,
+            calm: false,
         }
+    }
+
+    /// `--calm` mode: skip (and never start) attack animations.
+    pub fn set_calm(&mut self, calm: bool) {
+        self.calm = calm;
     }
 
     /// True for the ROUTER (`bounce`) puzzle, which reports through `apply_bounce_outcome`.
@@ -137,7 +178,19 @@ impl IceView {
             Game::Breach(g) => g.handle(input),
             Game::Phreak(g) => g.handle(input),
             Game::Router(g) => g.handle(input),
-            Game::Duel(g, _) => g.handle(input),
+            Game::Daemon(g) => g.handle(input),
+            Game::Duel(g, _) => {
+                g.handle(input);
+                if !self.calm
+                    && let Some(hit) = g.take_hits().pop()
+                {
+                    self.anim = Some(AttackAnim {
+                        intent: hit.intent,
+                        reflected: hit.reflected,
+                        t: 0.0,
+                    });
+                }
+            }
         }
     }
 
@@ -147,7 +200,14 @@ impl IceView {
             Game::Breach(g) => g.tick(dt),
             Game::Phreak(g) => g.tick(dt),
             Game::Router(g) => g.tick(dt),
+            Game::Daemon(g) => g.tick(dt),
             Game::Duel(g, _) => g.tick(dt),
+        }
+        if let Some(anim) = &mut self.anim {
+            anim.t += dt.as_secs_f32();
+            if anim.t >= ANIM_SECS {
+                self.anim = None;
+            }
         }
     }
 
@@ -157,6 +217,7 @@ impl IceView {
             Game::Breach(g) => g.outcome(),
             Game::Phreak(g) => g.outcome(),
             Game::Router(g) => g.outcome(),
+            Game::Daemon(g) => g.outcome(),
             Game::Duel(g, _) => g.outcome(),
         }
     }
@@ -168,6 +229,7 @@ impl IceView {
         let trace = match &mut self.game {
             Game::Wordlock(g) => g.take_trace(),
             Game::Phreak(g) => g.take_trace(),
+            Game::Daemon(g) => g.take_trace(),
             Game::Duel(g, _) => g.take_trace(),
             Game::Breach(_) | Game::Router(_) => 0.0,
         };
@@ -200,7 +262,7 @@ impl IceView {
             Game::Duel(g, _) => g.loadout(),
             Game::Breach(g) => g.loadout(),
             Game::Phreak(g) => g.loadout(),
-            Game::Router(_) => self.accounted,
+            Game::Router(_) | Game::Daemon(_) => self.accounted,
         };
         let before = self.accounted;
         self.accounted = now;
@@ -235,6 +297,24 @@ impl IceView {
         }
     }
 
+    /// The running duel, for tests that force an intent.
+    #[cfg(test)]
+    pub(crate) fn duel_mut(&mut self) -> Option<&mut Duel> {
+        match &mut self.game {
+            Game::Duel(g, _) => Some(g),
+            _ => None,
+        }
+    }
+
+    /// The DAEMON console, for tests that read its solution.
+    #[cfg(test)]
+    pub(crate) fn daemon_game(&self) -> Option<&daemon::Daemon> {
+        match &self.game {
+            Game::Daemon(g) => Some(g),
+            _ => None,
+        }
+    }
+
     /// Draw into `area` (80 columns, [`VIEW_ROWS`] rows).
     pub fn render(&self, buf: &mut Buffer, area: Rect, p: &Palette) {
         match &self.game {
@@ -242,8 +322,15 @@ impl IceView {
             Game::Breach(g) => render_breach(g, buf, area, p),
             Game::Phreak(g) => render_phreak(g, buf, area, p),
             Game::Router(g) => render_router(g, buf, area, p),
-            Game::Duel(g, art) => render_duel(g, art, buf, area, p),
+            Game::Daemon(g) => render_daemon(g, buf, area, p),
+            Game::Duel(g, art) => render_duel(g, art, self.anim.as_ref(), buf, area, p),
         }
+    }
+
+    /// True when this game wants raw typed input (the Run screen then keeps `?` as a
+    /// character instead of opening Help).
+    pub fn wants_text(&self) -> bool {
+        matches!(self.game, Game::Daemon(_))
     }
 }
 
@@ -316,7 +403,7 @@ fn render_wordlock(g: &Wordlock, buf: &mut Buffer, area: Rect, p: &Palette) {
         fg(p, Dos::White),
     );
     let mut left = String::from("ATTEMPT(S) LEFT:");
-    for i in 0..wordlock::ATTEMPTS {
+    for i in 0..g.max_attempts {
         left.push(' ');
         left.push(if i < g.attempts { '■' } else { ' ' });
     }
@@ -774,6 +861,93 @@ fn render_router(g: &Router, buf: &mut Buffer, area: Rect, p: &Palette) {
 // DUEL
 // ---------------------------------------------------------------------------------------------
 
+// ---------------------------------------------------------------------------------------------
+// Duel attack animations
+// ---------------------------------------------------------------------------------------------
+
+/// Animation progress 0..=1.
+fn anim_progress(a: &AttackAnim) -> f32 {
+    (a.t / ANIM_SECS).clamp(0.0, 1.0)
+}
+
+/// Horizontal art offset for a lunge or a bite-strike shake.
+fn anim_offset(a: &AttackAnim) -> u16 {
+    let p = anim_progress(a);
+    let phase = std::f32::consts::PI * p;
+    match a.intent {
+        Intent::Lunge => (8.0 * phase.sin()).round() as u16,
+        Intent::Strike | Intent::Probe => (4.0 * phase.sin()).round() as u16,
+        _ => 0,
+    }
+}
+
+/// Overlay cells for the current animation, in view-area coordinates (x, y, char, color).
+/// `art_w`/`art_rows` are the art box dimensions; the status panel starts at x = 44.
+fn anim_cells(a: &AttackAnim, art_w: u16, art_rows: u16) -> Vec<(u16, u16, char, Dos)> {
+    let p = anim_progress(a);
+    let art_x = 2 + art_w;
+    let span = (42u16).saturating_sub(art_w).max(1);
+    match a.intent {
+        Intent::Gaze => {
+            let end = art_x + ((f32::from(span)) * p).round() as u16;
+            if end <= art_x {
+                return Vec::new();
+            }
+            let (ch, color, head) = if a.reflected {
+                ('\u{2550}', Dos::LightCyan, '\u{25C4}')
+            } else {
+                ('\u{2550}', Dos::LightMagenta, '\u{25BA}')
+            };
+            let mut cells: Vec<(u16, u16, char, Dos)> = (art_x + 1..end)
+                .map(|x| (x, 2 + art_rows / 2, ch, color))
+                .collect();
+            cells.push((end, 2 + art_rows / 2, head, color));
+            cells
+        }
+        Intent::Bite => {
+            let mut cells = Vec::new();
+            for j in 0..3u16 {
+                let pj = ((p - 0.15 * f32::from(j)) / 0.55).clamp(0.0, 1.0);
+                if pj <= 0.0 {
+                    continue;
+                }
+                let row = 2 + art_rows * (2 * j + 1) / 6;
+                let end = art_x + (f32::from(span) * pj).round() as u16;
+                cells.extend((art_x + 1..end).map(|x| (x, row, '~', Dos::LightGreen)));
+                cells.push((end, row, '\u{00BB}', Dos::Yellow));
+            }
+            cells
+        }
+        Intent::Crush => {
+            let x = 2 + (44.0 * p).round() as u16;
+            (2..2 + art_rows)
+                .map(|y| (x.min(43), y, '\u{2588}', Dos::LightRed))
+                .collect()
+        }
+        _ => Vec::new(),
+    }
+}
+
+/// Green tint over the art while a head regrows.
+fn anim_tint(a: &AttackAnim) -> Option<Dos> {
+    (a.intent == Intent::Regrow && anim_progress(a) < 0.5).then_some(Dos::LightGreen)
+}
+
+/// True while the EGO row should flash (the back half of a damaging hit).
+fn anim_ego_flash(a: &AttackAnim) -> bool {
+    let damaging = matches!(
+        a.intent,
+        Intent::Probe
+            | Intent::Strike
+            | Intent::Crush
+            | Intent::Lunge
+            | Intent::Gaze
+            | Intent::Bite
+            | Intent::Mirror
+    );
+    damaging && !a.reflected && (0.55..=0.95).contains(&anim_progress(a))
+}
+
 fn mirror_char(c: char) -> char {
     match c {
         '/' => '\\',
@@ -808,13 +982,13 @@ fn mirror_char(c: char) -> char {
 
 /// The opponent's artwork as styled cells: black ICE art in red, the Shadow's art mirrored
 /// horizontally (every row padded to the widest first so it mirrors as a block).
-fn duel_art(avatar: Option<IceAvatar>, shadow_art: Option<&str>, p: &Palette) -> Vec<ArtRow> {
+fn duel_art(avatar: Option<BlackClass>, shadow_art: Option<&str>, p: &Palette) -> Vec<ArtRow> {
     match avatar {
         Some(a) => {
             let text = match a {
-                IceAvatar::Wolf => ART_WOLF,
-                IceAvatar::Eye => ART_EYE,
-                IceAvatar::Hydra => ART_HYDRA,
+                BlackClass::Wolf => ART_WOLF,
+                BlackClass::Eye => ART_EYE,
+                BlackClass::Hydra => ART_HYDRA,
             };
             let style = fg(p, Dos::LightRed);
             text.lines()
@@ -846,30 +1020,129 @@ fn duel_art(avatar: Option<IceAvatar>, shadow_art: Option<&str>, p: &Palette) ->
     }
 }
 
+/// The DAEMON console: title, briefing, status row, a scrolling log and the prompt line.
+fn render_daemon(g: &daemon::Daemon, buf: &mut Buffer, area: Rect, p: &Palette) {
+    title_rule(buf, area, &format!("DAEMON  {} CONSOLE", g.os_name()), p);
+    for (i, line) in wrap_lines(&g.brief, 76).into_iter().take(2).enumerate() {
+        put_str(
+            buf,
+            area.x + 2,
+            area.y + 1 + u(i),
+            &line,
+            76,
+            fg(p, Dos::LightCyan),
+        );
+    }
+    let secs = g.time_left().as_secs();
+    let time_color = if secs < 15 {
+        Dos::LightRed
+    } else {
+        Dos::Yellow
+    };
+    put_str(
+        buf,
+        area.x + 2,
+        area.y + 3,
+        &format!(
+            "STEP {}/{}   WRONG {}/{}   HINTS {}",
+            g.step_no(),
+            g.steps_total(),
+            g.wrong,
+            g.wrong_max,
+            g.hints_left
+        ),
+        50,
+        fg(p, Dos::Yellow),
+    );
+    put_str(
+        buf,
+        area.x + 52,
+        area.y + 3,
+        &format!("TIME {secs}s"),
+        12,
+        fg(p, time_color),
+    );
+    let wrapped: Vec<(daemon::LogKind, String)> = g
+        .log
+        .iter()
+        .flat_map(|(k, l)| {
+            wrap_lines(l, 76)
+                .into_iter()
+                .map(|line| (*k, line))
+                .collect::<Vec<_>>()
+        })
+        .collect();
+    let rows = 15usize;
+    let shown = wrapped.len().saturating_sub(rows);
+    for (i, (kind, line)) in wrapped[shown..].iter().enumerate() {
+        let style = match kind {
+            daemon::LogKind::Echo => fg(p, Dos::LightGreen),
+            daemon::LogKind::Output => fg(p, Dos::LightGray),
+            daemon::LogKind::Error => fg(p, Dos::LightRed),
+            daemon::LogKind::Hint => fg(p, Dos::LightCyan),
+        };
+        put_str(buf, area.x + 2, area.y + 5 + u(i), line, 76, style);
+    }
+    let prompt = format!("{}{}\u{2588}", g.prompt(), g.input);
+    put_str(buf, area.x + 2, area.y + 20, &prompt, 76, fg(p, Dos::White));
+    footer(
+        buf,
+        area,
+        "[Enter] run   [Tab] hint (+4 trace)   [Esc] abort",
+        p,
+    );
+}
+
 fn intent_text(g: &Duel, intent: Intent) -> String {
     match intent {
         Intent::Charge => "CHARGE (gathering power)".to_string(),
+        Intent::Stalk => "STALK (circling)".to_string(),
+        Intent::Regrow => format!("REGROW (heals {})", g.max_strength * REGEN_PCT / 100),
         Intent::Reach => "REACH (it holds out a hand)".to_string(),
         other => format!("{} ({})", other.label(), g.intent_damage(other)),
     }
 }
 
-fn render_duel(g: &Duel, art: &[ArtRow], buf: &mut Buffer, area: Rect, p: &Palette) {
+fn render_duel(
+    g: &Duel,
+    art: &[ArtRow],
+    anim: Option<&AttackAnim>,
+    buf: &mut Buffer,
+    area: Rect,
+    p: &Palette,
+) {
     let shadow = g.kind == DuelKind::Shadow;
-    title_rule(
-        buf,
-        area,
-        if shadow {
-            "DUEL  YOUR SHADOW"
-        } else {
-            "DUEL  BLACK ICE"
-        },
-        p,
-    );
+    let title = if shadow {
+        "DUEL  YOUR SHADOW".to_string()
+    } else {
+        format!(
+            "DUEL  BLACK ICE  {}",
+            g.class().unwrap_or(BlackClass::Wolf).label()
+        )
+    };
+    title_rule(buf, area, &title, p);
+    let art_w = art.iter().map(Vec::len).max().unwrap_or(0) as u16;
+    let art_rows = art.len() as u16;
+    let offset = anim.map(anim_offset).unwrap_or(0);
+    let tint = anim.and_then(anim_tint);
     for (r, row) in art.iter().take(usize::from(area.height) - 4).enumerate() {
         for (c, &(ch, style)) in row.iter().take(40).enumerate() {
             if ch != ' ' {
-                put_cell(buf, area.x + 2 + u(c), area.y + 2 + u(r), ch, style);
+                let x = area.x + 2 + u(c) + offset;
+                if x < area.x + 44 {
+                    let style = match tint {
+                        Some(color) => fg(p, color),
+                        None => style,
+                    };
+                    put_cell(buf, x, area.y + 2 + u(r), ch, style);
+                }
+            }
+        }
+    }
+    if let Some(a) = anim {
+        for (dx, dy, ch, color) in anim_cells(a, art_w, art_rows) {
+            if area.x + dx < area.x + 44 {
+                put_cell(buf, area.x + dx, area.y + dy, ch, fg(p, color));
             }
         }
     }
@@ -905,6 +1178,19 @@ fn render_duel(g: &Duel, art: &[ArtRow], buf: &mut Buffer, area: Rect, p: &Palet
     let (b, s) = bar(frac(g.ego, 100), Dos::LightGreen);
     let x = rx + 7 + put_str(buf, rx + 7, area.y + 3, &b, 18, s);
     put_str(buf, x + 1, area.y + 3, &format!("{}", g.ego.max(0)), 4, s);
+    if anim.is_some_and(anim_ego_flash) {
+        let flash = p.style(Dos::White, Dos::Red);
+        put_str(buf, rx, area.y + 3, "EGO", 7, flash);
+        put_str(buf, rx + 7, area.y + 3, &b, 18, flash);
+        put_str(
+            buf,
+            x + 1,
+            area.y + 3,
+            &format!("{}", g.ego.max(0)),
+            4,
+            flash,
+        );
+    }
 
     put_str(buf, rx, area.y + 5, "NOW :", 5, fg(p, Dos::LightGray));
     put_str(
@@ -1012,7 +1298,7 @@ mod tests {
         assert_eq!(ice_input(Key::Char(' ')), Some(IceInput::Space));
         assert_eq!(ice_input(Key::Char('x')), Some(IceInput::Char('x')));
         assert_eq!(ice_input(Key::F(1)), None);
-        assert_eq!(ice_input(Key::Backspace), None);
+        assert_eq!(ice_input(Key::Backspace), Some(IceInput::Backspace));
     }
 
     #[test]
@@ -1024,7 +1310,8 @@ mod tests {
             sniffer: 1,
             ..Loadout::default()
         };
-        let mut view = IceView::wordlock(&mut rng("wl"), &p, &w, &w[0], loadout);
+        let mut view =
+            IceView::wordlock(&mut rng("wl"), &p, &w, &w[0], loadout, IceGrade::Standard);
         let (buf, _) = draw(&view);
         let t = screen_text(&buf);
         assert!(t.contains("WORDLOCK"), "{t}");
@@ -1060,7 +1347,14 @@ mod tests {
     fn wordlock_group_under_the_cursor_is_highlighted() {
         let p = params(1);
         let w = words(p.wordlock_len, 2 * p.wordlock_words);
-        let mut view = IceView::wordlock(&mut rng("wl"), &p, &w, &w[0], Loadout::default());
+        let mut view = IceView::wordlock(
+            &mut rng("wl"),
+            &p,
+            &w,
+            &w[0],
+            Loadout::default(),
+            IceGrade::Standard,
+        );
         let (line, start, len) = match &view.game {
             Game::Wordlock(g) => {
                 let s = &g.words[0];
@@ -1175,6 +1469,136 @@ mod tests {
     }
 
     #[test]
+    fn lunge_offset_peaks_mid_animation_and_returns_to_zero() {
+        let anim = |t: f32| AttackAnim {
+            intent: Intent::Lunge,
+            reflected: false,
+            t,
+        };
+        assert_eq!(anim_offset(&anim(0.0)), 0);
+        assert_eq!(anim_offset(&anim(0.45)), 8);
+        assert_eq!(anim_offset(&anim(0.9)), 0);
+        assert_eq!(
+            anim_cells(&anim(0.5), 27, 12).len(),
+            0,
+            "a lunge is an offset, not cells"
+        );
+    }
+
+    #[test]
+    fn gaze_beam_grows_with_progress_and_reverses_when_reflected() {
+        let early = AttackAnim {
+            intent: Intent::Gaze,
+            reflected: false,
+            t: 0.0,
+        };
+        assert!(anim_cells(&early, 27, 12).is_empty());
+        let mid = AttackAnim {
+            intent: Intent::Gaze,
+            reflected: false,
+            t: 0.45,
+        };
+        let cells = anim_cells(&mid, 27, 12);
+        assert!(cells.iter().any(|c| c.3 == Dos::LightMagenta), "{cells:?}");
+        assert!(cells.iter().any(|c| c.2 == '\u{25BA}'), "{cells:?}");
+        let bounced = AttackAnim {
+            intent: Intent::Gaze,
+            reflected: true,
+            t: 0.45,
+        };
+        let cells = anim_cells(&bounced, 27, 12);
+        assert!(cells.iter().any(|c| c.3 == Dos::LightCyan), "{cells:?}");
+        assert!(cells.iter().any(|c| c.2 == '\u{25C4}'), "{cells:?}");
+    }
+
+    #[test]
+    fn a_hit_animates_then_clears_and_calm_shows_nothing() {
+        let p = params(3);
+        let mut view = IceView::duel(
+            &mut rng("du"),
+            &p,
+            DuelKind::Black,
+            Loadout::default(),
+            100,
+            DuelArt {
+                palette: &Palette::new(false),
+                shadow_art: None,
+            },
+            BlackClass::Eye,
+        );
+        view.duel_mut().unwrap().set_intent(Intent::Gaze);
+        view.handle(IceInput::Char('a'));
+        // No beam at t=0, a beam mid-flight, nothing after it ends.
+        view.tick(Duration::from_millis(100));
+        let (buf, _) = draw(&view);
+        assert!(screen_text(&buf).contains("hits you"));
+        view.tick(Duration::from_millis(350));
+        let (buf, _) = draw(&view);
+        assert!(
+            screen_text(&buf).contains('\u{2550}'),
+            "beam visible mid-animation"
+        );
+        view.tick(Duration::from_millis(600));
+        let (buf, _) = draw(&view);
+        assert!(!screen_text(&buf).contains('\u{2550}'), "animation over");
+        // Calm mode never starts one.
+        let mut calm = IceView::duel(
+            &mut rng("du"),
+            &p,
+            DuelKind::Black,
+            Loadout::default(),
+            100,
+            DuelArt {
+                palette: &Palette::new(false),
+                shadow_art: None,
+            },
+            BlackClass::Eye,
+        );
+        calm.set_calm(true);
+        calm.duel_mut().unwrap().set_intent(Intent::Gaze);
+        calm.handle(IceInput::Char('a'));
+        calm.tick(Duration::from_millis(450));
+        let (buf, _) = draw(&calm);
+        let t = screen_text(&buf);
+        assert!(!t.contains('\u{2550}'), "{t}");
+        assert!(t.contains("hits you"), "the log still shows the hit");
+    }
+
+    #[test]
+    fn daemon_console_takes_typed_spaces_through_the_key_path() {
+        let mut view = IceView::daemon(&mut rng("dm"), HostOs::Unix, IceGrade::Standard);
+        let solution = view.daemon_game().unwrap().solution();
+        let first = solution[0].clone();
+        for c in first.chars() {
+            let input = if c == ' ' {
+                ice_input(Key::Char(' '))
+            } else {
+                ice_input(Key::Char(c))
+            }
+            .expect("typed input maps");
+            view.handle(input);
+        }
+        // The live prompt row (row 20 of the view, one above the footer) shows what is typed.
+        let typed = screen_text(&draw(&view).0);
+        let prompt_row = typed.lines().nth(21).unwrap_or("");
+        assert!(
+            prompt_row.contains(&format!("% {first}")),
+            "prompt row shows the buffer: {prompt_row:?}"
+        );
+        let footer_row = typed.lines().nth(22).unwrap_or("");
+        assert!(
+            footer_row.contains("[Enter] run"),
+            "the footer stays on its own row: {footer_row:?}"
+        );
+        view.handle(ice_input(Key::Enter).unwrap());
+        let t = screen_text(&draw(&view).0);
+        assert!(t.contains(&format!("% {first}")), "{t}");
+        assert!(view.daemon_game().unwrap().log.iter().any(|(k, l)| {
+            *k == crate::ice::daemon::LogKind::Echo && l == &format!("% {first}")
+        }));
+    }
+
+    #[test]
     fn black_ice_duel_view_has_avatar_bars_intents_and_keys() {
         let p = params(2);
         let loadout = Loadout {
@@ -1187,25 +1611,29 @@ mod tests {
             DuelKind::Black,
             loadout,
             100,
-            &Palette::new(false),
-            None,
+            DuelArt {
+                palette: &Palette::new(false),
+                shadow_art: None,
+            },
+            BlackClass::Hydra,
         );
         let (buf, _) = draw(&view);
         let t = screen_text(&buf);
         assert!(t.contains("DUEL  BLACK ICE"), "{t}");
-        assert!(t.contains("ICE") && t.contains("40/40"), "{t}");
+        let Game::Duel(g, _) = &view.game else {
+            unreachable!()
+        };
+        let full = format!("{}/{}", g.max_strength, g.max_strength);
+        assert!(t.contains("ICE") && t.contains(&full), "{t}");
         assert!(t.contains("EGO") && t.contains("100"));
         assert!(t.contains("NOW :") && t.contains("NEXT:"));
         assert!(t.contains("[A]ttack [S]leaze [D]efend [P]rogram(MIRROR x1) [R]etreat"));
         assert!(!t.contains("[X] Accept"), "black ICE has nothing to accept");
         assert!(t.contains("It intends:"));
         // Ice art is on screen: one of the three avatars' distinctive rows.
-        let Game::Duel(g, _) = &view.game else {
-            unreachable!()
-        };
-        let art = match g.avatar() {
-            Some(IceAvatar::Wolf) => ART_WOLF,
-            Some(IceAvatar::Eye) => ART_EYE,
+        let art = match g.class() {
+            Some(BlackClass::Wolf) => ART_WOLF,
+            Some(BlackClass::Eye) => ART_EYE,
             _ => ART_HYDRA,
         };
         for line in art.lines().filter(|l| !l.trim().is_empty()) {
@@ -1226,8 +1654,11 @@ mod tests {
             DuelKind::Shadow,
             Loadout::default(),
             100,
-            &Palette::new(false),
-            Some(art),
+            DuelArt {
+                palette: &Palette::new(false),
+                shadow_art: Some(art),
+            },
+            BlackClass::Hydra,
         );
         let rows: Vec<String> = match &view.game {
             Game::Duel(_, art) => art
@@ -1266,8 +1697,11 @@ mod tests {
             DuelKind::Black,
             Loadout::default(),
             100,
-            &Palette::new(false),
-            None,
+            DuelArt {
+                palette: &Palette::new(false),
+                shadow_art: None,
+            },
+            BlackClass::Hydra,
         );
         // Defend until the ICE has hurt us at least once, then check the drain.
         for _ in 0..4 {
@@ -1293,7 +1727,8 @@ mod tests {
             decrypt: 2,
             ..Loadout::default()
         };
-        let mut view = IceView::wordlock(&mut rng("wl"), &p, &w, &w[0], loadout);
+        let mut view =
+            IceView::wordlock(&mut rng("wl"), &p, &w, &w[0], loadout, IceGrade::Standard);
         assert!(view.take_spent().is_empty());
         view.handle(IceInput::Char('1'));
         assert_eq!(view.take_spent(), vec![(Program::Decrypt, 1)]);
