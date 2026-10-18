@@ -1,59 +1,73 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="720" height="450" viewBox="0 0 720 450" font-family="Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="15" style="white-space:pre">
-<rect width="720" height="450" fill="#000000"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="450" viewBox="0 0 720 450" font-family="Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="15" shape-rendering="crispEdges" style="white-space:pre">
+<rect x="0" y="0" width="720" height="450" fill="#000000"/>
 <rect x="0" y="0" width="720" height="18" fill="#0000aa"/>
 <text x="0" y="14" fill="#ffffff" textLength="720" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> SELF ─ the board under the board                                               </text>
-<text x="90" y="50" fill="#555555" textLength="81" lengthAdjust="spacingAndGlyphs" xml:space="preserve">▒▒▒▒▒▒▒▒▒</text>
+<rect x="90" y="36" width="81" height="18" fill="#555555" fill-opacity="0.5"/>
 <text x="288" y="50" fill="#55ffff" textLength="54" lengthAdjust="spacingAndGlyphs" xml:space="preserve">HANDLE</text>
 <text x="396" y="50" fill="#ffffff" textLength="54" lengthAdjust="spacingAndGlyphs" xml:space="preserve">Tester</text>
-<text x="63" y="68" fill="#555555" textLength="27" lengthAdjust="spacingAndGlyphs" xml:space="preserve">▒▒▒</text>
+<rect x="63" y="54" width="27" height="18" fill="#555555" fill-opacity="0.5"/>
 <text x="126" y="68" fill="#555555" textLength="9" lengthAdjust="spacingAndGlyphs" xml:space="preserve">│</text>
-<text x="171" y="68" fill="#555555" textLength="27" lengthAdjust="spacingAndGlyphs" xml:space="preserve">▒▒▒</text>
+<rect x="171" y="54" width="27" height="18" fill="#555555" fill-opacity="0.5"/>
 <text x="288" y="68" fill="#55ffff" textLength="45" lengthAdjust="spacingAndGlyphs" xml:space="preserve">LEVEL</text>
 <text x="396" y="68" fill="#ffffff" textLength="198" lengthAdjust="spacingAndGlyphs" xml:space="preserve">00   23:00:00 12/31/99</text>
-<text x="45" y="86" fill="#555555" textLength="36" lengthAdjust="spacingAndGlyphs" xml:space="preserve">▒▒▒∙</text>
-<text x="99" y="86" fill="#555555" textLength="63" lengthAdjust="spacingAndGlyphs" xml:space="preserve">░░░░░░░</text>
-<text x="180" y="86" fill="#555555" textLength="36" lengthAdjust="spacingAndGlyphs" xml:space="preserve">∙▒▒▒</text>
+<rect x="45" y="72" width="27" height="18" fill="#555555" fill-opacity="0.5"/>
+<text x="72" y="86" fill="#555555" textLength="9" lengthAdjust="spacingAndGlyphs" xml:space="preserve">∙</text>
+<rect x="99" y="72" width="63" height="18" fill="#555555" fill-opacity="0.25"/>
+<text x="180" y="86" fill="#555555" textLength="9" lengthAdjust="spacingAndGlyphs" xml:space="preserve">∙</text>
+<rect x="189" y="72" width="27" height="18" fill="#555555" fill-opacity="0.5"/>
 <text x="288" y="86" fill="#55ffff" textLength="27" lengthAdjust="spacingAndGlyphs" xml:space="preserve">EGO</text>
 <text x="396" y="86" fill="#ffffff" textLength="63" lengthAdjust="spacingAndGlyphs" xml:space="preserve">100/100</text>
-<text x="486" y="86" fill="#55ff55" textLength="180" lengthAdjust="spacingAndGlyphs" xml:space="preserve">████████████████████</text>
-<text x="36" y="104" fill="#555555" textLength="18" lengthAdjust="spacingAndGlyphs" xml:space="preserve">▒▒</text>
-<text x="81" y="104" fill="#555555" textLength="18" lengthAdjust="spacingAndGlyphs" xml:space="preserve">░░</text>
+<rect x="486" y="72" width="180" height="18" fill="#55ff55"/>
+<rect x="36" y="90" width="18" height="18" fill="#555555" fill-opacity="0.5"/>
+<rect x="81" y="90" width="18" height="18" fill="#555555" fill-opacity="0.25"/>
 <text x="126" y="104" fill="#555555" textLength="9" lengthAdjust="spacingAndGlyphs" xml:space="preserve">│</text>
-<text x="162" y="104" fill="#555555" textLength="18" lengthAdjust="spacingAndGlyphs" xml:space="preserve">░░</text>
-<text x="207" y="104" fill="#555555" textLength="18" lengthAdjust="spacingAndGlyphs" xml:space="preserve">▒▒</text>
+<rect x="162" y="90" width="18" height="18" fill="#555555" fill-opacity="0.25"/>
+<rect x="207" y="90" width="18" height="18" fill="#555555" fill-opacity="0.5"/>
 <text x="288" y="104" fill="#55ffff" textLength="45" lengthAdjust="spacingAndGlyphs" xml:space="preserve">RATIO</text>
 <text x="396" y="104" fill="#ffffff" textLength="45" lengthAdjust="spacingAndGlyphs" xml:space="preserve">0096K</text>
-<text x="36" y="122" fill="#555555" textLength="18" lengthAdjust="spacingAndGlyphs" xml:space="preserve">▒▒</text>
-<text x="72" y="122" fill="#555555" textLength="9" lengthAdjust="spacingAndGlyphs" xml:space="preserve">░</text>
-<text x="108" y="122" fill="#555555" textLength="45" lengthAdjust="spacingAndGlyphs" xml:space="preserve">▒▒▒▒▒</text>
-<text x="180" y="122" fill="#555555" textLength="9" lengthAdjust="spacingAndGlyphs" xml:space="preserve">░</text>
-<text x="207" y="122" fill="#555555" textLength="18" lengthAdjust="spacingAndGlyphs" xml:space="preserve">▒▒</text>
+<rect x="36" y="108" width="18" height="18" fill="#555555" fill-opacity="0.5"/>
+<rect x="72" y="108" width="9" height="18" fill="#555555" fill-opacity="0.25"/>
+<rect x="108" y="108" width="45" height="18" fill="#555555" fill-opacity="0.5"/>
+<rect x="180" y="108" width="9" height="18" fill="#555555" fill-opacity="0.25"/>
+<rect x="207" y="108" width="18" height="18" fill="#555555" fill-opacity="0.5"/>
 <text x="288" y="122" fill="#55ffff" textLength="36" lengthAdjust="spacingAndGlyphs" xml:space="preserve">SEED</text>
 <text x="396" y="122" fill="#ffffff" textLength="18" lengthAdjust="spacingAndGlyphs" xml:space="preserve">42</text>
-<text x="36" y="140" fill="#555555" textLength="90" lengthAdjust="spacingAndGlyphs" xml:space="preserve">▒──░░──▒▒─</text>
+<rect x="36" y="126" width="9" height="18" fill="#555555" fill-opacity="0.5"/>
+<text x="45" y="140" fill="#555555" textLength="18" lengthAdjust="spacingAndGlyphs" xml:space="preserve">──</text>
+<rect x="63" y="126" width="18" height="18" fill="#555555" fill-opacity="0.25"/>
+<text x="81" y="140" fill="#555555" textLength="18" lengthAdjust="spacingAndGlyphs" xml:space="preserve">──</text>
+<rect x="99" y="126" width="18" height="18" fill="#555555" fill-opacity="0.5"/>
+<text x="117" y="140" fill="#555555" textLength="9" lengthAdjust="spacingAndGlyphs" xml:space="preserve">─</text>
 <text x="126" y="140" fill="#aaaaaa" textLength="9" lengthAdjust="spacingAndGlyphs" xml:space="preserve">○</text>
-<text x="135" y="140" fill="#555555" textLength="90" lengthAdjust="spacingAndGlyphs" xml:space="preserve">─▒▒──░░──▒</text>
-<text x="36" y="158" fill="#555555" textLength="18" lengthAdjust="spacingAndGlyphs" xml:space="preserve">▒▒</text>
-<text x="72" y="158" fill="#555555" textLength="9" lengthAdjust="spacingAndGlyphs" xml:space="preserve">░</text>
-<text x="108" y="158" fill="#555555" textLength="45" lengthAdjust="spacingAndGlyphs" xml:space="preserve">▒▒▒▒▒</text>
-<text x="180" y="158" fill="#555555" textLength="9" lengthAdjust="spacingAndGlyphs" xml:space="preserve">░</text>
-<text x="207" y="158" fill="#555555" textLength="18" lengthAdjust="spacingAndGlyphs" xml:space="preserve">▒▒</text>
+<text x="135" y="140" fill="#555555" textLength="9" lengthAdjust="spacingAndGlyphs" xml:space="preserve">─</text>
+<rect x="144" y="126" width="18" height="18" fill="#555555" fill-opacity="0.5"/>
+<text x="162" y="140" fill="#555555" textLength="18" lengthAdjust="spacingAndGlyphs" xml:space="preserve">──</text>
+<rect x="180" y="126" width="18" height="18" fill="#555555" fill-opacity="0.25"/>
+<text x="198" y="140" fill="#555555" textLength="18" lengthAdjust="spacingAndGlyphs" xml:space="preserve">──</text>
+<rect x="216" y="126" width="9" height="18" fill="#555555" fill-opacity="0.5"/>
+<rect x="36" y="144" width="18" height="18" fill="#555555" fill-opacity="0.5"/>
+<rect x="72" y="144" width="9" height="18" fill="#555555" fill-opacity="0.25"/>
+<rect x="108" y="144" width="45" height="18" fill="#555555" fill-opacity="0.5"/>
+<rect x="180" y="144" width="9" height="18" fill="#555555" fill-opacity="0.25"/>
+<rect x="207" y="144" width="18" height="18" fill="#555555" fill-opacity="0.5"/>
 <text x="288" y="158" fill="#55ffff" textLength="99" lengthAdjust="spacingAndGlyphs" xml:space="preserve">INTEGRATION</text>
 <text x="396" y="158" fill="#ffffff" textLength="18" lengthAdjust="spacingAndGlyphs" xml:space="preserve">+0</text>
-<text x="36" y="176" fill="#555555" textLength="18" lengthAdjust="spacingAndGlyphs" xml:space="preserve">▒▒</text>
-<text x="81" y="176" fill="#555555" textLength="18" lengthAdjust="spacingAndGlyphs" xml:space="preserve">░░</text>
+<rect x="36" y="162" width="18" height="18" fill="#555555" fill-opacity="0.5"/>
+<rect x="81" y="162" width="18" height="18" fill="#555555" fill-opacity="0.25"/>
 <text x="126" y="176" fill="#555555" textLength="9" lengthAdjust="spacingAndGlyphs" xml:space="preserve">│</text>
-<text x="162" y="176" fill="#555555" textLength="18" lengthAdjust="spacingAndGlyphs" xml:space="preserve">░░</text>
-<text x="207" y="176" fill="#555555" textLength="18" lengthAdjust="spacingAndGlyphs" xml:space="preserve">▒▒</text>
+<rect x="162" y="162" width="18" height="18" fill="#555555" fill-opacity="0.25"/>
+<rect x="207" y="162" width="18" height="18" fill="#555555" fill-opacity="0.5"/>
 <text x="288" y="176" fill="#ffffff" textLength="288" lengthAdjust="spacingAndGlyphs" xml:space="preserve">REPRESSED ◄────■────► INTEGRATED</text>
-<text x="45" y="194" fill="#555555" textLength="36" lengthAdjust="spacingAndGlyphs" xml:space="preserve">▒▒▒∙</text>
-<text x="99" y="194" fill="#555555" textLength="63" lengthAdjust="spacingAndGlyphs" xml:space="preserve">░░░░░░░</text>
-<text x="180" y="194" fill="#555555" textLength="36" lengthAdjust="spacingAndGlyphs" xml:space="preserve">∙▒▒▒</text>
-<text x="63" y="212" fill="#555555" textLength="27" lengthAdjust="spacingAndGlyphs" xml:space="preserve">▒▒▒</text>
+<rect x="45" y="180" width="27" height="18" fill="#555555" fill-opacity="0.5"/>
+<text x="72" y="194" fill="#555555" textLength="9" lengthAdjust="spacingAndGlyphs" xml:space="preserve">∙</text>
+<rect x="99" y="180" width="63" height="18" fill="#555555" fill-opacity="0.25"/>
+<text x="180" y="194" fill="#555555" textLength="9" lengthAdjust="spacingAndGlyphs" xml:space="preserve">∙</text>
+<rect x="189" y="180" width="27" height="18" fill="#555555" fill-opacity="0.5"/>
+<rect x="63" y="198" width="27" height="18" fill="#555555" fill-opacity="0.5"/>
 <text x="126" y="212" fill="#555555" textLength="9" lengthAdjust="spacingAndGlyphs" xml:space="preserve">│</text>
-<text x="171" y="212" fill="#555555" textLength="27" lengthAdjust="spacingAndGlyphs" xml:space="preserve">▒▒▒</text>
+<rect x="171" y="198" width="27" height="18" fill="#555555" fill-opacity="0.5"/>
 <text x="288" y="212" fill="#55ffff" textLength="36" lengthAdjust="spacingAndGlyphs" xml:space="preserve">DECK</text>
-<text x="90" y="230" fill="#555555" textLength="81" lengthAdjust="spacingAndGlyphs" xml:space="preserve">▒▒▒▒▒▒▒▒▒</text>
+<rect x="90" y="216" width="81" height="18" fill="#555555" fill-opacity="0.5"/>
 <text x="306" y="230" fill="#ffffff" textLength="216" lengthAdjust="spacingAndGlyphs" xml:space="preserve">PAYLOAD.PIF   (implicit)</text>
 <text x="27" y="284" fill="#555555" textLength="81" lengthAdjust="spacingAndGlyphs" xml:space="preserve">■ NIGREDO</text>
 <text x="27" y="302" fill="#555555" textLength="72" lengthAdjust="spacingAndGlyphs" xml:space="preserve">■ ALBEDO</text>

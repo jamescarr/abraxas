@@ -1,3 +1,5 @@
+<!-- The screenshots are rendered by the game itself: `cargo test --lib write_readme_screenshots -- --ignored`
+     rewrites docs/screenshots/*.svg. Do not edit them by hand. -->
 # ABRAXAS
 
 A 1999 BBS hacker game that dreams its own levels.
@@ -6,18 +8,7 @@ It is 23:00 on 12/31/1999 in Port Hecate, a drowned-coast megacity where cyberde
 
 The game is a terminal UI styled after a late-90s ANSI BBS: message bases, file libraries, door games, a user list, a sysop to page. You hack hosts through shell commands and ICE mini-games (WORDLOCK, BREACH, PHREAK, DAEMON, ROUTER, DUEL). Between levels you fall through procedural visions (tunnels, plasma, fire, mandalas) and the I Ching casts the omen of the level you land in. Every level is randomised. A local or remote language model writes the words (boards, files, hosts, interludes) and continues the story for ever; without one, an offline generator draws from the story pack's word bank so the game is always playable.
 
-## Screenshots
-
-Rendered by the game's own screen code into SVG (`cargo test --lib write_readme_screenshots -- --ignored` rewrites them under `docs/screenshots/`).
-
-| | |
-|---|---|
-| ![Login](docs/screenshots/login.svg) | ![Level card](docs/screenshots/level-card.svg) |
-| ![BBS menu](docs/screenshots/menu.svg) | ![Message base](docs/screenshots/board.svg) |
-| ![SysOp chat](docs/screenshots/chat.svg) | ![Host shell](docs/screenshots/shell.svg) |
-| ![WORDLOCK](docs/screenshots/wordlock.svg) | ![BREACH](docs/screenshots/breach.svg) |
-| ![DAEMON console](docs/screenshots/daemon.svg) | ![DUEL vs EYE](docs/screenshots/duel.svg) |
-| ![Descent](docs/screenshots/descent.svg) | ![The Self](docs/screenshots/psyche.svg) |
+![The BBS menu](docs/screenshots/menu.svg)
 
 ## Install and run
 
@@ -46,13 +37,33 @@ Other commands: `abraxas pack check [DIR]` validates a story pack; `abraxas pack
 ## How to play
 
 1. Boot the terminal program, pick **NIGHT SHIFT BBS** from the dialing directory, and let the line cross. Register a handle (your persona) and a real name (the self: only the Shadow and Wren use it).
+
+   ![Login: the logo and the Handle prompt](docs/screenshots/login.svg)
+
 2. On a level you arrive at the level card, then the BBS menu. Read the **message base** and the **file library** for clues and programs, **page the SysOp** to chat, check the **user list**, then open the **door**: a host you must break into.
+
+   | | |
+   |---|---|
+   | ![The level card](docs/screenshots/level-card.svg) | ![The message base, reading the re: front door clue](docs/screenshots/board.svg) |
+
 3. In a host you type shell commands (`help` lists them): `scan`, `ls`, `cat`, `connect <node>`, `get <file>`, `put PAYLOAD.PIF`, `ps`, `kill <pid>`, `bounce`, `run ghost`, `deck`, `logout`. Every command raises the trace; at 100% you get DUMP SHOCK (EGO -20) and are thrown back to the menu. `scan` names each adjacent guard and how tough it is (`soft`, `standard`, `hardened`); guards you meet are ICE mini-games. A DAEMON gate is a sandboxed login on the host's own OS: solve it by typing real 1990s commands (`ps`, `kill <pid>` on unix; `SHOW SYSTEM`, `STOP/ID=<pid>` on a VAX; `STATUS`, `CANCEL <job>` on a mainframe; `MEM /C`, `ATTRIB -H` on DOS). `Tab` inside it buys a hint for 4 trace. BLACK ICE duels come in three classes - WOLF (lunges), EYE (its gaze cannot be blocked, but a MIRROR reflects it double) and HYDRA (bites and regrows) - and each attack plays an animation (`--calm` disables them). The `re: front door` password post is a different kind of clue every level: easy masks early, vaguer hints (first/last letter, vowel count, a misleading rumour, nothing) deeper in.
+
+   ![The host shell after scan: graded guards and the mini-map](docs/screenshots/shell.svg)
+
+   | | |
+   |---|---|
+   | ![WORDLOCK](docs/screenshots/wordlock.svg) | ![BREACH](docs/screenshots/breach.svg) |
+   | ![The DAEMON console on unix](docs/screenshots/daemon.svg) | ![A DUEL against EYE mid-GAZE](docs/screenshots/duel.svg) |
+
 4. Finish the objective (retrieve a file, plant a payload, or crash a daemon), read what the payload reveals, make the choice it presents, jack out, and take **Goodbye** to fall to the next level.
+
+   ![The descent: a vision, the captions and the hexagram](docs/screenshots/descent.svg)
 
 Stats: **EGO** (health, +10 on every arrival; at 0 the run ends and the save is deleted), **RATIO** (KB credit earned from doors, spent on programs in the file library), **INTEGRATION** (your stance toward the Shadow, -10 to 10; it decides the ending), **DECK** (programs: DECRYPT, SNIFFER, BUFFER, GHOST, ICEPICK, MIRROR, MANDALA, METRONOM).
 
 Levels 0-15 carry the authored story in four alchemical acts (NIGREDO, ALBEDO, CITRINITAS, RUBEDO); after an ending you can continue into THE UNDERBOARD, endless AI levels.
+
+![The Self: the mandala of the four acts](docs/screenshots/psyche.svg)
 
 ### Controls
 
@@ -74,6 +85,8 @@ OLLAMA_NUM_PARALLEL=2 ollama serve
 ```
 
 While the chat screen is open the game holds back the prefetch: a next-level job in flight is cancelled and requested again when you hang up, so a reply does not queue behind a multi-minute level even on a server that runs one request at a time (`qwen3.8`'s runner does). A job for the level you are on still runs, and `OLLAMA_NUM_PARALLEL=2` keeps a reply from waiting for it on runners that allow two. The prompts plus the longest reply need about 6K tokens of context; if your Ollama's default context is smaller, start it with `OLLAMA_CONTEXT_LENGTH=8192`. The game prefetches level N+1 while you play level N, never blocks on the AI (any failure after retries switches that part to the offline generator, and the modem lights show it), and keeps the story consistent with a digest of your choices. `qwen3.8` has the best prose but is slow: measured on an M4 Pro (48 GB) it runs at 5-7 tokens/s, so a level's place takes about 4 minutes, its passage about 2 and its interlude under a minute (`abraxas pack dream` prints each part's source and time). The prefetch hides most of that while you play a level, but if you fall faster than it writes, the Descent waits and then (after `timeout_secs`) fills the missing parts from the offline generator. `abraxas --model llama3.2:3b` is a much faster, rougher alternative: about 14 s for a place, 10 s for a passage, 1 s for an interlude. The place the AI is asked for is deliberately small (3 posts, 2 text files, 2 host files, bodies of at most 400 characters) to keep generation time down.
+
+![SysOp chat with PHILEMON](docs/screenshots/chat.svg)
 
 Any OpenAI-compatible server works: set `base_url`, `model` and, if it needs a key, `api_key_env` to the NAME of an environment variable holding it.
 
