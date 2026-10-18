@@ -121,10 +121,13 @@ pub(crate) fn svg(buf: &Buffer) -> String {
         f32::from(area.height) * CELL_H,
     );
     let black = hex(Dos::Black.rgb());
+    // `crispEdges` snaps shape edges to device pixels: at the README's fractional scale,
+    // anti-aliased neighbouring rectangles would otherwise blend to a hairline where they meet.
+    // It leaves text anti-aliased.
     let mut out = format!(
         "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"{w}\" height=\"{h}\" \
          viewBox=\"0 0 {w} {h}\" font-family=\"Menlo, Consolas, 'DejaVu Sans Mono', monospace\" \
-         font-size=\"{FONT_SIZE}\" style=\"white-space:pre\">\n"
+         font-size=\"{FONT_SIZE}\" shape-rendering=\"crispEdges\" style=\"white-space:pre\">\n"
     );
     rect(&mut out, 0.0, 0.0, w, h, &black, 1.0);
     for y in 0..area.height {

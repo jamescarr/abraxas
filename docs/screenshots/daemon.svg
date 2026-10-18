@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="720" height="450" viewBox="0 0 720 450" font-family="Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="15" style="white-space:pre">
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="450" viewBox="0 0 720 450" font-family="Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="15" shape-rendering="crispEdges" style="white-space:pre">
 <rect x="0" y="0" width="720" height="450" fill="#000000"/>
 <rect x="0" y="0" width="558" height="18" fill="#0000aa"/>
 <text x="0" y="14" fill="#ffffff" textLength="558" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> ODS MILLENNIUM BUILD SERVER │ unix │ node: portal0     TRACE </text>
