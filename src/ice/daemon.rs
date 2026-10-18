@@ -74,12 +74,12 @@ const UNIX_CARDS: [CardDef; 3] = [
                 tell: "list the running processes",
             },
             StepDef {
-                accept: &["kill {pid}"],
+                accept: &["kill -9 {pid}"],
                 output: &["{name}: terminated. respawned as {name2} (pid {pid2})."],
                 tell: "kill {name} by its pid",
             },
             StepDef {
-                accept: &["kill {pid2}"],
+                accept: &["kill -9 {pid2}"],
                 output: &["{name2}: terminated."],
                 tell: "kill what respawned it",
             },
@@ -90,7 +90,7 @@ const UNIX_CARDS: [CardDef; 3] = [
         brief: "An .rhosts file trusts a neighbour. Find it, read it, walk in.",
         steps: [
             StepDef {
-                accept: &["ls a"],
+                accept: &["ls -a"],
                 output: &[".  ..  .profile  .rhosts  mbox"],
                 tell: "list files, hidden ones too",
             },
@@ -148,7 +148,7 @@ const VAX_CARDS: [CardDef; 3] = [
         brief: "A guard process runs on this node. Find it, stop it, stop what respawns it.",
         steps: [
             StepDef {
-                accept: &["show sys"],
+                accept: &["show system"],
                 output: &[
                     "Pid      Process Name    State  Pri",
                     "00000201 SWAPPER         HIB     16",
@@ -158,12 +158,12 @@ const VAX_CARDS: [CardDef; 3] = [
                 tell: "list the processes on the system",
             },
             StepDef {
-                accept: &["stop {pid}"],
+                accept: &["stop/id={pid}"],
                 output: &["%STOP-I-STOPPED, {name} stopped. respawned as {name2} ({pid2})."],
                 tell: "stop the guard by its process id",
             },
             StepDef {
-                accept: &["stop {pid2}"],
+                accept: &["stop/id={pid2}"],
                 output: &["%STOP-I-STOPPED, {name2} stopped"],
                 tell: "stop what respawned it",
             },
@@ -190,7 +190,7 @@ const VAX_CARDS: [CardDef; 3] = [
                 tell: "type the login file",
             },
             StepDef {
-                accept: &["deassign guard$mode"],
+                accept: &["deassign/system guard$mode"],
                 output: &["%DCL-I-DEASSIGNED, GUARD$MODE deassigned"],
                 tell: "deassign the logical from the system table",
             },
@@ -201,7 +201,7 @@ const VAX_CARDS: [CardDef; 3] = [
         brief: "A watcher sits on someone's terminal. Find it and cut it off.",
         steps: [
             StepDef {
-                accept: &["show user"],
+                accept: &["show users"],
                 output: &[
                     "Username  Node  Process Name  PID",
                     "OPERATOR  VAX   {name}  {pid}",
@@ -210,7 +210,7 @@ const VAX_CARDS: [CardDef; 3] = [
                 tell: "list who is logged in",
             },
             StepDef {
-                accept: &["show proc {pid}"],
+                accept: &["show process/id={pid}"],
                 output: &[
                     "Process ID: {pid}   Name: {name}",
                     "State: CUR   Priority: 5",
@@ -218,7 +218,7 @@ const VAX_CARDS: [CardDef; 3] = [
                 tell: "inspect the operator's process by id",
             },
             StepDef {
-                accept: &["stop {pid}"],
+                accept: &["stop/id={pid}"],
                 output: &["%STOP-I-STOPPED, {name} stopped"],
                 tell: "stop it",
             },
@@ -269,7 +269,7 @@ const MAINFRAME_CARDS: [CardDef; 3] = [
                 tell: "list the catalog",
             },
             StepDef {
-                accept: &["delete {user}.guard.cntl"],
+                accept: &["delete '{user}.guard.cntl'"],
                 output: &["IDC0550I ENTRY {user}.GUARD.CNTL DELETED. verify with listcat."],
                 tell: "delete the control dataset",
             },
@@ -313,7 +313,7 @@ const DOS_CARDS: [CardDef; 3] = [
         brief: "A resident guard loads at boot. Find it and stop it loading.",
         steps: [
             StepDef {
-                accept: &["mem c", "mem d"],
+                accept: &["mem /c", "mem /d"],
                 output: &[
                     "Name       Size   Total",
                     "MSDOS    17,200",
@@ -344,7 +344,7 @@ const DOS_CARDS: [CardDef; 3] = [
         brief: "The guard file is hidden and read-only. Strip it, then remove it.",
         steps: [
             StepDef {
-                accept: &["dir a"],
+                accept: &["dir /a"],
                 output: &[
                     " Volume in drive C is HARDDISK",
                     "{name}    COM     1,808  H",
@@ -355,10 +355,10 @@ const DOS_CARDS: [CardDef; 3] = [
             },
             StepDef {
                 accept: &[
-                    "attrib h {name}.com",
-                    "attrib hr {name}.com",
-                    "attrib hs {name}.com",
-                    "attrib hrs {name}.com",
+                    "attrib -h {name}.com",
+                    "attrib -r -h {name}.com",
+                    "attrib -s -h {name}.com",
+                    "attrib -r -s -h {name}.com",
                 ],
                 output: &["(attributes changed)"],
                 tell: "clear its attributes",
@@ -375,7 +375,7 @@ const DOS_CARDS: [CardDef; 3] = [
         brief: "A batch file launches the guard. Find it, read it, remove it.",
         steps: [
             StepDef {
-                accept: &["dir bat", "dir bat b"],
+                accept: &["dir *.bat", "dir *.bat /b"],
                 output: &["{name}    BAT        64", "AUTOEXEC BAT       120"],
                 tell: "list the batch files",
             },
@@ -427,8 +427,6 @@ fn norm_unix(line: &str) -> String {
             for t in &toks[1..] {
                 if let Some(rest) = t.strip_prefix('-') {
                     flags.extend(rest.chars());
-                } else if t.bytes().all(|b| b == b'a' || b == b'l') {
-                    flags.extend(t.chars());
                 }
             }
             toks = vec!["ls".to_string()];
@@ -550,9 +548,6 @@ fn norm_dos(line: &str) -> String {
             }
             let file = out[out.len() - 1].clone();
             let mut fs: Vec<char> = flags.clone();
-            for t in &out[1..out.len() - 1] {
-                fs.extend(t.chars());
-            }
             fs.sort_unstable();
             fs.dedup();
             let mut o = vec!["attrib".to_string()];
@@ -686,6 +681,9 @@ pub struct Daemon {
     accepts: Vec<Vec<String>>,
     outputs: Vec<Vec<String>>,
     tells: Vec<String>,
+    /// The first accept of every played step, as a player would type it (tests).
+    #[cfg(test)]
+    typed: Vec<String>,
     left: f32,
     started: bool,
     pending_trace: f32,
@@ -718,7 +716,11 @@ impl Daemon {
         let name2_vax = ["WATCHER2", "GUARDIAN2", "SENTRY2", "WARDEN2"][rng.random_range(0..4)];
         let name_dos = ["GUARD", "WATCH", "SENTRY", "WARDEN"][rng.random_range(0..4)];
         let pid = rng.random_range(120..990u32);
-        let pid2 = rng.random_range(120..990u32);
+        // Never the same pid as the first, or the respawn line would name the same process.
+        let pid2 = match rng.random_range(120..990u32) {
+            n if n == pid => 120 + (n - 119) % 870,
+            n => n,
+        };
         let job = ["WATCH01", "GUARDJOB", "SENTRYJB", "WARDEN1"][rng.random_range(0..4)];
         let job2 = ["WATCH02", "GUARDJB2", "SENTRJB2", "WARDEN02"][rng.random_range(0..4)];
         let user = ["SYSPROG", "OPER01", "ADMIN1"][rng.random_range(0..3)];
@@ -788,14 +790,26 @@ impl Daemon {
                 HostOs::Dos => sub(t, &lower_if(name_dos, lower), "", "", "", "", "", ""),
             }
         };
+        // Accepts are written as real commands and canonicalised here, so a player's line and
+        // the accepted forms always go through the same `canonical`.
         let mut accepts = Vec::new();
         let mut outputs = Vec::new();
         let mut tells = Vec::new();
         for step in &card.steps[..played] {
-            accepts.push(step.accept.iter().map(|a| fill(a, true)).collect());
+            accepts.push(
+                step.accept
+                    .iter()
+                    .map(|a| canonical(os, &fill(a, true)))
+                    .collect(),
+            );
             outputs.push(step.output.iter().map(|o| fill(o, false)).collect());
             tells.push(fill(step.tell, false));
         }
+        #[cfg(test)]
+        let typed: Vec<String> = card.steps[..played]
+            .iter()
+            .map(|s| fill(s.accept[0], false))
+            .collect();
         Daemon {
             os,
             title: card.title.to_string(),
@@ -810,6 +824,8 @@ impl Daemon {
             accepts,
             outputs,
             tells,
+            #[cfg(test)]
+            typed,
             left: secs,
             started: false,
             pending_trace: 0.0,
@@ -863,10 +879,10 @@ impl Daemon {
         std::mem::take(&mut self.pending_trace)
     }
 
-    /// The canonical accept forms of every played step, in order (tests).
+    /// The first accept of every played step as a player would type it, in order (tests).
     #[cfg(test)]
     pub(crate) fn solution(&self) -> Vec<String> {
-        self.accepts.iter().map(|a| a[0].clone()).collect()
+        self.typed.clone()
     }
 
     fn push(&mut self, kind: LogKind, line: String) {
@@ -880,7 +896,7 @@ impl Daemon {
         self.push(LogKind::Echo, format!("{}{}", self.prompt(), line));
         let canon = canonical(self.os, &line);
         if self.accepts[self.step].contains(&canon) {
-            for out in self.outputs[self.step].clone() {
+            for out in std::mem::take(&mut self.outputs[self.step]) {
                 self.push(LogKind::Output, out);
             }
             self.step += 1;
@@ -1062,6 +1078,10 @@ mod tests {
         assert_eq!(canonical(HostOs::Dos, "DEL C:\\GUARD.COM"), "del guard.com");
         assert_eq!(
             canonical(HostOs::Dos, "more < autoexec.bat"),
+            "type autoexec.bat"
+        );
+        assert_eq!(
+            canonical(HostOs::Dos, "type c:\\autoexec.bat"),
             "type autoexec.bat"
         );
         assert_eq!(

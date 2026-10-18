@@ -181,8 +181,10 @@ impl IceView {
             Game::Daemon(g) => g.handle(input),
             Game::Duel(g, _) => {
                 g.handle(input);
+                // Drain every turn (calm mode included) so the game's hit list never grows.
+                let hit = g.take_hits().pop();
                 if !self.calm
-                    && let Some(hit) = g.take_hits().pop()
+                    && let Some(hit) = hit
                 {
                     self.anim = Some(AttackAnim {
                         intent: hit.intent,
@@ -889,19 +891,25 @@ fn anim_cells(a: &AttackAnim, art_w: u16, art_rows: u16) -> Vec<(u16, u16, char,
     let span = (42u16).saturating_sub(art_w).max(1);
     match a.intent {
         Intent::Gaze => {
-            let end = art_x + ((f32::from(span)) * p).round() as u16;
+            // A reflected gaze goes out, then comes back at the art in the mirror's colour.
+            let (reach, returning) = match (a.reflected, p < 0.5) {
+                (true, true) => (2.0 * p, false),
+                (true, false) => (2.0 * (1.0 - p), true),
+                (false, _) => (p, false),
+            };
+            let end = art_x + (f32::from(span) * reach).round() as u16;
             if end <= art_x {
                 return Vec::new();
             }
-            let (ch, color, head) = if a.reflected {
+            let (ch, color, head) = if returning {
                 ('\u{2550}', Dos::LightCyan, '\u{25C4}')
             } else {
                 ('\u{2550}', Dos::LightMagenta, '\u{25BA}')
             };
-            let mut cells: Vec<(u16, u16, char, Dos)> = (art_x + 1..end)
-                .map(|x| (x, 2 + art_rows / 2, ch, color))
-                .collect();
-            cells.push((end, 2 + art_rows / 2, head, color));
+            let row = 2 + art_rows / 2;
+            let mut cells: Vec<(u16, u16, char, Dos)> =
+                (art_x + 1..end).map(|x| (x, row, ch, color)).collect();
+            cells.push((end, row, head, color));
             cells
         }
         Intent::Bite => {
@@ -1020,6 +1028,25 @@ fn duel_art(avatar: Option<BlackClass>, shadow_art: Option<&str>, p: &Palette) -
     }
 }
 
+/// The last `rows` wrapped rows of a log, oldest first. Walks the log from the newest entry
+/// and stops once enough rows are collected, so a full log is not re-wrapped every frame.
+fn wrap_tail<'a, K: Copy>(
+    items: impl DoubleEndedIterator<Item = (K, &'a str)>,
+    width: usize,
+    rows: usize,
+) -> Vec<(K, String)> {
+    let mut out: Vec<(K, String)> = Vec::with_capacity(rows + 2);
+    for (kind, text) in items.rev() {
+        out.extend(wrap_lines(text, width).into_iter().rev().map(|l| (kind, l)));
+        if out.len() >= rows {
+            break;
+        }
+    }
+    out.truncate(rows);
+    out.reverse();
+    out
+}
+
 /// The DAEMON console: title, briefing, status row, a scrolling log and the prompt line.
 fn render_daemon(g: &daemon::Daemon, buf: &mut Buffer, area: Rect, p: &Palette) {
     title_rule(buf, area, &format!("DAEMON  {} CONSOLE", g.os_name()), p);
@@ -1062,19 +1089,9 @@ fn render_daemon(g: &daemon::Daemon, buf: &mut Buffer, area: Rect, p: &Palette) 
         12,
         fg(p, time_color),
     );
-    let wrapped: Vec<(daemon::LogKind, String)> = g
-        .log
-        .iter()
-        .flat_map(|(k, l)| {
-            wrap_lines(l, 76)
-                .into_iter()
-                .map(|line| (*k, line))
-                .collect::<Vec<_>>()
-        })
-        .collect();
     let rows = 15usize;
-    let shown = wrapped.len().saturating_sub(rows);
-    for (i, (kind, line)) in wrapped[shown..].iter().enumerate() {
+    let wrapped = wrap_tail(g.log.iter().map(|(k, l)| (*k, l.as_str())), 76, rows);
+    for (i, (kind, line)) in wrapped.iter().enumerate() {
         let style = match kind {
             daemon::LogKind::Echo => fg(p, Dos::LightGreen),
             daemon::LogKind::Output => fg(p, Dos::LightGray),
@@ -1121,8 +1138,8 @@ fn render_duel(
         )
     };
     title_rule(buf, area, &title, p);
-    let art_w = art.iter().map(Vec::len).max().unwrap_or(0) as u16;
-    let art_rows = art.len() as u16;
+    let art_w = (art.iter().map(Vec::len).max().unwrap_or(0) as u16).min(40);
+    let art_rows = (art.len() as u16).min(area.height.saturating_sub(4));
     let offset = anim.map(anim_offset).unwrap_or(0);
     let tint = anim.and_then(anim_tint);
     for (r, row) in art.iter().take(usize::from(area.height) - 4).enumerate() {
@@ -1231,10 +1248,8 @@ fn render_duel(
         );
     }
 
-    let wrapped: Vec<String> = g.log().iter().flat_map(|l| wrap_lines(l, 34)).collect();
-    let rows = 9;
-    let shown = wrapped.len().saturating_sub(rows);
-    for (i, line) in wrapped[shown..].iter().enumerate() {
+    let wrapped = wrap_tail(g.log().iter().map(|l| ((), l.as_str())), 34, 9);
+    for (i, (_, line)) in wrapped.iter().enumerate() {
         put_str(buf, rx, area.y + 10 + u(i), line, 35, fg(p, Dos::LightGray));
     }
 
@@ -1567,17 +1582,16 @@ mod tests {
     #[test]
     fn daemon_console_takes_typed_spaces_through_the_key_path() {
         let mut view = IceView::daemon(&mut rng("dm"), HostOs::Unix, IceGrade::Standard);
-        let solution = view.daemon_game().unwrap().solution();
-        let first = solution[0].clone();
+        // A fixed line with a space, so the test cannot pass on a one-word card.
+        let first = "ls -a";
         for c in first.chars() {
-            let input = if c == ' ' {
-                ice_input(Key::Char(' '))
-            } else {
-                ice_input(Key::Char(c))
-            }
-            .expect("typed input maps");
-            view.handle(input);
+            view.handle(ice_input(Key::Char(c)).expect("typed input maps"));
         }
+        assert_eq!(
+            view.daemon_game().unwrap().input,
+            first,
+            "the space reached the buffer"
+        );
         // The live prompt row (row 20 of the view, one above the footer) shows what is typed.
         let typed = screen_text(&draw(&view).0);
         let prompt_row = typed.lines().nth(21).unwrap_or("");

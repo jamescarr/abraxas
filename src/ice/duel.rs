@@ -94,7 +94,7 @@ pub enum Intent {
     Gaze,
     /// Hydra: three quarters attack, three quick bites.
     Bite,
-    /// Hydra: heals 15% of its max strength.
+    /// Hydra: heals `REGEN_PCT`% of its max strength.
     Regrow,
     /// Shadow: hits for your last attack damage.
     Mirror,
