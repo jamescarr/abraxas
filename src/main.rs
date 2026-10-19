@@ -39,6 +39,9 @@ fn run() -> anyhow::Result<ExitCode> {
         Some(Cmd::Pack {
             cmd: PackCmd::Check { .. },
         }) => unreachable!("handled above"),
+        Some(Cmd::Serve { listen }) => {
+            abraxas::net::server::run(&cli.global, cfg, paths, &listen)?;
+        }
         Some(Cmd::Play) | None => abraxas::ui::run(&cli.global, cfg, paths)?,
     }
     Ok(ExitCode::SUCCESS)

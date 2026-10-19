@@ -64,6 +64,12 @@ pub enum Cmd {
         #[command(subcommand)]
         cmd: PackCmd,
     },
+    /// Run the hidden board: the same game over telnet, one line.
+    Serve {
+        /// Address to listen on.
+        #[arg(long, default_value = "127.0.0.1:2323", value_name = "ADDR")]
+        listen: String,
+    },
 }
 
 #[derive(Debug, Subcommand)]
