@@ -7,6 +7,7 @@ pub mod dream;
 pub mod game;
 pub mod ice;
 pub mod llm;
+pub mod net;
 pub mod oracle;
 pub mod pack;
 pub mod palette;

@@ -34,6 +34,8 @@ Without mise: `cargo run --release -- [flags]`.
 
 Other commands: `abraxas pack check [DIR]` validates a story pack; `abraxas pack dream [--levels N] [--choose integrate|repress|neutral|random]` generates levels headlessly with the real director and prints them (`mise run dream`).
 
+`abraxas serve [--listen ADDR]` runs the game as a telnet board instead of in your terminal. It listens on `127.0.0.1:2323` unless told otherwise; connect with `telnet 127.0.0.1 2323` from a window of at least 80x25. The board has one line: a second caller gets `LINE BUSY` until the first hangs up, and a caller who sends nothing for 15 minutes is dropped. Callers land on the login, play the same game in 16 colours, and share saves and the caller list with local play (the same `ABRAXAS_HOME`). The port speaks plain telnet with no authentication, so bind it to localhost or a private network, never to the open internet.
+
 ## How to play
 
 1. Boot the terminal program, pick **NIGHT SHIFT BBS** from the dialing directory, and let the line cross. Register a handle (your persona) and a real name (the self: only the Shadow and Wren use it).
