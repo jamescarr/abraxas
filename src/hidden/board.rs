@@ -195,27 +195,32 @@ fn is_ice(path: &Path) -> bool {
         .is_some_and(|e| e.eq_ignore_ascii_case("ice"))
 }
 
-/// `"{title} by {author} ({group})"` (the parts that exist), with the title cut so the credit
-/// survives inside [`DESCRIPTION_MAX`] characters. `None` without a title.
+/// `"{title} by {author} ({group})"` (the parts that exist). The credit comes first: the title is
+/// cut to what [`DESCRIPTION_MAX`] leaves, and a credit that leaves the title fewer than
+/// [`MIN_TITLE`] characters stands alone (cut only when it is too long by itself). `None` when
+/// the SAUCE names no title, author or group.
 fn sauce_description(sauce: &ans::Sauce) -> Option<String> {
-    if sauce.title.is_empty() {
-        return None;
-    }
     let mut credit = String::new();
     if !sauce.author.is_empty() {
-        credit.push_str(&format!(" by {}", sauce.author));
+        credit.push_str(&format!("by {}", sauce.author));
     }
     if !sauce.group.is_empty() {
-        credit.push_str(&format!(" ({})", sauce.group));
+        if !credit.is_empty() {
+            credit.push(' ');
+        }
+        credit.push_str(&format!("({})", sauce.group));
     }
-    let room = DESCRIPTION_MAX.saturating_sub(credit.chars().count());
-    if room < MIN_TITLE {
-        // An enormous credit: cut the whole line.
-        let all = format!("{}{credit}", sauce.title);
-        return Some(all.chars().take(DESCRIPTION_MAX).collect());
+    let title = sauce.title.trim();
+    if credit.is_empty() {
+        return (!title.is_empty()).then(|| title.chars().take(DESCRIPTION_MAX).collect());
     }
-    let title: String = sauce.title.chars().take(room).collect();
-    Some(format!("{}{credit}", title.trim_end()))
+    // One space separates the title from the credit.
+    let room = DESCRIPTION_MAX.saturating_sub(credit.chars().count() + 1);
+    if room < MIN_TITLE || title.is_empty() {
+        return Some(credit.chars().take(DESCRIPTION_MAX).collect());
+    }
+    let cut: String = title.chars().take(room).collect();
+    Some(format!("{} {credit}", cut.trim_end()))
 }
 
 /// The artpack directory's name, used when a file carries no SAUCE title.
@@ -474,5 +479,29 @@ mod tests {
             ..bare
         };
         assert_eq!(sauce_description(&untitled), None);
+        // No title but a credit: the credit is the description, not the directory name.
+        let credit_only = ans::Sauce {
+            author: "ZORK".to_string(),
+            group: "ACiD".to_string(),
+            ..untitled.clone()
+        };
+        assert_eq!(sauce_description(&credit_only).unwrap(), "by ZORK (ACiD)");
+        // A credit that crowds the title out stands alone; one that is too long alone is cut.
+        let crowded = ans::Sauce {
+            title: "THE TITLE".to_string(),
+            author: "A".repeat(17),
+            group: "B".repeat(12),
+            ..untitled.clone()
+        };
+        let text = sauce_description(&crowded).unwrap();
+        assert_eq!(text, format!("by {} ({})", "A".repeat(17), "B".repeat(12)));
+        let huge = ans::Sauce {
+            author: "C".repeat(60),
+            ..crowded
+        };
+        assert_eq!(
+            sauce_description(&huge).unwrap().chars().count(),
+            DESCRIPTION_MAX
+        );
     }
 }

@@ -1,6 +1,8 @@
 //! The help overlay: keys and the host-shell commands. Drawn by the app over any screen
 //! (`Overlay::Help`); it is not a `Screen`.
 
+use std::path::{Path, PathBuf};
+
 use ratatui::buffer::Buffer;
 use ratatui::layout::Rect;
 
@@ -82,9 +84,14 @@ pub fn render(buf: &mut Buffer, canvas: Rect, ctx: &Ctx) {
             text,
         );
     }
+    let label = "Hidden line: ";
     let hidden = match ctx.hidden.path() {
-        Some(path) => format!("Hidden line: {}", path.display()),
-        None => "Hidden line: unavailable".to_string(),
+        Some(path) => {
+            let home = std::env::var_os("HOME").map(PathBuf::from);
+            let room = usize::from(inner.width.saturating_sub(2)).saturating_sub(label.len());
+            format!("{label}{}", shown_path(path, home.as_deref(), room))
+        }
+        None => format!("{label}unavailable"),
     };
     put_str(
         buf,
@@ -102,6 +109,22 @@ pub fn render(buf: &mut Buffer, canvas: Rect, ctx: &Ctx) {
         inner.width.saturating_sub(2),
         p.style(Dos::LightCyan, Dos::Blue),
     );
+}
+
+/// A socket path as the help line shows it: the home directory as `$HOME` (the text then pastes
+/// into a quoted shell word), and a path still longer than `max` characters keeps its tail
+/// behind `...`.
+fn shown_path(path: &Path, home: Option<&Path>, max: usize) -> String {
+    let text = match home.and_then(|h| path.strip_prefix(h).ok()) {
+        Some(rest) => format!("$HOME/{}", rest.display()),
+        None => path.display().to_string(),
+    };
+    let len = text.chars().count();
+    if len <= max {
+        return text;
+    }
+    let tail: String = text.chars().skip(len - max.saturating_sub(3)).collect();
+    format!("...{tail}")
 }
 
 #[cfg(test)]
@@ -125,5 +148,49 @@ mod tests {
         }
         assert!(all.contains("Esc closes this help."));
         assert!(all.contains("Hidden line: unavailable"));
+    }
+
+    #[test]
+    fn the_default_macos_socket_path_fits_with_home_abbreviated() {
+        let home = Path::new("/Users/jamescarr");
+        let path = home.join("Library/Application Support/abraxas/abraxas.sock");
+        let room = 72 - "Hidden line: ".len();
+        assert!(
+            path.display().to_string().chars().count() > room,
+            "it needs the shortening"
+        );
+        assert_eq!(
+            shown_path(&path, Some(home), room),
+            "$HOME/Library/Application Support/abraxas/abraxas.sock"
+        );
+        let elsewhere = Path::new("/tmp/abx/abraxas.sock");
+        assert_eq!(
+            shown_path(elsewhere, Some(home), room),
+            "/tmp/abx/abraxas.sock"
+        );
+    }
+
+    #[test]
+    fn a_path_too_long_even_so_keeps_its_tail() {
+        let path = Path::new("/very/long/directory/name/that/goes/on/and/on/abraxas.sock");
+        let shown = shown_path(path, None, 20);
+        assert_eq!(shown.chars().count(), 20);
+        assert!(shown.starts_with("..."), "{shown}");
+        assert!(shown.ends_with("on/abraxas.sock"), "{shown}");
+    }
+
+    #[test]
+    fn help_shows_the_socket_path_when_listening() {
+        let dir = tempfile::Builder::new().prefix("hl").tempdir().unwrap();
+        let mut ctx = test_ctx(dir.path());
+        let socket = dir.path().join("s.sock");
+        ctx.hidden.listen(socket.clone()).unwrap();
+        let area = Rect::new(0, 0, 80, 25);
+        let mut buf = Buffer::empty(area);
+        render(&mut buf, area, &ctx);
+        let all: String = (0..25).map(|y| row_text(&buf, area, y) + "\n").collect();
+        let row = all.lines().find(|l| l.contains("Hidden line:")).unwrap();
+        assert!(row.contains("s.sock"), "{row}");
+        assert!(!row.contains("unavailable"), "{row}");
     }
 }

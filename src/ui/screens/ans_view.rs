@@ -147,22 +147,24 @@ impl ScreenImpl for AnsViewScreen {
             1,
         );
         fill(buf, footer_area, style);
-        let footer = if self.done {
+        let suffix = if self.done {
             format!(
-                "{}  rows {}-{} of {}  Up/Down PgUp/PgDn scroll, Esc leaves",
-                self.title,
+                "  rows {}-{} of {}  Up/Down PgUp/PgDn scroll, Esc leaves",
                 self.top + 1,
                 (self.top + ROWS).min(self.rows()),
                 self.rows()
             )
         } else {
             format!(
-                "{}  RX {}/{} chars  any key completes",
-                self.title,
+                "  RX {}/{} chars  any key completes",
                 self.fed,
                 self.text.len()
             )
         };
+        // A long title gives way: the counters and the key hints always show.
+        let room = usize::from(footer_area.width).saturating_sub(suffix.chars().count());
+        let title: String = self.title.chars().take(room).collect();
+        let footer = format!("{title}{suffix}");
         put_str(
             buf,
             footer_area.x,
@@ -275,5 +277,22 @@ mod tests {
         assert_eq!(screen.top, 35);
         let text = screen_text(&screen, &ctx);
         assert!(text.contains("line 35"), "{text}");
+    }
+
+    #[test]
+    fn a_long_title_never_hides_the_footer_hints() {
+        let (_dir, mut ctx) = rig(9600);
+        let title = format!(
+            "{}  {}",
+            "NEWS0396.ANS", "ACiD Newsletter Issue #11 (03/96) by ACiD"
+        );
+        let mut screen = AnsViewScreen::new(&mut ctx, title.clone(), &"x".repeat(2000), false);
+        screen.tick(Duration::from_millis(200), &mut ctx);
+        let footer = row_text(&render_buffer(&screen, &ctx), Rect::new(0, 0, 80, 25), 24);
+        assert!(footer.trim_end().ends_with("any key completes"), "{footer}");
+        screen.handle_key(press_char('a'), &mut ctx);
+        let footer = row_text(&render_buffer(&screen, &ctx), Rect::new(0, 0, 80, 25), 24);
+        assert!(footer.trim_end().ends_with("Esc leaves"), "{footer}");
+        assert!(footer.starts_with("NEWS0396.ANS"), "{footer}");
     }
 }

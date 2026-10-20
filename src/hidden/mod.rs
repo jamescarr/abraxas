@@ -132,6 +132,12 @@ impl HiddenLine {
     pub(crate) fn generation(&self) -> u64 {
         self.lock().0
     }
+
+    /// The published snapshot (tests only).
+    #[cfg(test)]
+    pub(crate) fn board(&self) -> Option<Arc<BoardSnapshot>> {
+        self.lock().1.clone()
+    }
 }
 
 impl Drop for HiddenLine {
@@ -284,7 +290,8 @@ fn run_line(writer: &mut UnixStream, session: &mut Session, shared: &Shared, lin
 /// What a non-blocking read on the client saw while art was streaming.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum Probe {
-    /// The caller hung up.
+    /// The caller closed its sending side, as a script does with `printf 'TYPE X\n' | nc -U`.
+    /// That is no input and no hang-up (a vanished caller fails the next write).
     Gone,
     /// The caller pressed a key (any line skips).
     Input,
@@ -292,8 +299,9 @@ enum Probe {
     Idle,
 }
 
-/// Stream raw ANSI at `baud` B (0 = instant). Any client input skips to the end; a hangup stops
-/// early. Always closes with a reset.
+/// Stream terminal text at `baud` B (0 = instant). Any client input skips to the end; a caller
+/// that closed its sending side still gets the whole piece, and one that vanished ends it with
+/// a failed write. Always closes with a reset.
 fn stream_at_baud(
     stream: &mut UnixStream,
     text: &str,
@@ -310,6 +318,7 @@ fn stream_at_baud(
     let cps = u64::from((baud / 10).max(1));
     let chunk = usize::try_from((cps / 20).max(1)).unwrap_or(1);
     let mut i = 0;
+    let mut listening = true;
     while i < chars.len() {
         if shutdown.load(Ordering::Relaxed) {
             break;
@@ -323,19 +332,16 @@ fn stream_at_baud(
             break;
         }
         std::thread::sleep(Duration::from_millis(50));
-        match probe(stream)? {
-            Probe::Gone => {
-                return Err(std::io::Error::new(
-                    std::io::ErrorKind::ConnectionAborted,
-                    "the caller hung up",
-                ));
+        if listening {
+            match probe(stream)? {
+                Probe::Gone => listening = false,
+                Probe::Input => {
+                    stream.write_all(b"\x1b[0m\n*** skipped.\n")?;
+                    stream.flush()?;
+                    return Ok(());
+                }
+                Probe::Idle => {}
             }
-            Probe::Input => {
-                stream.write_all(b"\x1b[0m\n*** skipped.\n")?;
-                stream.flush()?;
-                return Ok(());
-            }
-            Probe::Idle => {}
         }
     }
     stream.write_all(b"\x1b[0m\n")?;

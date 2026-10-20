@@ -25,7 +25,8 @@ use crate::game::programs;
 use crate::game::save::{CallerRecord, CallerStatus, SaveStore};
 use crate::game::seed::ensure_level;
 use crate::game::state::{
-    ClockReading, GenSource, HostInfo, IrcFile, Level, Passage, Place, RunState, Sysop,
+    Backdoor, ClockReading, GenSource, HostInfo, IrcFile, Level, Passage, Phase, Place, RunState,
+    Sysop,
 };
 use crate::hidden::board::{self, HIDDEN_BOT};
 use crate::hidden::{HiddenEvent, HiddenLine};
@@ -633,7 +634,8 @@ pub fn apply_director_event(ctx: &mut Ctx, ev: DirectorEvent) {
 }
 
 /// Apply one request from a hidden-line session to the run and save. A backdoor for a board the
-/// player has already left is ignored.
+/// player has already left is ignored, and a backdoor only moves forward: a session can hold a
+/// snapshot a frame old, so an event may arrive out of date.
 pub fn apply_hidden_event(ctx: &mut Ctx, ev: HiddenEvent) {
     let Some(run) = ctx.run.as_mut() else {
         return;
@@ -641,7 +643,17 @@ pub fn apply_hidden_event(ctx: &mut Ctx, ev: HiddenEvent) {
     match ev {
         HiddenEvent::Backdoor { depth, state } => {
             if depth == run.depth {
-                run.backdoors.insert(depth, state);
+                let slot = run.backdoors.entry(depth).or_default();
+                *slot = match (*slot, state) {
+                    // Planted and locked are final; misses only count up.
+                    (Backdoor::Planted | Backdoor::Locked, _) => *slot,
+                    (Backdoor::Open { misses: held }, Backdoor::Open { misses }) => {
+                        Backdoor::Open {
+                            misses: held.max(misses),
+                        }
+                    }
+                    (_, state) => state,
+                };
             }
         }
         HiddenEvent::Download { depth, file } => {
@@ -790,6 +802,16 @@ impl App {
     /// session would reset in the middle of a TAP.
     fn publish_board(&mut self, touched: bool) {
         if self.ctx.hidden.path().is_none() {
+            return;
+        }
+        // Mid-descent the old board stays up: the exit taken is already the next level's but the
+        // depth has not changed, so a snapshot now would describe a host that never existed.
+        if self
+            .ctx
+            .run
+            .as_ref()
+            .is_some_and(|r| matches!(r.phase, Phase::Descending { .. }))
+        {
             return;
         }
         let key = self.ctx.run.as_ref().map(|r| {
@@ -1985,5 +2007,65 @@ mod tests {
             start + 2,
             "a dump shock re-rolls"
         );
+    }
+
+    #[test]
+    fn a_stale_backdoor_event_cannot_undo_a_planted_or_locked_one() {
+        let dir = tempfile::tempdir().unwrap();
+        let mut ctx = test_ctx(dir.path());
+        install_test_run(&mut ctx, 2);
+        let send = |ctx: &mut Ctx, state: Backdoor| {
+            apply_hidden_event(ctx, HiddenEvent::Backdoor { depth: 2, state });
+        };
+        let held = |ctx: &Ctx| ctx.run.as_ref().unwrap().backdoors.get(&2).copied();
+        send(&mut ctx, Backdoor::Open { misses: 2 });
+        send(&mut ctx, Backdoor::Open { misses: 1 });
+        assert_eq!(held(&ctx), Some(Backdoor::Open { misses: 2 }));
+        send(&mut ctx, Backdoor::Planted);
+        send(&mut ctx, Backdoor::Open { misses: 1 });
+        send(&mut ctx, Backdoor::Locked);
+        assert_eq!(held(&ctx), Some(Backdoor::Planted));
+        ctx.run.as_mut().unwrap().backdoors.clear();
+        send(&mut ctx, Backdoor::Locked);
+        send(&mut ctx, Backdoor::Planted);
+        assert_eq!(held(&ctx), Some(Backdoor::Locked));
+    }
+
+    #[test]
+    fn the_old_board_stays_up_until_the_descent_arrives() {
+        let dir = tempfile::Builder::new().prefix("hl").tempdir().unwrap();
+        let mut ctx = test_ctx(dir.path());
+        ctx.hidden.listen(dir.path().join("s.sock")).unwrap();
+        install_test_run(&mut ctx, 2);
+        let pack = ctx.pack.clone();
+        let mut app = App::new(ctx);
+        let dt = Duration::from_millis(16);
+        app.step(None, dt);
+        let first = app.ctx.hidden.generation();
+        let before = app.ctx.hidden.board().expect("the first board");
+        {
+            let run = app.ctx.run.as_mut().unwrap();
+            assert!(run.apply_choice(&pack, 0));
+            assert!(run.apply_exit(1), "the DEEP exit");
+            assert_eq!(run.depth, 2, "still on the old level");
+        }
+        // A caller's own request lands mid-descent: it refreshes nothing, because a snapshot
+        // built now would use the next level's exit on this level's host.
+        let (tx, rx) = std::sync::mpsc::channel();
+        app.ctx.hidden_events = rx;
+        tx.send(HiddenEvent::Learn(programs::Program::WinNuke))
+            .unwrap();
+        app.step(None, dt);
+        assert_eq!(app.ctx.hidden.generation(), first, "no board mid-descent");
+        let held = app.ctx.hidden.board().unwrap();
+        assert!(std::sync::Arc::ptr_eq(&before, &held), "no refresh either");
+        app.ctx.run.as_mut().unwrap().arrive(3);
+        app.step(None, dt);
+        assert_eq!(
+            app.ctx.hidden.generation(),
+            first + 1,
+            "one board on arrival"
+        );
+        assert_eq!(app.ctx.hidden.board().unwrap().depth, 3);
     }
 }

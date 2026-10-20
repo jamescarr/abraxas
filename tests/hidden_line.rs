@@ -128,7 +128,12 @@ fn the_hidden_line_serves_a_board() {
     caller.write_all(b"TYPE PACK.ANS\n").unwrap();
     let typed = read_until(&mut caller, "> ");
     assert!(typed.contains("at modem speed"), "{typed}");
-    assert!(typed.contains("\u{1b}[31mhi"), "{typed}");
+    // The art is redrawn as explicit rows (red on black), not replayed byte for byte.
+    assert!(
+        typed.contains("\u{1b}[38;5;1;48;5;0mhi\u{1b}[0m\r\n"),
+        "{typed}"
+    );
+    assert!(!typed.contains("\u{1b}[31m"), "{typed}");
     assert!(typed.contains("\u{1b}[0m\n"), "{typed}");
 
     caller.write_all(b"TYPE WINNUKE.TXT\n").unwrap();
@@ -223,4 +228,30 @@ fn the_hidden_line_serves_a_board() {
     drop(caller);
     drop(line);
     assert!(!socket.exists(), "dropping the line removes the socket");
+}
+
+#[test]
+fn art_finishes_for_a_caller_that_closed_its_sending_side() {
+    let dir = tempfile::Builder::new().prefix("hl").tempdir().unwrap();
+    let path = dir.path().join("s.sock");
+    let (tx, _rx) = channel();
+    let mut line = HiddenLine::idle(tx, 9600);
+    line.listen(path.clone()).unwrap();
+    let mut board = snapshot(0, Backdoor::default());
+    board.files[1].kind = ZineKind::Ans {
+        text: "hello\r\n".repeat(8),
+    };
+    line.publish(Some(board));
+
+    let mut caller = connect(&path);
+    assert!(read_until(&mut caller, "> ").contains("ABRAXAS HIDDEN LINE"));
+    // A script: the command, then the sending side closes (`printf 'TYPE X\n' | nc -U`). The
+    // art is paced at 9600 baud over several chunks and must still arrive whole.
+    caller.write_all(b"TYPE PACK.ANS\n").unwrap();
+    caller.shutdown(std::net::Shutdown::Write).unwrap();
+    let mut out = Vec::new();
+    caller.read_to_end(&mut out).unwrap();
+    let out = String::from_utf8_lossy(&out);
+    assert!(out.contains("*** PACK.ANS"), "{out}");
+    assert_eq!(out.matches("hello").count(), 8, "{out}");
 }

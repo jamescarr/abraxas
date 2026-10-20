@@ -22,6 +22,8 @@ pub const EXTENSIONS: [&str; 2] = ["ans", "ice"];
 
 /// How many directory levels below the starting directory `scan` descends.
 const MAX_DEPTH: usize = 4;
+/// Longest parameter/intermediate run kept for one escape sequence; a longer one is abandoned.
+const MAX_CSI: usize = 64;
 /// The SAUCE header is the last 128 bytes of a file.
 const SAUCE_LEN: usize = 128;
 
@@ -112,6 +114,36 @@ pub fn from_pipe(text: &str) -> String {
         }
     }
     out.push_str("\u{1b}[0m");
+    out
+}
+
+/// The canvas as explicit terminal rows, for a client of any width: a 256-colour SGR per colour
+/// run, a reset and CRLF at every row end, trailing blank cells dropped. Cursor moves, wraps at
+/// column 80 and iCE colours are resolved here, so the client needs no ANSI.SYS behaviour.
+pub fn to_terminal(text: &str, ice_colors: bool) -> String {
+    let mut canvas = Canvas::new(ice_colors);
+    canvas.feed_str(text);
+    let mut out = String::new();
+    for r in 0..canvas.rows() {
+        let row = canvas.row(r);
+        let end = row
+            .iter()
+            .rposition(|cell| *cell != Cell::default())
+            .map_or(0, |i| i + 1);
+        let mut style: Option<(Dos, Dos)> = None;
+        for cell in &row[..end] {
+            if style != Some((cell.fg, cell.bg)) {
+                out.push_str(&format!(
+                    "\u{1b}[38;5;{};48;5;{}m",
+                    cell.fg.ansi_index(),
+                    cell.bg.ansi_index()
+                ));
+                style = Some((cell.fg, cell.bg));
+            }
+            out.push(cell.ch);
+        }
+        out.push_str("\u{1b}[0m\r\n");
+    }
     out
 }
 
@@ -244,22 +276,28 @@ impl Canvas {
     pub fn feed(&mut self, c: char) {
         match std::mem::replace(&mut self.esc, EscState::None) {
             EscState::None => self.plain(c),
-            EscState::Esc => {
-                if c == '[' {
+            EscState::Esc => match c {
+                '[' => {
                     self.esc = EscState::Csi {
                         params: String::new(),
                     };
                 }
-            }
-            EscState::Csi { mut params } => {
-                let starts_param = params.is_empty() && (c == '?' || c == '=');
-                if c.is_ascii_digit() || c == ';' || starts_param {
+                // A second ESC restarts the sequence; anything else drops both characters.
+                '\u{1b}' => self.esc = EscState::Esc,
+                _ => {}
+            },
+            EscState::Csi { mut params } => match c {
+                // Parameter bytes (digits, `;`, `:` and the private markers `< = > ?`) and
+                // intermediate bytes (space to `/`) keep the sequence open; a final byte
+                // (`@` to `~`) ends it.
+                '0'..='?' | ' '..='/' if params.len() < MAX_CSI => {
                     params.push(c);
                     self.esc = EscState::Csi { params };
-                } else if ('@'..='~').contains(&c) {
-                    self.csi(&params, c);
                 }
-            }
+                '@'..='~' => self.csi(&params, c),
+                // A control character or a runaway sequence is abandoned.
+                _ => {}
+            },
         }
     }
 
@@ -345,6 +383,11 @@ impl Canvas {
     }
 
     fn csi(&mut self, params: &str, final_char: char) {
+        // Private (`?7h`), intermediate-byte and sub-parameter (`38:5:n`) forms are not the
+        // sequences art draws with: they are consumed and ignored, whatever their final byte.
+        if !params.chars().all(|c| c.is_ascii_digit() || c == ';') {
+            return;
+        }
         let values: Vec<u32> = if params.is_empty() {
             Vec::new()
         } else {
@@ -354,15 +397,7 @@ impl Canvas {
                 .collect()
         };
         match final_char {
-            'm' => {
-                if values.is_empty() {
-                    self.sgr(0);
-                } else {
-                    for &value in &values {
-                        self.sgr(value);
-                    }
-                }
-            }
+            'm' => self.sgr_params(&values),
             'A' => {
                 self.row = self.row.saturating_sub(count(&values, 0)).min(MAX_ROWS - 1);
                 self.touch(self.row);
@@ -422,6 +457,51 @@ impl Canvas {
                 self.blink = true;
             }
             _ => {}
+        }
+    }
+
+    /// Apply an SGR parameter list. The extended-colour forms (`38;5;n`, `38;2;r;g;b` and their
+    /// `48` twins) are consumed as a unit so their numbers are never read as attributes.
+    fn sgr_params(&mut self, values: &[u32]) {
+        if values.is_empty() {
+            self.sgr(0);
+            return;
+        }
+        let mut i = 0;
+        while i < values.len() {
+            let value = values[i];
+            i += 1;
+            if value != 38 && value != 48 {
+                self.sgr(value);
+                continue;
+            }
+            match values.get(i) {
+                Some(5) => {
+                    if let Some(&n) = values.get(i + 1) {
+                        self.indexed(value == 38, n);
+                    }
+                    i += 2;
+                }
+                Some(2) => i += 4,
+                _ => {}
+            }
+        }
+    }
+
+    /// One of the first 16 colours of the 256-colour palette; the rest have no 16-colour
+    /// equivalent and are left as they were.
+    fn indexed(&mut self, foreground: bool, n: u32) {
+        if n >= 16 {
+            return;
+        }
+        let colour = sgr_dos(n % 8);
+        let bright = n >= 8;
+        if foreground {
+            self.fg = colour;
+            self.bright = bright;
+        } else {
+            self.bg = colour;
+            self.blink = bright;
         }
     }
 
@@ -619,5 +699,64 @@ mod tests {
         );
         assert_eq!(canvas.row(0)[3].fg, Dos::LightGray);
         assert_eq!(canvas.row(1)[0].fg, Dos::LightBlue);
+    }
+
+    #[test]
+    fn private_and_intermediate_sequences_are_consumed_whole() {
+        let mut canvas = Canvas::new(false);
+        canvas.feed_str("\u{1b}[?7h\u{1b}[=7h\u{1b}[?25l\u{1b}[0 qX");
+        assert_eq!(canvas.row(0)[0].ch, 'X');
+        assert_eq!(canvas.rows(), 1);
+        // A private-mode sequence ending in a final byte we do implement is not that command.
+        let mut private = Canvas::new(false);
+        private.feed_str("ab\u{1b}[?1HX");
+        assert_eq!(private.row(0)[2].ch, 'X');
+    }
+
+    #[test]
+    fn a_sequence_split_across_feeds_still_parses() {
+        let mut canvas = Canvas::new(false);
+        canvas.feed_str("\u{1b}[1;3");
+        canvas.feed_str("1mX");
+        assert_eq!(canvas.row(0)[0].fg, Dos::LightRed);
+    }
+
+    #[test]
+    fn extended_colours_are_mapped_or_skipped_never_read_as_attributes() {
+        let mut canvas = Canvas::new(false);
+        canvas.feed_str("\u{1b}[38;5;9mA\u{1b}[38;2;1;2;3mB\u{1b}[38:5:196mC");
+        // Index 9 is bright red; the truecolour and colon forms leave it alone.
+        for x in 0..3 {
+            assert_eq!(canvas.row(0)[x].fg, Dos::LightRed, "column {x}");
+        }
+        // None of the numbers was taken for SGR 5 (blink), which iCE would show as a bright
+        // background.
+        let mut ice = Canvas::new(true);
+        ice.feed_str("\u{1b}[38;5;196mX\u{1b}[48;5;4mY");
+        assert_eq!(ice.row(0)[0].bg, Dos::Black);
+        assert_eq!(ice.row(0)[1].bg, Dos::Blue);
+    }
+
+    #[test]
+    fn terminal_rows_do_not_depend_on_the_client_width() {
+        assert_eq!(
+            to_terminal("ab   \r\ncd", false),
+            "\u{1b}[38;5;7;48;5;0mab\u{1b}[0m\r\n\u{1b}[38;5;7;48;5;0mcd\u{1b}[0m\r\n"
+        );
+        // A full row wraps in the canvas where ANSI.SYS wrapped it, so what follows lands on the
+        // next row whatever the client's width.
+        let rows = to_terminal(&format!("{}\u{1b}[2Cy", "x".repeat(80)), false);
+        let lines: Vec<&str> = rows.split("\r\n").collect();
+        assert_eq!(lines.len(), 3, "{rows:?}");
+        assert_eq!(
+            lines[0],
+            format!("\u{1b}[38;5;7;48;5;0m{}\u{1b}[0m", "x".repeat(80))
+        );
+        assert_eq!(lines[1], "\u{1b}[38;5;7;48;5;0m  y\u{1b}[0m");
+        // iCE: SGR 5 is a bright background, so it is sent as one.
+        assert_eq!(
+            to_terminal("\u{1b}[5;44m \u{1b}[0mx", true),
+            "\u{1b}[38;5;7;48;5;12m \u{1b}[38;5;7;48;5;0mx\u{1b}[0m\r\n"
+        );
     }
 }

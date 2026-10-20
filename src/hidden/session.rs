@@ -1,12 +1,14 @@
 //! The hidden line's line protocol: pure, socket-free and deterministic.
 //!
-//! [`Session`] turns one command line into a [`Reply`]: the text to write, optional raw ANSI to
-//! stream at modem speed, run events for the app, and whether to hang up. The listener thread in
+//! [`Session`] turns one command line into a [`Reply`]: the text to write, optional terminal text
+//! (ANSI art redrawn row by row) to stream at modem speed, run events for the app, and whether to
+//! hang up. The listener thread in
 //! [`super`] owns all I/O, so every rule here is unit-tested without threads.
 
 use std::collections::BTreeSet;
 use std::sync::Arc;
 
+use crate::ans;
 use crate::game::programs::Program;
 use crate::game::state::{BACKDOOR_MISSES, Backdoor};
 use crate::ice::phreak::dtmf;
@@ -31,7 +33,7 @@ enum Mode {
 pub struct Reply {
     /// Plain text, every line newline-terminated.
     pub text: String,
-    /// Raw ANSI to send at modem speed after `text`.
+    /// Terminal text to send at modem speed after `text`.
     pub stream: Option<String>,
     pub events: Vec<HiddenEvent>,
     /// Hang up after this reply.
@@ -247,7 +249,12 @@ impl Session {
                     "*** {file} ({} bytes) at modem speed. any line skips.\n",
                     body.chars().count()
                 );
-                (header, Some(format!("\u{1b}[0m\n{body}")), None)
+                // The art is redrawn through the same 80-column interpreter as the in-game
+                // viewer and sent as explicit rows, so it looks right in a terminal of any
+                // width and needs no ANSI.SYS wrapping or iCE blink handling from the client.
+                let ice = file.to_ascii_uppercase().ends_with(".ICE");
+                let rows = ans::to_terminal(body, ice);
+                (header, Some(format!("\u{1b}[0m\r\n{rows}")), None)
             }
             ZineKind::Article { body, attack } => {
                 if self.learned.contains(attack) {
@@ -529,14 +536,16 @@ mod tests {
     }
 
     #[test]
-    fn type_of_an_ans_file_streams_the_decoded_text() {
+    fn type_of_an_ans_file_streams_explicit_rows() {
         let (mut session, _) = open();
         let reply = session.line("TYPE PACK.ANS");
         assert!(reply.text.contains("*** PACK.ANS"));
         assert!(reply.text.contains("at modem speed"));
         let stream = reply.stream.expect("ANSI is streamed");
-        assert!(stream.starts_with("\u{1b}[0m\n"));
-        assert!(stream.contains("\u{1b}[31mhi"));
+        assert_eq!(
+            stream, "\u{1b}[0m\r\n\u{1b}[38;5;1;48;5;0mhi\u{1b}[0m\r\n",
+            "red on black, one explicit row"
+        );
     }
 
     #[test]

@@ -101,6 +101,9 @@ pub struct RunScreen {
     orphan: bool,
     /// First word of the last command (`put` sends, everything else receives).
     last_verb: String,
+    /// The hidden line's backdoor has been looked at for this host (checked at creation and on
+    /// every tick until a planted one opens the relay).
+    backdoor_synced: bool,
 }
 
 /// A placeholder level for a screen built without a run (never reached in play).
@@ -201,15 +204,6 @@ impl RunScreen {
         let mut session =
             HostSession::generate(&level, run_danger, exit_kind(ctx), attempt, seed, &daemons);
         session.set_player(player_view(ctx));
-        let backdoor = ctx
-            .run
-            .as_ref()
-            .is_some_and(|r| r.backdoors.get(&r.depth) == Some(&Backdoor::Planted));
-        let opened = if backdoor && !orphan {
-            session.open_backdoor()
-        } else {
-            None
-        };
         let choice_seen = ctx.run.as_ref().is_some_and(|r| {
             matches!(
                 r.phase,
@@ -231,6 +225,7 @@ impl RunScreen {
             choice_seen,
             orphan,
             last_verb: String::new(),
+            backdoor_synced: false,
         };
         if orphan {
             return screen;
@@ -244,12 +239,7 @@ impl RunScreen {
         let text = screen.session.banner().to_string();
         screen.push_wrapped(LineStyle::Normal, &text);
         screen.push_line(LineStyle::Normal, String::new());
-        if let Some((id, display)) = opened {
-            screen.push_wrapped(
-                LineStyle::Highlight,
-                &format!("BACKDOOR: {id} [{display}] answers before it asks. the relay is yours."),
-            );
-        }
+        screen.sync_backdoor(ctx);
         if screen.session.needs_login() {
             screen.push_line(LineStyle::Highlight, "ENTER PASSWORD NOW".to_string());
             screen.launch_ice(0, IceKindAt::Wordlock, ctx);
@@ -274,6 +264,30 @@ impl RunScreen {
 
     fn refresh_map(&mut self) {
         self.mini = MapGrid::build(&self.session.map_layout(), MapScale::Mini);
+    }
+
+    /// Once the hidden line has planted this board's backdoor, the PHREAK relay is open before
+    /// it is asked. Checked at creation and on every tick, so planting from the second terminal
+    /// while this shell is already open takes effect at once.
+    fn sync_backdoor(&mut self, ctx: &Ctx) {
+        if self.backdoor_synced {
+            return;
+        }
+        let planted = ctx
+            .run
+            .as_ref()
+            .is_some_and(|r| r.backdoors.get(&r.depth) == Some(&Backdoor::Planted));
+        if !planted {
+            return;
+        }
+        self.backdoor_synced = true;
+        if let Some((id, display)) = self.session.open_backdoor() {
+            self.refresh_map();
+            self.push_wrapped(
+                LineStyle::Highlight,
+                &format!("BACKDOOR: {id} [{display}] answers before it asks. the relay is yours."),
+            );
+        }
     }
 
     /// The guarded node of the running ICE view (tests).
@@ -623,6 +637,7 @@ impl ScreenImpl for RunScreen {
         if self.orphan {
             return Nav::Back;
         }
+        self.sync_backdoor(ctx);
         if !self.choice_seen
             && ctx.run.as_ref().is_some_and(|r| {
                 matches!(
@@ -1447,6 +1462,28 @@ mod tests {
         r.skip_login();
         assert!(r.run().session.phreak_node().is_none());
         assert!(!r.text().contains("BACKDOOR:"));
+    }
+
+    #[test]
+    fn a_backdoor_planted_while_the_shell_is_open_opens_the_relay_at_once() {
+        let mut r = rig(4);
+        r.skip_login();
+        let (id, near) = {
+            let relay = r.run().session.phreak_node().expect("depth 4 has a relay");
+            assert!(relay.guarded());
+            (relay.id.clone(), relay.neighbors[0])
+        };
+        // The hidden line plants it from the second terminal; the app records it on the run.
+        let run = r.ctx().run.as_mut().unwrap();
+        run.backdoors.insert(run.depth, Backdoor::Planted);
+        r.wait(0.1);
+        assert!(!r.run().session.phreak_node().unwrap().guarded());
+        let text = r.text();
+        assert!(text.contains("BACKDOOR:"), "{text}");
+        r.run().session.current = near;
+        r.type_line(&format!("connect {id}"));
+        assert!(r.in_shell(), "no WATCH THE LINE screen");
+        assert_eq!(r.run().session.current_node().id, id);
     }
 
     /// Connect to a DAEMON gate somewhere; the first seed/depth that has one is enough.
