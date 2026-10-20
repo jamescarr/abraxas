@@ -1,11 +1,24 @@
 [package]
-name = "abraxas"
+name = "abraxas-bbs"
 version = "0.1.0"
 edition = "2024"
 rust-version = "1.88"
 description = "A 1999 BBS hacker game that dreams its own levels."
 license = "MIT"
-publish = false
+repository = "https://github.com/jamescarr/abraxas"
+homepage = "https://github.com/jamescarr/abraxas"
+readme = "README.md"
+keywords = ["game", "bbs", "terminal", "tui", "hacking"]
+categories = ["games", "command-line-utilities"]
+exclude = ["/.github", "/.mise", "/.mise.toml", "/docs", "/dist-workspace.toml"]
+
+[lib]
+name = "abraxas"
+path = "src/lib.rs"
+
+[[bin]]
+name = "abraxas"
+path = "src/main.rs"
 
 [dependencies]
 anyhow = "1"
@@ -38,3 +51,7 @@ expect_used = "deny"
 
 [profile.release]
 opt-level = 3
+
+[profile.dist]
+inherits = "release"
+lto = "thin"
