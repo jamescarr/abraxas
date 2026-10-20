@@ -24,6 +24,8 @@ const INTERLUDE: [&str; 4] = ["handle", "shadow", "real_name", "exit"];
 const ANY: usize = usize::MAX;
 const ART_MAX: (usize, usize) = (36, 16);
 const LOGO_MAX: (usize, usize) = (78, 8);
+/// Inline zine art on the hidden line (columns, rows).
+const ZINE_ART_MAX: (usize, usize) = (78, 20);
 const LOGO: &str = "abraxas-logo.txt";
 
 /// Every content-rule violation in `pack`. Empty when the pack is valid.
@@ -143,17 +145,19 @@ impl Validator {
         }
     }
 
-    fn file_def(&mut self, file: &str, field: &str, f: &FileDef, allowed: &[&str]) {
-        if !is_83_name(&f.name) {
+    /// An 8.3 file name: `[A-Z0-9_-]{1,8}.[A-Z0-9]{1,3}`.
+    fn name_83(&mut self, file: &str, field: &str, name: &str) {
+        if !is_83_name(name) {
             self.add(
                 file,
                 &format!("{field}.name"),
-                format!(
-                    "'{}' is not an 8.3 name ([A-Z0-9_-]{{1,8}}.[A-Z0-9]{{1,3}})",
-                    f.name
-                ),
+                format!("'{name}' is not an 8.3 name ([A-Z0-9_-]{{1,8}}.[A-Z0-9]{{1,3}})"),
             );
         }
+    }
+
+    fn file_def(&mut self, file: &str, field: &str, f: &FileDef, allowed: &[&str]) {
+        self.name_83(file, field, &f.name);
         self.text(
             file,
             &format!("{field}.description"),
@@ -717,7 +721,7 @@ impl Validator {
     fn pool(&mut self, pack: &StoryPack) {
         const F: &str = "pool.toml";
         let p = &pack.pool;
-        let lists: [(&str, usize); 30] = [
+        let lists: [(&str, usize); 32] = [
             ("titles", p.titles.len()),
             ("bbs_names", p.bbs_names.len()),
             ("taglines", p.taglines.len()),
@@ -748,6 +752,8 @@ impl Validator {
             ("irc_chatter", p.irc_chatter.len()),
             ("irc_nfo", p.irc_nfo.len()),
             ("irc_zines", p.irc_zines.len()),
+            ("zine_art", p.zine_art.len()),
+            ("zine_article", p.zine_article.len()),
         ];
         for (name, n) in lists {
             if n == 0 {
@@ -824,6 +830,40 @@ impl Validator {
         }
         for (i, f) in p.irc_zines.iter().enumerate() {
             self.file_def(F, &format!("irc_zines[{}]", i + 1), f, &BASE);
+        }
+        for (i, f) in p.zine_art.iter().enumerate() {
+            let field = format!("zine_art[{}]", i + 1);
+            self.name_83(F, &field, &f.name);
+            self.text(F, &format!("{field}.description"), &f.description, 40, t);
+            // Art draws with braces and pipes: no placeholder rule, only CP437.
+            self.text(F, &format!("{field}.body"), &f.body, ANY, None);
+            let (cols, rows) = pipe_size(&f.body);
+            if cols > ZINE_ART_MAX.0 || rows > ZINE_ART_MAX.1 {
+                self.add(
+                    F,
+                    &format!("{field}.body"),
+                    format!(
+                        "{cols}x{rows} exceeds the {}x{} limit",
+                        ZINE_ART_MAX.0, ZINE_ART_MAX.1
+                    ),
+                );
+            }
+        }
+        for (i, f) in p.zine_article.iter().enumerate() {
+            let field = format!("zine_article[{}]", i + 1);
+            self.name_83(F, &field, &f.name);
+            self.text(F, &format!("{field}.description"), &f.description, 40, t);
+            self.text(F, &format!("{field}.body"), &f.body, 900, t);
+            if f.attack.attack().is_none() {
+                self.add(
+                    F,
+                    &format!("{field}.attack"),
+                    format!(
+                        "'{}' is not a zine attack (WINNUKE.EXE, SMURF.EXE, SYNFLOOD.EXE, PINGOD.EXE)",
+                        f.attack.file_name()
+                    ),
+                );
+            }
         }
         for (i, c) in p.choice.iter().enumerate() {
             let f = format!("choice[{}]", i + 1);

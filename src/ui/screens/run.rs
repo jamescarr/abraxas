@@ -22,7 +22,7 @@ use crate::game::programs::{self, ProgramKind};
 use crate::game::shell::{
     self, EditKey, LineEditor, LineStyle, SHELL_COLS, ShellEffect, wrap_lines,
 };
-use crate::game::state::{Level, LevelSeed, Phase};
+use crate::game::state::{Backdoor, Level, LevelSeed, Phase};
 use crate::ice::Loadout;
 use crate::ice::duel::{BlackClass, DuelKind};
 use crate::pack::model::{ExitKind, HostOs, ObjectiveKind};
@@ -166,15 +166,6 @@ fn prompt_style(p: &Palette, color: PromptColor) -> Style {
     }
 }
 
-fn os_label(os: HostOs) -> &'static str {
-    match os {
-        HostOs::Unix => "unix",
-        HostOs::Vax => "vax",
-        HostOs::Mainframe => "mainframe",
-        HostOs::Dos => "dos",
-    }
-}
-
 fn edit_key(key: Key) -> Option<EditKey> {
     Some(match key {
         Key::Char(c) => EditKey::Char(c),
@@ -210,6 +201,15 @@ impl RunScreen {
         let mut session =
             HostSession::generate(&level, run_danger, exit_kind(ctx), attempt, seed, &daemons);
         session.set_player(player_view(ctx));
+        let backdoor = ctx
+            .run
+            .as_ref()
+            .is_some_and(|r| r.backdoors.get(&r.depth) == Some(&Backdoor::Planted));
+        let opened = if backdoor && !orphan {
+            session.open_backdoor()
+        } else {
+            None
+        };
         let choice_seen = ctx.run.as_ref().is_some_and(|r| {
             matches!(
                 r.phase,
@@ -238,12 +238,18 @@ impl RunScreen {
         let banner = format!(
             "CONNECTED: {}  [{}]",
             screen.session.host_name(),
-            os_label(screen.session.os())
+            screen.session.os().label()
         );
         screen.push_wrapped(LineStyle::Highlight, &banner);
         let text = screen.session.banner().to_string();
         screen.push_wrapped(LineStyle::Normal, &text);
         screen.push_line(LineStyle::Normal, String::new());
+        if let Some((id, display)) = opened {
+            screen.push_wrapped(
+                LineStyle::Highlight,
+                &format!("BACKDOOR: {id} [{display}] answers before it asks. the relay is yours."),
+            );
+        }
         if screen.session.needs_login() {
             screen.push_line(LineStyle::Highlight, "ENTER PASSWORD NOW".to_string());
             screen.launch_ice(0, IceKindAt::Wordlock, ctx);
@@ -715,7 +721,7 @@ impl RunScreen {
         let left = format!(
             " {} │ {} │ node: {}",
             self.session.host_name(),
-            os_label(self.session.os()),
+            self.session.os().label(),
             self.session.current_node().id
         );
         put_str(buf, area.x, area.y, &left, 54, bar_bg);
@@ -1403,6 +1409,44 @@ mod tests {
         for (want, _) in expect {
             assert!(seen.contains(&want), "never met {want:?}; saw {seen:?}");
         }
+    }
+
+    #[test]
+    fn a_planted_backdoor_leaves_the_relay_open_on_entry() {
+        let mut r = rig_with(4, |ctx| {
+            let run = ctx.run.as_mut().unwrap();
+            run.backdoors.insert(run.depth, Backdoor::Planted);
+        });
+        r.skip_login();
+        let (id, near) = {
+            let relay = r.run().session.phreak_node().expect("depth 4 has a relay");
+            assert!(!relay.guarded(), "the backdoor opens the relay");
+            (relay.id.clone(), relay.neighbors[0])
+        };
+        assert!(r.text().contains("BACKDOOR:"), "{}", r.text());
+        r.run().session.current = near;
+        r.type_line(&format!("connect {id}"));
+        assert!(r.in_shell(), "no WATCH THE LINE screen");
+        assert_eq!(r.run().session.current_node().id, id);
+    }
+
+    #[test]
+    fn without_a_backdoor_the_relay_stays_guarded() {
+        let mut r = rig(4);
+        r.skip_login();
+        assert!(r.run().session.phreak_node().expect("a relay").guarded());
+        assert!(!r.text().contains("BACKDOOR:"));
+    }
+
+    #[test]
+    fn a_backdoor_on_a_host_without_a_relay_says_nothing() {
+        let mut r = rig_with(0, |ctx| {
+            let run = ctx.run.as_mut().unwrap();
+            run.backdoors.insert(run.depth, Backdoor::Planted);
+        });
+        r.skip_login();
+        assert!(r.run().session.phreak_node().is_none());
+        assert!(!r.text().contains("BACKDOOR:"));
     }
 
     /// Connect to a DAEMON gate somewhere; the first seed/depth that has one is enough.

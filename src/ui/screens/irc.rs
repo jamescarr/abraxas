@@ -19,7 +19,8 @@ use ratatui::style::Style;
 
 use super::ice_view::{IceView, VIEW_ROWS, ice_input};
 use super::run::line_style;
-use super::{Nav, ScreenImpl};
+use super::{AnsViewScreen, Nav, Screen, ScreenImpl};
+use crate::ans;
 use crate::game::danger;
 use crate::game::host::{IceKindAt, RETREAT_TRACE};
 use crate::game::irc::{
@@ -389,7 +390,7 @@ impl IrcScreen {
             "hack" => self.hack(&arg, ctx),
             "teardrop" => self.teardrop(&arg, ctx),
             "files" => self.files(ctx),
-            "read" => self.read(&arg, ctx),
+            "read" => return self.read(&arg, ctx),
             "quit" => return Nav::Back,
             other => self.error(&format!("*** unknown command: /{other} (/help)")),
         }
@@ -654,7 +655,7 @@ impl IrcScreen {
         }
     }
 
-    fn read(&mut self, arg: &str, ctx: &Ctx) {
+    fn read(&mut self, arg: &str, ctx: &mut Ctx) -> Nav {
         let file = arg
             .parse::<usize>()
             .ok()
@@ -662,12 +663,21 @@ impl IrcScreen {
             .and_then(|n| ctx.run.as_ref()?.irc.files.get(n));
         let Some(file) = file else {
             self.error("*** no such file");
-            return;
+            return Nav::Stay;
         };
+        if ans::is_ans_name(&file.file.name) {
+            let ice = file.file.name.to_ascii_uppercase().ends_with(".ICE");
+            let title = format!("{}  {}", file.file.name, file.file.description);
+            // The screen needs `&mut Ctx`, so the body cannot stay borrowed from the run.
+            let text = file.file.body.clone();
+            let view = AnsViewScreen::new(ctx, title, &text, ice);
+            return Nav::Push(Box::new(Screen::AnsView(view)));
+        }
         self.mode = Mode::Read {
             viewer: Viewer::from_text(&file.file.body, TEXT_WIDTH, TEXT_ROWS, &ctx.palette),
             title: format!("{}  {}", file.file.name, file.file.description),
         };
+        Nav::Stay
     }
 
     // ----- mini-games ----------------------------------------------------------------------
@@ -1051,7 +1061,7 @@ mod tests {
     use crate::game::danger::IceGrade;
     use crate::game::irc::CHANNELS;
     use crate::ice::daemon::TRACE_ON_LOCKOUT;
-    use crate::pack::model::HostOs;
+    use crate::pack::model::{FileDef, HostOs};
     use crate::ui::app::{App, install_test_run, test_ctx};
     use crate::ui::canvas::row_text;
     use crate::ui::keys::{press, press_char};
@@ -1742,6 +1752,27 @@ mod tests {
         assert_eq!((live.files.len(), live.cracked.len()), (1, 1));
         let saved = r.ctx().store.load("Tester").unwrap().unwrap();
         assert_eq!(saved.irc, live);
+    }
+
+    #[test]
+    fn read_of_ans_art_pushes_the_ans_viewer() {
+        let mut r = rig();
+        r.ctx().run.as_mut().unwrap().irc.files.push(IrcFile {
+            depth: 0,
+            bot: "hidden".to_string(),
+            file: FileDef {
+                name: "X.ANS".to_string(),
+                description: "art".to_string(),
+                body: "\u{1b}[31mhi".to_string(),
+            },
+        });
+        r.type_line("/read 1");
+        assert_eq!(r.app.screen.name(), "AnsView");
+        let t = r.text();
+        assert!(t.contains("hi"), "{t}");
+        assert!(t.contains("rows 1-1 of 1"), "{t}");
+        r.press(press(KeyCode::Esc));
+        assert_eq!(r.app.screen.name(), "Irc");
     }
 
     #[test]

@@ -48,6 +48,14 @@ pub fn put_str(buf: &mut Buffer, x: u16, y: u16, text: &str, max_width: u16, sty
     nx - x
 }
 
+/// Write one character cell at `(x, y)` (absolute buffer coordinates), if it is on the buffer.
+pub fn put_cell(buf: &mut Buffer, x: u16, y: u16, ch: char, style: Style) {
+    if let Some(c) = buf.cell_mut((x, y)) {
+        c.set_char(ch);
+        c.set_style(style);
+    }
+}
+
 /// Write `text` centred horizontally inside `area` on row `y` (absolute).
 pub fn put_centered(buf: &mut Buffer, area: Rect, y: u16, text: &str, style: Style) {
     let len = u16::try_from(text.chars().count()).unwrap_or(u16::MAX);

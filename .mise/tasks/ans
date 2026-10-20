@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+#MISE description="Download classic ANSI artpacks from 16colo.rs into ./ans (gitignored)"
+#USAGE arg "[dir]" default="ans" help="Target directory"
+set -euo pipefail
+
+dir="${1:-ans}"
+tmp="$(mktemp -d)"
+trap 'rm -rf "$tmp"' EXIT
+
+mkdir -p "$dir"
+
+for pack in \
+    1994/acdu1294 \
+    1995/ice9507a \
+    1996/acdu0196 \
+    1996/acdu0396 \
+    1996/acdu0696 \
+    1996/blde9601 \
+    1997/acid-54
+do
+    year="${pack%%/*}"
+    name="${pack##*/}"
+    if [ -d "$dir/$name" ]; then
+        echo "ans: $name present"
+        continue
+    fi
+    if ! curl -fsSL --retry 3 -o "$tmp/$name.zip" "https://16colo.rs/archive/$year/$name.zip"; then
+        echo "ans: $name: download failed"
+        continue
+    fi
+    # unzip exits 11 when one of the two patterns matches nothing (a pack may hold only .ICE files).
+    rc=0
+    unzip -C -o -q -j "$tmp/$name.zip" '*.ans' '*.ice' -d "$dir/$name" 2>/dev/null || rc=$?
+    if [ "$rc" -ne 0 ] && [ "$rc" -ne 11 ]; then
+        echo "ans: $name: some entries could not be extracted (unzip exit $rc)"
+    fi
+done
+
+count="$(find "$dir" -type f \( -iname '*.ans' -o -iname '*.ice' \) | wc -l | tr -d ' ')"
+echo "ans: $count files in $dir"

@@ -487,6 +487,11 @@ impl HostSession {
         &self.nodes
     }
 
+    /// The PHREAK-guarded relay node, when the host has one (at most one per host).
+    pub fn phreak_node(&self) -> Option<&Node> {
+        self.nodes.iter().find(|n| n.ice == Some(IceKindAt::Phreak))
+    }
+
     pub fn current(&self) -> usize {
         self.current
     }
@@ -589,6 +594,17 @@ impl HostSession {
 
     pub fn set_player(&mut self, view: PlayerView) {
         self.player = view;
+    }
+
+    /// The hidden line's backdoor: the PHREAK (relay) guard is already open. Returns the node's
+    /// `(id, display)`, or `None` when the host has no PHREAK node. Does not move the player.
+    pub fn open_backdoor(&mut self) -> Option<(String, String)> {
+        let node = self
+            .nodes
+            .iter_mut()
+            .find(|n| n.ice == Some(IceKindAt::Phreak))?;
+        node.cleared = true;
+        Some((node.id.clone(), node.display.clone()))
     }
 
     /// The shell's copy of the deck (the UI keeps the saved deck in sync via

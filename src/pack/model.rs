@@ -54,6 +54,18 @@ pub enum HostOs {
     Dos,
 }
 
+impl HostOs {
+    /// The lowercase name shown in the connect banner and on the hidden line.
+    pub fn label(self) -> &'static str {
+        match self {
+            HostOs::Unix => "unix",
+            HostOs::Vax => "vax",
+            HostOs::Mainframe => "mainframe",
+            HostOs::Dos => "dos",
+        }
+    }
+}
+
 /// How a choice relates to the Shadow: facing it, denying it, or standing aside.
 #[derive(
     Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize, Deserialize, JsonSchema,
@@ -327,6 +339,17 @@ pub struct FileDef {
     pub body: String,
 }
 
+/// A zine article on the hidden line; reading it teaches the DUEL attack of `attack`.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct ArticleDef {
+    pub name: String,
+    #[serde(default)]
+    pub description: String,
+    pub attack: Program,
+    pub body: String,
+}
+
 /// One option of a story choice.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -531,6 +554,11 @@ pub struct Pool {
     pub irc_nfo: Vec<FileDef>,
     /// Zines about hacking technique (the game's own commands and ICE).
     pub irc_zines: Vec<FileDef>,
+    /// Pipe-coded zine art (at most 78x20) shown on the hidden line when the ANS directory has
+    /// no files.
+    pub zine_art: Vec<FileDef>,
+    /// Zine articles on the hidden line; each teaches one DUEL attack.
+    pub zine_article: Vec<ArticleDef>,
 }
 
 impl Pool {
@@ -572,6 +600,8 @@ impl Pool {
             irc_chatter,
             irc_nfo,
             irc_zines,
+            zine_art,
+            zine_article,
         );
     }
 

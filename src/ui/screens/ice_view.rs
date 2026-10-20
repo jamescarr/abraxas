@@ -12,7 +12,7 @@ use ratatui::layout::Rect;
 use ratatui::style::Style;
 
 use crate::game::danger::{DangerParams, IceGrade};
-use crate::game::programs::Program;
+use crate::game::programs::{Attack, Program};
 use crate::game::shell::wrap_lines;
 use crate::ice::breach::{Axis, Breach, DaemonKind};
 use crate::ice::daemon;
@@ -24,7 +24,7 @@ use crate::ice::{IceGame, IceInput, IceOutcome, Loadout};
 use crate::pack::model::HostOs;
 use crate::palette::{Dos, Palette};
 use crate::rng::Rng;
-use crate::ui::canvas::put_str;
+use crate::ui::canvas::{put_cell, put_str};
 use crate::ui::keys::Key;
 use crate::ui::widgets::progress;
 
@@ -365,13 +365,6 @@ fn title_rule(buf: &mut Buffer, area: Rect, title: &str, p: &Palette) {
         fg(p, Dos::LightCyan),
     );
     put_str(buf, area.x + 4 + used, area.y, " ]", 2, rule);
-}
-
-fn put_cell(buf: &mut Buffer, x: u16, y: u16, ch: char, style: Style) {
-    if let Some(c) = buf.cell_mut((x, y)) {
-        c.set_char(ch);
-        c.set_style(style);
-    }
 }
 
 /// Clamp a count into `u16` for coordinates.
@@ -1247,6 +1240,25 @@ fn render_duel(
             fg(p, Dos::LightGreen),
         );
     }
+    let zine: Vec<String> = Attack::ALL
+        .into_iter()
+        .filter_map(|a| {
+            g.attack_slot(a).map(|fired| {
+                let key = if fired { '-' } else { a.key() };
+                format!("[{key}]{}", a.short())
+            })
+        })
+        .collect();
+    if !shadow && !zine.is_empty() {
+        put_str(
+            buf,
+            rx,
+            area.y + 8,
+            &zine.join(" "),
+            35,
+            fg(p, Dos::LightCyan),
+        );
+    }
 
     let wrapped = wrap_tail(g.log().iter().map(|l| ((), l.as_str())), 34, 9);
     for (i, (_, line)) in wrapped.iter().enumerate() {
@@ -1259,6 +1271,8 @@ fn render_duel(
     );
     if shadow {
         keys.push_str(" [X] Accept");
+    } else if !zine.is_empty() {
+        keys.push_str(" [1-4] Zine");
     }
     footer(buf, area, &keys, p);
 }
@@ -1656,6 +1670,33 @@ mod tests {
         view.handle(IceInput::Char('a'));
         let (buf, _) = draw(&view);
         assert!(screen_text(&buf).contains("You strike for"));
+    }
+
+    #[test]
+    fn learned_zine_attacks_are_listed_and_marked_once_fired() {
+        let loadout = Loadout {
+            attacks: [true, false, true, false],
+            ..Loadout::default()
+        };
+        let mut view = IceView::duel(
+            &mut rng("du"),
+            &params(2),
+            DuelKind::Black,
+            loadout,
+            100,
+            DuelArt {
+                palette: &Palette::new(false),
+                shadow_art: None,
+            },
+            BlackClass::Hydra,
+        );
+        let t = screen_text(&draw(&view).0);
+        assert!(t.contains("[1]NUKE [3]SYN"), "{t}");
+        assert!(t.contains("[1-4] Zine"), "{t}");
+        view.handle(IceInput::Char('1'));
+        let t = screen_text(&draw(&view).0);
+        assert!(t.contains("[-]NUKE [3]SYN"), "{t}");
+        assert!(t.contains("WINNUKE: out of band for 20."), "{t}");
     }
 
     #[test]

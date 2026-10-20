@@ -9,7 +9,7 @@ pub mod wordlock;
 
 use std::time::Duration;
 
-use crate::game::programs::{Deck, Program, charges, owns};
+use crate::game::programs::{Attack, Deck, Program, charges, owns};
 
 /// Normalised input handed to every mini-game.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -62,6 +62,8 @@ pub struct Loadout {
     pub mirror: u8,
     /// METRONOM.EXE owned (PHREAK replay).
     pub metronom: bool,
+    /// Zine attacks learned (DUEL keys 1-4), indexed by `Attack as usize`.
+    pub attacks: [bool; 4],
 }
 
 impl Loadout {
@@ -74,6 +76,7 @@ impl Loadout {
             icepick: owns(deck, Program::IcePick),
             mirror: charges(deck, Program::Mirror),
             metronom: owns(deck, Program::Metronom),
+            attacks: Attack::ALL.map(|a| owns(deck, a.program())),
         }
     }
 }
@@ -93,5 +96,9 @@ mod tests {
         assert_eq!(l.sniffer, 0);
         assert!(l.icepick && !l.buffer_plus && !l.metronom);
         assert_eq!(l.mirror, 1);
+        assert_eq!(l.attacks, [false; 4]);
+        deck.insert(Program::Smurf, 1);
+        let l = Loadout::from_deck(&deck);
+        assert_eq!(l.attacks, [false, true, false, false]);
     }
 }

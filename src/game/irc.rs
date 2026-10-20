@@ -313,7 +313,8 @@ pub fn generate(input: &GenInput) -> IrcNet {
     }
 }
 
-fn fill_file(f: &FileDef, fill: &impl Fn(&str) -> String) -> FileDef {
+/// A pool file with its name upper-cased and its description and body passed through `fill`.
+pub fn fill_file(f: &FileDef, fill: &impl Fn(&str) -> String) -> FileDef {
     FileDef {
         name: f.name.to_ascii_uppercase(),
         description: fill(&f.description),

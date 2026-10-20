@@ -25,6 +25,7 @@ pub const KEYS: &[(&str, &str)] = &[
     ("1  2", "WORDLOCK programs"),
     ("Space Enter", "ROUTER: rotate"),
     ("X", "DUEL: accept"),
+    ("1-4", "DUEL: zine attacks"),
 ];
 
 /// `(command, meaning)` rows of the host shell.
@@ -81,6 +82,18 @@ pub fn render(buf: &mut Buffer, canvas: Rect, ctx: &Ctx) {
             text,
         );
     }
+    let hidden = match ctx.hidden.path() {
+        Some(path) => format!("Hidden line: {}", path.display()),
+        None => "Hidden line: unavailable".to_string(),
+    };
+    put_str(
+        buf,
+        inner.x + 1,
+        inner.bottom().saturating_sub(2),
+        &hidden,
+        inner.width.saturating_sub(2),
+        p.style(Dos::LightGray, Dos::Blue),
+    );
     put_str(
         buf,
         inner.x + 1,
@@ -111,5 +124,6 @@ mod tests {
             assert!(all.contains(v), "missing description {v:?}");
         }
         assert!(all.contains("Esc closes this help."));
+        assert!(all.contains("Hidden line: unavailable"));
     }
 }
