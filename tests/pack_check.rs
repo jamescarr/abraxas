@@ -4,6 +4,7 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 
+use abraxas::game::programs::Attack;
 use abraxas::pack::check::{check_source, run};
 use abraxas::pack::model::{ExitKind, Stance};
 use abraxas::pack::validate::validate;
@@ -102,6 +103,8 @@ fn rollover_pool_meets_minimum_counts() {
         ("irc_chatter", p.irc_chatter.len(), 60),
         ("irc_nfo", p.irc_nfo.len(), 6),
         ("irc_zines", p.irc_zines.len(), 8),
+        ("zine_art", p.zine_art.len(), 4),
+        ("zine_article", p.zine_article.len(), 4),
     ];
     for (name, have, need) in counts {
         assert!(have >= need, "{name}: {have} entries, need {need}");
@@ -120,6 +123,21 @@ fn rollover_pool_meets_minimum_counts() {
             let n = c.options.iter().filter(|o| o.stance == s).count();
             assert_eq!(n, 1, "choice {} stance {}", i + 1, s.as_str());
         }
+    }
+}
+
+#[test]
+fn rollover_zine_articles_teach_every_attack() {
+    let pack = load(&PackSource::Embedded).unwrap();
+    for attack in Attack::ALL {
+        assert!(
+            pack.pool
+                .zine_article
+                .iter()
+                .any(|a| a.attack == attack.program()),
+            "no zine article teaches {}",
+            attack.label()
+        );
     }
 }
 
@@ -385,6 +403,45 @@ fn irc_chatter_is_limited_to_70_characters() {
     assert_eq!(
         got,
         vec!["pool.toml: irc_chatter[2]: 71 characters; the limit is 70".to_string()]
+    );
+}
+
+#[test]
+fn zine_article_must_teach_a_zine_attack() {
+    let (_t, dir) = scratch("_template");
+    fs::write(
+        dir.join("pool.toml"),
+        "[[zine_article]]\nname = \"OK.TXT\"\ndescription = \"fine\"\nattack = \"WINNUKE.EXE\"\nbody = \"fine\"\n\n\
+         [[zine_article]]\nname = \"BAD.TXT\"\ndescription = \"not an attack\"\nattack = \"GHOST.COM\"\nbody = \"nope\"\n",
+    )
+    .unwrap();
+    let got = issues(&dir);
+    assert_eq!(
+        got,
+        vec![
+            "pool.toml: zine_article[2].attack: 'GHOST.COM' is not a zine attack (WINNUKE.EXE, SMURF.EXE, SYNFLOOD.EXE, PINGOD.EXE)"
+                .to_string()
+        ]
+    );
+}
+
+#[test]
+fn zine_art_is_limited_to_78_columns() {
+    let (_t, dir) = scratch("_template");
+    let fits = "x".repeat(78);
+    let over = "y".repeat(80);
+    fs::write(
+        dir.join("pool.toml"),
+        format!(
+            "[[zine_art]]\nname = \"FITS.ANS\"\ndescription = \"fits\"\nbody = \"{fits}\"\n\n\
+             [[zine_art]]\nname = \"WIDE.ANS\"\ndescription = \"wide\"\nbody = \"{over}\"\n"
+        ),
+    )
+    .unwrap();
+    let got = issues(&dir);
+    assert_eq!(
+        got,
+        vec!["pool.toml: zine_art[2].body: 80x1 exceeds the 78x20 limit".to_string()]
     );
 }
 

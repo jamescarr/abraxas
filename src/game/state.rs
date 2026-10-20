@@ -116,6 +116,23 @@ pub struct IrcFile {
     pub file: FileDef,
 }
 
+/// The hidden line's backdoor on one board. `Open` counts TAP misses (`BACKDOOR_MISSES` lock it).
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum Backdoor {
+    Open { misses: u8 },
+    Planted,
+    Locked,
+}
+
+impl Default for Backdoor {
+    fn default() -> Self {
+        Backdoor::Open { misses: 0 }
+    }
+}
+
+/// TAP misses that lock the backdoor on a board.
+pub const BACKDOOR_MISSES: u8 = 3;
+
 /// Where a generated part came from.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum GenSource {
@@ -324,6 +341,9 @@ pub struct RunState {
     /// What the player took from IRC fservs.
     #[serde(default)]
     pub irc: IrcProgress,
+    /// Hidden-line backdoors by depth.
+    #[serde(default)]
+    pub backdoors: BTreeMap<u32, Backdoor>,
     /// Id of the ending reached, once there is one.
     pub ending: Option<String>,
     pub completed: bool,
@@ -357,6 +377,7 @@ impl RunState {
             player_posts: Vec::new(),
             used_pool: BTreeSet::new(),
             irc: IrcProgress::default(),
+            backdoors: BTreeMap::new(),
             ending: None,
             completed: false,
         }
@@ -413,6 +434,7 @@ impl RunState {
     pub fn prune_levels(&mut self) {
         let keep = self.depth;
         self.levels.retain(|d, _| *d == keep || *d == keep + 1);
+        self.backdoors.retain(|d, _| *d >= keep);
     }
 
     /// Apply the player's story choice at the current depth: INTEGRATION by stance, flags, a
@@ -583,6 +605,29 @@ mod tests {
         value.as_object_mut().unwrap().remove("irc");
         let old: RunState = serde_json::from_value(value).unwrap();
         assert_eq!(old.irc, IrcProgress::default());
+    }
+
+    #[test]
+    fn backdoors_start_open_and_old_saves_load_without_them() {
+        let mut r = run();
+        assert_eq!(Backdoor::default(), Backdoor::Open { misses: 0 });
+        r.backdoors.insert(2, Backdoor::Planted);
+        let mut value = serde_json::to_value(&r).unwrap();
+        let back: RunState = serde_json::from_value(value.clone()).unwrap();
+        assert_eq!(back.backdoors.get(&2), Some(&Backdoor::Planted));
+        // A save written before the hidden line existed has no `backdoors` key.
+        value.as_object_mut().unwrap().remove("backdoors");
+        let old: RunState = serde_json::from_value(value).unwrap();
+        assert!(old.backdoors.is_empty());
+    }
+
+    #[test]
+    fn arriving_drops_backdoors_of_shallower_boards() {
+        let mut r = run();
+        r.backdoors.insert(1, Backdoor::Planted);
+        r.backdoors.insert(2, Backdoor::Locked);
+        r.arrive(2);
+        assert_eq!(r.backdoors.keys().copied().collect::<Vec<_>>(), vec![2]);
     }
 
     #[test]

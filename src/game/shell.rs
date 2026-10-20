@@ -1775,4 +1775,22 @@ mod tests {
         let mut s = mk(ObjectiveKind::Retrieve, 1, None, 1);
         assert!(execute(&mut s, "   ").is_empty());
     }
+
+    #[test]
+    fn backdoor_opens_the_relay_without_moving_the_player() {
+        let mut s = mk(ObjectiveKind::Plant, 5, None, 1);
+        let relay = s
+            .phreak_node()
+            .map(|n| (n.id.clone(), n.display.clone()))
+            .unwrap();
+        assert!(s.phreak_node().unwrap().guarded());
+        let current = s.current();
+        assert_eq!(s.open_backdoor(), Some(relay));
+        assert!(!s.phreak_node().unwrap().guarded());
+        assert_eq!(s.current(), current);
+        // Danger 1 has no relay to open.
+        let mut s = mk(ObjectiveKind::Plant, 1, None, 1);
+        assert!(s.phreak_node().is_none());
+        assert_eq!(s.open_backdoor(), None);
+    }
 }

@@ -7,6 +7,7 @@ use rand::SeedableRng;
 
 use super::{IceGame, IceInput, IceOutcome, Loadout};
 use crate::game::danger::DangerParams;
+use crate::game::programs::Attack;
 use crate::rng::Rng;
 
 /// Trace added by retreating.
@@ -21,6 +22,16 @@ pub const DEFEND_BONUS: i32 = 4;
 pub const DEFAULT_LAST_ATTACK: i32 = 10;
 /// Percentage of max strength a Hydra REGROW heals.
 pub const REGEN_PCT: i32 = 10;
+/// WINNUKE.EXE damage.
+pub const WINNUKE_DAMAGE: i32 = 20;
+/// SMURF.EXE damage floor, for when the ICE's announced hit is small.
+pub const SMURF_MIN: i32 = 8;
+/// SYNFLOOD.EXE damage.
+pub const SYNFLOOD_DAMAGE: i32 = 6;
+/// PINGOD.EXE damage.
+pub const PINGOD_DAMAGE: i32 = 30;
+/// EGO that PINGOD.EXE costs the player.
+pub const PINGOD_EGO: i32 = 8;
 const MAX_LOG: usize = 40;
 
 /// What the opponent is.
@@ -158,6 +169,8 @@ pub struct Duel {
     loadout: Loadout,
     outcome: Option<IceOutcome>,
     pending_trace: f32,
+    /// Zine attacks already fired this duel, indexed by `Attack as usize`.
+    fired: [bool; 4],
 }
 
 impl Duel {
@@ -205,6 +218,7 @@ impl Duel {
             loadout,
             outcome: None,
             pending_trace: 0.0,
+            fired: [false; 4],
         };
         let first = d.current_intent();
         d.push(format!("It intends: {}.", d.describe(first)));
@@ -266,6 +280,12 @@ impl Duel {
     /// Programs after play (a spent MIRROR charge is gone).
     pub fn loadout(&self) -> Loadout {
         self.loadout
+    }
+
+    /// State of zine attack `a`: `None` when it is not learned, else whether it has fired.
+    pub fn attack_slot(&self, a: Attack) -> Option<bool> {
+        let i = a as usize;
+        self.loadout.attacks[i].then_some(self.fired[i])
     }
 
     /// Drain trace penalties incurred since the last call.
@@ -403,6 +423,59 @@ impl Duel {
         }
     }
 
+    /// A learned zine attack (keys 1-4): once per duel, against black ICE only. SYNFLOOD leaves
+    /// the ICE's announced intent unplayed; every other attack lets the ICE act.
+    fn zine_attack(&mut self, a: Attack) {
+        let i = a as usize;
+        if !self.loadout.attacks[i] {
+            self.push("No program ready.".into());
+            return;
+        }
+        if self.kind == DuelKind::Shadow {
+            self.push("the shadow is not a box.".into());
+            return;
+        }
+        if self.fired[i] {
+            self.push(format!("{} already fired.", a.label()));
+            return;
+        }
+        self.fired[i] = true;
+        let dmg = match a {
+            Attack::WinNuke => {
+                self.push(format!("WINNUKE: out of band for {WINNUKE_DAMAGE}."));
+                WINNUKE_DAMAGE
+            }
+            Attack::Smurf => {
+                let dmg = (self.intent_damage(self.current_intent()) * 2).max(SMURF_MIN);
+                self.push(format!("SMURF: the net amplifies for {dmg}."));
+                dmg
+            }
+            Attack::SynFlood => {
+                self.push(format!(
+                    "SYNFLOOD: {SYNFLOOD_DAMAGE}. it stalls, half open."
+                ));
+                SYNFLOOD_DAMAGE
+            }
+            Attack::PingOfDeath => {
+                self.ego -= PINGOD_EGO;
+                self.ego_delta -= PINGOD_EGO;
+                self.push(format!(
+                    "PINGOD: {PINGOD_DAMAGE} to it, {PINGOD_EGO} to you."
+                ));
+                PINGOD_DAMAGE
+            }
+        };
+        self.strength -= dmg;
+        self.last_attack = Some(dmg);
+        if self.enemy_down() {
+            return;
+        }
+        if a != Attack::SynFlood {
+            self.enemy_turn(1, false);
+        }
+        self.finish_turn(false);
+    }
+
     fn act(&mut self, input: IceInput) {
         let IceInput::Char(c) = input else {
             return;
@@ -463,6 +536,11 @@ impl Duel {
                         self.finish_turn(false);
                     }
                 },
+                d @ '1'..='4' => {
+                    if let Some(a) = Attack::from_key(d) {
+                        self.zine_attack(a);
+                    }
+                }
                 _ => {}
             }
         }
@@ -861,5 +939,105 @@ mod tests {
         g.handle(IceInput::Char('X'));
         assert_eq!(g.current_intent(), i);
         assert!(g.outcome().is_none());
+    }
+
+    fn learned(attacks: [bool; 4]) -> Loadout {
+        Loadout {
+            attacks,
+            ..Loadout::default()
+        }
+    }
+
+    #[test]
+    fn winnuke_hits_for_twenty_once_per_duel() {
+        let mut g = duel(12, 2, DuelKind::Black, learned([true, false, false, false]));
+        at(&mut g, Intent::Charge);
+        g.handle(IceInput::Char('1'));
+        assert_eq!(g.strength, g.max_strength - WINNUKE_DAMAGE);
+        assert!(
+            g.log().iter().any(|l| l == "WINNUKE: out of band for 20."),
+            "{:?}",
+            g.log()
+        );
+        assert_eq!(g.attack_slot(Attack::WinNuke), Some(true));
+        // Fired: refused, no damage, and the ICE does not take its turn.
+        let (strength, intent) = (g.strength, g.current_intent());
+        g.handle(IceInput::Char('1'));
+        assert_eq!(g.strength, strength);
+        assert_eq!(g.current_intent(), intent);
+        assert_eq!(g.log().last().unwrap(), "WINNUKE already fired.");
+    }
+
+    #[test]
+    fn smurf_returns_twice_the_announced_hit_with_a_floor() {
+        let mut g = duel(13, 2, DuelKind::Black, learned([false, true, false, false]));
+        at(&mut g, Intent::Strike);
+        g.handle(IceInput::Char('2'));
+        assert_eq!(g.strength, g.max_strength - 16, "STRIKE 8, doubled");
+        assert_eq!(g.ego_delta(), -8, "the ICE still strikes back");
+
+        let mut g = duel(13, 2, DuelKind::Black, learned([false, true, false, false]));
+        at(&mut g, Intent::Charge);
+        g.handle(IceInput::Char('2'));
+        assert_eq!(
+            g.strength,
+            g.max_strength - SMURF_MIN,
+            "CHARGE deals 0: floor"
+        );
+    }
+
+    #[test]
+    fn synflood_stalls_the_ice() {
+        let mut g = duel(14, 2, DuelKind::Black, learned([false, false, true, false]));
+        at(&mut g, Intent::Crush);
+        g.handle(IceInput::Char('3'));
+        assert_eq!(g.strength, g.max_strength - SYNFLOOD_DAMAGE);
+        assert_eq!(g.current_intent(), Intent::Crush, "the ICE did not act");
+        assert_eq!(g.ego_delta(), 0);
+    }
+
+    #[test]
+    fn pingod_hits_hard_and_costs_ego() {
+        let mut g = duel(15, 2, DuelKind::Black, learned([false, false, false, true]));
+        at(&mut g, Intent::Charge);
+        g.handle(IceInput::Char('4'));
+        assert_eq!(g.strength, g.max_strength - PINGOD_DAMAGE);
+        assert_eq!(g.ego, 100 - PINGOD_EGO);
+        assert_eq!(g.ego_delta(), -PINGOD_EGO);
+    }
+
+    #[test]
+    fn a_zine_attack_that_kills_ends_the_duel_before_the_ice_acts() {
+        let mut g = duel(16, 2, DuelKind::Black, learned([true, false, false, false]));
+        at(&mut g, Intent::Crush);
+        g.strength = 10;
+        g.handle(IceInput::Char('1'));
+        assert_eq!(g.outcome(), Some(IceOutcome::Cleared));
+        assert_eq!(g.ego_delta(), 0);
+    }
+
+    #[test]
+    fn zine_attacks_need_learning_and_are_refused_by_the_shadow() {
+        let mut g = duel(17, 2, DuelKind::Black, Loadout::default());
+        let intent = g.current_intent();
+        g.handle(IceInput::Char('1'));
+        assert_eq!(g.log().last().unwrap(), "No program ready.");
+        assert_eq!(g.current_intent(), intent, "no turn consumed");
+        assert_eq!(g.attack_slot(Attack::WinNuke), None);
+
+        let mut shadow = duel(
+            17,
+            2,
+            DuelKind::Shadow,
+            learned([true, false, false, false]),
+        );
+        let (strength, intent) = (shadow.strength, shadow.current_intent());
+        shadow.handle(IceInput::Char('1'));
+        assert_eq!(shadow.log().last().unwrap(), "the shadow is not a box.");
+        assert_eq!(
+            (shadow.strength, shadow.current_intent()),
+            (strength, intent)
+        );
+        assert_eq!(shadow.attack_slot(Attack::WinNuke), Some(false));
     }
 }

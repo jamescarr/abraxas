@@ -21,11 +21,15 @@ use tachyonfx::{EffectManager, IntoEffect, fx};
 use crate::cli::GlobalOpts;
 use crate::config::{Config, Paths, TruecolorMode};
 use crate::director::{Director, DirectorEvent, JobKind};
+use crate::game::programs;
 use crate::game::save::{CallerRecord, CallerStatus, SaveStore};
 use crate::game::seed::ensure_level;
 use crate::game::state::{
-    ClockReading, GenSource, HostInfo, Level, Passage, Place, RunState, Sysop,
+    Backdoor, ClockReading, GenSource, HostInfo, IrcFile, Level, Passage, Phase, Place, RunState,
+    Sysop,
 };
+use crate::hidden::board::{self, HIDDEN_BOT};
+use crate::hidden::{HiddenEvent, HiddenLine};
 use crate::llm::{Llm, OpenAiCompat};
 use crate::pack::model::{ActView, Character, HostOs, PaletteId, PostDef, StoryPack, VisionKind};
 use crate::palette::{Dos, Palette};
@@ -148,6 +152,12 @@ pub struct Ctx {
     /// Time left of the noise-vision burst that plays when generation fell back to the offline
     /// generator after an AI failure (400 ms; never in calm mode).
     pub noise_burst: Duration,
+    /// The hidden line: the Unix-socket server of the current board. Idle (no socket) until
+    /// `listen` succeeds, so tests never bind.
+    pub hidden: HiddenLine,
+    /// What socket sessions ask of the run (backdoors, downloads, learned attacks). The app
+    /// drains it every frame.
+    pub hidden_events: Receiver<HiddenEvent>,
 }
 
 impl Ctx {
@@ -161,6 +171,7 @@ impl Ctx {
         llm: Option<Arc<dyn Llm>>,
     ) -> Ctx {
         let (tx, rx) = channel();
+        let (hidden_tx, hidden_rx) = channel();
         let director = Director::new(llm, pack.clone(), config.ai.clone(), tx);
         let palette = Palette::detect(config.display.truecolor);
         Ctx {
@@ -180,6 +191,8 @@ impl Ctx {
             chat_inbox: Vec::new(),
             epilogue: EpilogueBuf::default(),
             noise_burst: Duration::ZERO,
+            hidden: HiddenLine::idle(hidden_tx, config.display.baud),
+            hidden_events: hidden_rx,
             last_frame: Buffer::empty(Rect::new(0, 0, WIDTH, HEIGHT)),
             config,
             paths,
@@ -345,6 +358,7 @@ pub fn test_ctx(dir: &Path) -> Ctx {
     config.display.calm = false;
     config.display.crt = false;
     config.display.truecolor = TruecolorMode::Never;
+    config.ans.dir = dir.join("ans");
     let opts = GlobalOpts {
         offline: true,
         seed: Some(42),
@@ -619,9 +633,53 @@ pub fn apply_director_event(ctx: &mut Ctx, ev: DirectorEvent) {
     }
 }
 
+/// Apply one request from a hidden-line session to the run and save. A backdoor for a board the
+/// player has already left is ignored, and a backdoor only moves forward: a session can hold a
+/// snapshot a frame old, so an event may arrive out of date.
+pub fn apply_hidden_event(ctx: &mut Ctx, ev: HiddenEvent) {
+    let Some(run) = ctx.run.as_mut() else {
+        return;
+    };
+    match ev {
+        HiddenEvent::Backdoor { depth, state } => {
+            if depth == run.depth {
+                let slot = run.backdoors.entry(depth).or_default();
+                *slot = match (*slot, state) {
+                    // Planted and locked are final; misses only count up.
+                    (Backdoor::Planted | Backdoor::Locked, _) => *slot,
+                    (Backdoor::Open { misses: held }, Backdoor::Open { misses }) => {
+                        Backdoor::Open {
+                            misses: held.max(misses),
+                        }
+                    }
+                    (_, state) => state,
+                };
+            }
+        }
+        HiddenEvent::Download { depth, file } => {
+            if !run.irc.has_file(depth, HIDDEN_BOT, &file.name) {
+                run.irc.files.push(IrcFile {
+                    depth,
+                    bot: HIDDEN_BOT.to_string(),
+                    file,
+                });
+            }
+        }
+        HiddenEvent::Learn(program) => {
+            programs::add(&mut run.deck, program);
+        }
+    }
+    ctx.autosave();
+}
+
 // ---------------------------------------------------------------------------------------------
 // App
 // ---------------------------------------------------------------------------------------------
+
+/// What identifies the board the hidden line serves: run seed, depth, door attempt, and whether
+/// the level's place exists yet. A different key is a different board. (The exit taken is set a
+/// moment before the depth changes; it counts once the new depth does.)
+type BoardKey = (u64, u32, u32, bool);
 
 /// The running application: the current screen, the stack of screens under it, the overlay, the
 /// effect manager and the context.
@@ -640,6 +698,8 @@ pub struct App {
     /// Where the canvas was last drawn (used to place effects); starts at the origin.
     canvas: Rect,
     tracked_depth: Option<u32>,
+    /// The board last offered to the hidden line.
+    hidden_key: Option<BoardKey>,
 }
 
 impl App {
@@ -666,6 +726,7 @@ impl App {
             pending_dt: Duration::ZERO,
             canvas: Rect::new(0, 0, WIDTH, HEIGHT),
             tracked_depth: None,
+            hidden_key: None,
         };
         app.drain_fx();
         app
@@ -685,6 +746,12 @@ impl App {
             self.ctx.director.on_event(&ev);
             apply_director_event(&mut self.ctx, ev);
         }
+        let mut touched = false;
+        while let Ok(ev) = self.ctx.hidden_events.try_recv() {
+            apply_hidden_event(&mut self.ctx, ev);
+            touched = true;
+        }
+        self.publish_board(touched);
         // While the player chats, the next level waits: a chat reply must not queue behind a
         // multi-minute prefetch on a model server that runs one request at a time.
         let chatting = matches!(self.screen, Screen::Chat(_));
@@ -726,6 +793,49 @@ impl App {
             self.ctx.level_elapsed = 0.0;
         } else if depth.is_some() {
             self.ctx.level_elapsed += dt.as_secs_f32();
+        }
+    }
+
+    /// Offer the current board to the hidden line. A different board (new level, a new door
+    /// attempt, the place arriving) is published and bumps the generation, so a connected session
+    /// reloads; the same board after the player's own GET/TYPE/TAP is only refreshed, or the
+    /// session would reset in the middle of a TAP.
+    fn publish_board(&mut self, touched: bool) {
+        if self.ctx.hidden.path().is_none() {
+            return;
+        }
+        // Mid-descent the old board stays up: the exit taken is already the next level's but the
+        // depth has not changed, so a snapshot now would describe a host that never existed.
+        if self
+            .ctx
+            .run
+            .as_ref()
+            .is_some_and(|r| matches!(r.phase, Phase::Descending { .. }))
+        {
+            return;
+        }
+        let key = self.ctx.run.as_ref().map(|r| {
+            (
+                r.seed,
+                r.depth,
+                r.door_attempts,
+                r.level().is_some_and(|l| l.place.is_some()),
+            )
+        });
+        let changed = key != self.hidden_key;
+        if !changed && !touched {
+            return;
+        }
+        self.hidden_key = key;
+        let ctx = &self.ctx;
+        let snapshot = ctx
+            .run
+            .as_ref()
+            .and_then(|run| board::snapshot(run, &ctx.pack, &ctx.config.ans.dir));
+        if changed {
+            ctx.hidden.publish(snapshot);
+        } else {
+            ctx.hidden.refresh(snapshot);
         }
     }
 
@@ -1001,7 +1111,14 @@ pub fn run(global: &GlobalOpts, config: Config, paths: Paths) -> anyhow::Result<
         .enabled
         .then(|| Arc::new(OpenAiCompat::new(&config.ai)) as Arc<dyn Llm>);
     let ai_enabled = config.ai.enabled;
-    let ctx = Ctx::new(config, paths, global.clone(), pack, llm);
+    let mut ctx = Ctx::new(config, paths, global.clone(), pack, llm);
+    let socket = global
+        .socket
+        .clone()
+        .unwrap_or_else(|| ctx.paths.socket_path());
+    if let Err(e) = ctx.hidden.listen(socket.clone()) {
+        tracing::warn!("hidden line: cannot listen on {}: {e}", socket.display());
+    }
     if ai_enabled {
         ctx.director.warmup();
     }
@@ -1825,5 +1942,130 @@ mod tests {
             .map(|y| row_text(&app.ctx.last_frame, a, y))
             .collect();
         assert!(!all.contains("Hang up?"));
+    }
+
+    #[test]
+    fn hidden_line_events_update_the_run_once() {
+        let dir = tempfile::tempdir().unwrap();
+        let mut ctx = test_ctx(dir.path());
+        install_test_run(&mut ctx, 2);
+        let file = crate::pack::model::FileDef {
+            name: "X.ANS".into(),
+            description: "d".into(),
+            body: "b".into(),
+        };
+        apply_hidden_event(&mut ctx, HiddenEvent::Learn(programs::Program::WinNuke));
+        for _ in 0..2 {
+            apply_hidden_event(
+                &mut ctx,
+                HiddenEvent::Download {
+                    depth: 2,
+                    file: file.clone(),
+                },
+            );
+        }
+        let planted = crate::game::state::Backdoor::Planted;
+        apply_hidden_event(
+            &mut ctx,
+            HiddenEvent::Backdoor {
+                depth: 2,
+                state: planted,
+            },
+        );
+        apply_hidden_event(
+            &mut ctx,
+            HiddenEvent::Backdoor {
+                depth: 1,
+                state: planted,
+            },
+        );
+        let run = ctx.run.as_ref().unwrap();
+        assert!(run.deck_owns(programs::Program::WinNuke));
+        assert_eq!(run.irc.files.len(), 1);
+        assert_eq!(run.irc.files[0].bot, HIDDEN_BOT);
+        assert_eq!(run.backdoors.get(&2), Some(&planted));
+        assert_eq!(run.backdoors.get(&1), None, "a board already left");
+    }
+
+    #[test]
+    fn a_board_is_published_once_and_again_when_the_door_is_re_rolled() {
+        // A short directory name keeps the socket path under the sun_path limit.
+        let dir = tempfile::Builder::new().prefix("hl").tempdir().unwrap();
+        let mut ctx = test_ctx(dir.path());
+        ctx.hidden.listen(dir.path().join("s.sock")).unwrap();
+        install_test_run(&mut ctx, 2);
+        let mut app = App::new(ctx);
+        let start = app.ctx.hidden.generation();
+        app.step(None, Duration::from_millis(16));
+        assert_eq!(app.ctx.hidden.generation(), start + 1, "first board");
+        app.step(None, Duration::from_millis(16));
+        assert_eq!(app.ctx.hidden.generation(), start + 1, "same board");
+        app.ctx.run.as_mut().unwrap().door_attempts += 1;
+        app.step(None, Duration::from_millis(16));
+        assert_eq!(
+            app.ctx.hidden.generation(),
+            start + 2,
+            "a dump shock re-rolls"
+        );
+    }
+
+    #[test]
+    fn a_stale_backdoor_event_cannot_undo_a_planted_or_locked_one() {
+        let dir = tempfile::tempdir().unwrap();
+        let mut ctx = test_ctx(dir.path());
+        install_test_run(&mut ctx, 2);
+        let send = |ctx: &mut Ctx, state: Backdoor| {
+            apply_hidden_event(ctx, HiddenEvent::Backdoor { depth: 2, state });
+        };
+        let held = |ctx: &Ctx| ctx.run.as_ref().unwrap().backdoors.get(&2).copied();
+        send(&mut ctx, Backdoor::Open { misses: 2 });
+        send(&mut ctx, Backdoor::Open { misses: 1 });
+        assert_eq!(held(&ctx), Some(Backdoor::Open { misses: 2 }));
+        send(&mut ctx, Backdoor::Planted);
+        send(&mut ctx, Backdoor::Open { misses: 1 });
+        send(&mut ctx, Backdoor::Locked);
+        assert_eq!(held(&ctx), Some(Backdoor::Planted));
+        ctx.run.as_mut().unwrap().backdoors.clear();
+        send(&mut ctx, Backdoor::Locked);
+        send(&mut ctx, Backdoor::Planted);
+        assert_eq!(held(&ctx), Some(Backdoor::Locked));
+    }
+
+    #[test]
+    fn the_old_board_stays_up_until_the_descent_arrives() {
+        let dir = tempfile::Builder::new().prefix("hl").tempdir().unwrap();
+        let mut ctx = test_ctx(dir.path());
+        ctx.hidden.listen(dir.path().join("s.sock")).unwrap();
+        install_test_run(&mut ctx, 2);
+        let pack = ctx.pack.clone();
+        let mut app = App::new(ctx);
+        let dt = Duration::from_millis(16);
+        app.step(None, dt);
+        let first = app.ctx.hidden.generation();
+        let before = app.ctx.hidden.board().expect("the first board");
+        {
+            let run = app.ctx.run.as_mut().unwrap();
+            assert!(run.apply_choice(&pack, 0));
+            assert!(run.apply_exit(1), "the DEEP exit");
+            assert_eq!(run.depth, 2, "still on the old level");
+        }
+        // A caller's own request lands mid-descent: it refreshes nothing, because a snapshot
+        // built now would use the next level's exit on this level's host.
+        let (tx, rx) = std::sync::mpsc::channel();
+        app.ctx.hidden_events = rx;
+        tx.send(HiddenEvent::Learn(programs::Program::WinNuke))
+            .unwrap();
+        app.step(None, dt);
+        assert_eq!(app.ctx.hidden.generation(), first, "no board mid-descent");
+        let held = app.ctx.hidden.board().unwrap();
+        assert!(std::sync::Arc::ptr_eq(&before, &held), "no refresh either");
+        app.ctx.run.as_mut().unwrap().arrive(3);
+        app.step(None, dt);
+        assert_eq!(
+            app.ctx.hidden.generation(),
+            first + 1,
+            "one board on arrival"
+        );
+        assert_eq!(app.ctx.hidden.board().unwrap().depth, 3);
     }
 }

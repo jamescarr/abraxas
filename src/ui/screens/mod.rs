@@ -23,6 +23,7 @@ use ratatui::layout::Rect;
 
 use crate::ui::app::Ctx;
 
+pub mod ans_view;
 pub mod archive;
 pub mod beat;
 pub mod board;
@@ -46,6 +47,7 @@ pub mod psyche;
 pub mod run;
 pub mod users;
 
+pub use ans_view::AnsViewScreen;
 pub use archive::ArchiveScreen;
 pub use beat::BeatScreen;
 pub use board::BoardScreen;
@@ -168,6 +170,7 @@ screens! {
     Files(FilesScreen),
     Chat(ChatScreen),
     Irc(IrcScreen),
+    AnsView(AnsViewScreen),
     Users(UsersScreen),
     Archive(ArchiveScreen),
     Psyche(PsycheScreen),

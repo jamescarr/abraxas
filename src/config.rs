@@ -53,6 +53,11 @@ impl Paths {
     pub fn log_file(&self) -> PathBuf {
         self.data_dir.join("abraxas.log")
     }
+
+    /// The hidden line's Unix socket.
+    pub fn socket_path(&self) -> PathBuf {
+        self.data_dir.join("abraxas.sock")
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -143,11 +148,28 @@ impl Default for DisplayConfig {
     }
 }
 
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(default, deny_unknown_fields)]
+pub struct AnsConfig {
+    /// Directory of .ANS/.ICE artpack files for the hidden line; relative paths resolve against
+    /// the working directory.
+    pub dir: PathBuf,
+}
+
+impl Default for AnsConfig {
+    fn default() -> Self {
+        Self {
+            dir: PathBuf::from("ans"),
+        }
+    }
+}
+
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 #[serde(default, deny_unknown_fields)]
 pub struct Config {
     pub ai: AiConfig,
     pub display: DisplayConfig,
+    pub ans: AnsConfig,
 }
 
 impl Config {
@@ -167,6 +189,9 @@ impl Config {
         }
         if let Some(baud) = opts.baud {
             self.display.baud = baud;
+        }
+        if let Some(dir) = &opts.ans_dir {
+            self.ans.dir = dir.clone();
         }
     }
 }
@@ -198,6 +223,7 @@ mod tests {
         assert_eq!(cfg, Config::default());
         assert_eq!(cfg.ai.model, "qwen3.8");
         assert_eq!(cfg.display.baud, 9600);
+        assert_eq!(cfg.ans.dir, PathBuf::from("ans"));
     }
 
     #[test]
@@ -232,6 +258,7 @@ mod tests {
             base_url: Some("http://x/v1".into()),
             calm: true,
             baud: Some(0),
+            ans_dir: Some("/tmp/art".into()),
             ..GlobalOpts::default()
         };
         cfg.apply_cli(&opts);
@@ -240,6 +267,7 @@ mod tests {
         assert_eq!(cfg.ai.base_url, "http://x/v1");
         assert!(cfg.display.calm);
         assert_eq!(cfg.display.baud, 0);
+        assert_eq!(cfg.ans.dir, PathBuf::from("/tmp/art"));
     }
 
     #[test]

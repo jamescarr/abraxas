@@ -50,6 +50,14 @@ pub struct GlobalOpts {
     #[arg(long, global = true)]
     pub baud: Option<u32>,
 
+    /// Directory of .ANS/.ICE artpacks for the hidden line (default: ./ans).
+    #[arg(long, global = true, value_name = "DIR")]
+    pub ans_dir: Option<PathBuf>,
+
+    /// Unix socket of the hidden line (default: <data dir>/abraxas.sock).
+    #[arg(long, global = true, value_name = "PATH")]
+    pub socket: Option<PathBuf>,
+
     /// Developer mode: `xyzzy` completes the objective, generation sources are shown.
     #[arg(long, global = true, hide = true)]
     pub dev: bool,

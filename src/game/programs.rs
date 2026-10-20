@@ -25,6 +25,14 @@ pub enum Program {
     Metronom,
     #[serde(rename = "TEARDROP.SH")]
     Teardrop,
+    #[serde(rename = "WINNUKE.EXE")]
+    WinNuke,
+    #[serde(rename = "SMURF.EXE")]
+    Smurf,
+    #[serde(rename = "SYNFLOOD.EXE")]
+    SynFlood,
+    #[serde(rename = "PINGOD.EXE")]
+    PingOfDeath,
 }
 
 /// How a program is consumed.
@@ -37,7 +45,7 @@ pub enum ProgramKind {
 }
 
 impl Program {
-    pub const ALL: [Program; 9] = [
+    pub const ALL: [Program; 13] = [
         Program::Decrypt,
         Program::Sniffer,
         Program::Buffer,
@@ -47,6 +55,10 @@ impl Program {
         Program::Mandala,
         Program::Metronom,
         Program::Teardrop,
+        Program::WinNuke,
+        Program::Smurf,
+        Program::SynFlood,
+        Program::PingOfDeath,
     ];
 
     /// The DOS file name shown in the file library.
@@ -61,6 +73,10 @@ impl Program {
             Program::Mandala => "MANDALA.SYS",
             Program::Metronom => "METRONOM.EXE",
             Program::Teardrop => "TEARDROP.SH",
+            Program::WinNuke => "WINNUKE.EXE",
+            Program::Smurf => "SMURF.EXE",
+            Program::SynFlood => "SYNFLOOD.EXE",
+            Program::PingOfDeath => "PINGOD.EXE",
         }
     }
 
@@ -74,7 +90,14 @@ impl Program {
     pub fn cost_kb(self) -> u32 {
         match self {
             Program::Decrypt | Program::Mandala => 48,
-            Program::Sniffer | Program::Buffer | Program::Metronom | Program::Teardrop => 64,
+            Program::Sniffer
+            | Program::Buffer
+            | Program::Metronom
+            | Program::Teardrop
+            | Program::WinNuke
+            | Program::Smurf
+            | Program::SynFlood
+            | Program::PingOfDeath => 64,
             Program::IcePick => 80,
             Program::Ghost | Program::Mirror => 96,
         }
@@ -86,7 +109,13 @@ impl Program {
             Program::Ghost | Program::Mirror | Program::Mandala | Program::Teardrop => {
                 ProgramKind::Charges(1)
             }
-            Program::Buffer | Program::IcePick | Program::Metronom => ProgramKind::Persistent,
+            Program::Buffer
+            | Program::IcePick
+            | Program::Metronom
+            | Program::WinNuke
+            | Program::Smurf
+            | Program::SynFlood
+            | Program::PingOfDeath => ProgramKind::Persistent,
         }
     }
 
@@ -94,9 +123,17 @@ impl Program {
         self.kind() == ProgramKind::Persistent
     }
 
-    /// Whether the BBS file library may offer it (TEARDROP.SH is IRC-only).
+    /// Whether the BBS file library may offer it. TEARDROP.SH is IRC-only; the zine attacks are
+    /// learned from articles on the hidden line.
     pub fn sold_on_bbs(self) -> bool {
-        self != Program::Teardrop
+        !matches!(
+            self,
+            Program::Teardrop
+                | Program::WinNuke
+                | Program::Smurf
+                | Program::SynFlood
+                | Program::PingOfDeath
+        )
     }
 
     /// One-line description shown in the file library and by `deck`.
@@ -111,7 +148,83 @@ impl Program {
             Program::Mandala => "restore 30 EGO (Self screen U, or run mandala)",
             Program::Metronom => "PHREAK: R replays the sequence once per round",
             Program::Teardrop => "IRC: /teardrop crashes one locked fserv (+15 trace)",
+            Program::WinNuke => "DUEL [1]: WINNUKE, 20 damage, once per duel",
+            Program::Smurf => {
+                "DUEL [2]: SMURF, twice the ICE's announced hit (min 8), once per duel"
+            }
+            Program::SynFlood => {
+                "DUEL [3]: SYNFLOOD, 6 damage and the ICE loses its turn, once per duel"
+            }
+            Program::PingOfDeath => "DUEL [4]: PINGOD, 30 damage, costs 8 EGO, once per duel",
         }
+    }
+
+    /// The DUEL attack this program teaches, when it is a zine attack.
+    pub fn attack(self) -> Option<Attack> {
+        Attack::ALL.into_iter().find(|a| a.program() == self)
+    }
+}
+
+/// DUEL moves learned from zine articles on the hidden line; fired with keys 1-4, once per duel.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
+pub enum Attack {
+    WinNuke,
+    Smurf,
+    SynFlood,
+    PingOfDeath,
+}
+
+impl Attack {
+    /// In key order: `a as usize` indexes the loadout and the duel's fired flags.
+    pub const ALL: [Attack; 4] = [
+        Attack::WinNuke,
+        Attack::Smurf,
+        Attack::SynFlood,
+        Attack::PingOfDeath,
+    ];
+
+    /// The deck program a zine article adds for this attack.
+    pub fn program(self) -> Program {
+        match self {
+            Attack::WinNuke => Program::WinNuke,
+            Attack::Smurf => Program::Smurf,
+            Attack::SynFlood => Program::SynFlood,
+            Attack::PingOfDeath => Program::PingOfDeath,
+        }
+    }
+
+    /// The DUEL key.
+    pub fn key(self) -> char {
+        match self {
+            Attack::WinNuke => '1',
+            Attack::Smurf => '2',
+            Attack::SynFlood => '3',
+            Attack::PingOfDeath => '4',
+        }
+    }
+
+    /// Name used in duel log lines.
+    pub fn label(self) -> &'static str {
+        match self {
+            Attack::WinNuke => "WINNUKE",
+            Attack::Smurf => "SMURF",
+            Attack::SynFlood => "SYNFLOOD",
+            Attack::PingOfDeath => "PINGOD",
+        }
+    }
+
+    /// Short name for the duel panel.
+    pub fn short(self) -> &'static str {
+        match self {
+            Attack::WinNuke => "NUKE",
+            Attack::Smurf => "SMURF",
+            Attack::SynFlood => "SYN",
+            Attack::PingOfDeath => "PING",
+        }
+    }
+
+    pub fn from_key(c: char) -> Option<Attack> {
+        Attack::ALL.into_iter().find(|a| a.key() == c)
     }
 }
 
@@ -200,5 +313,19 @@ mod tests {
                 format!("\"{}\"", p.file_name())
             );
         }
+    }
+
+    #[test]
+    fn zine_attacks_are_persistent_unsold_programs_on_keys_one_to_four() {
+        for (i, a) in Attack::ALL.into_iter().enumerate() {
+            assert_eq!(a as usize, i);
+            assert_eq!(a.program().attack(), Some(a));
+            assert_eq!(Attack::from_key(a.key()), Some(a));
+            assert!(a.program().is_persistent());
+            assert!(!a.program().sold_on_bbs());
+        }
+        assert_eq!(Attack::from_key('5'), None);
+        assert_eq!(Program::Ghost.attack(), None);
+        assert!(Program::Ghost.sold_on_bbs());
     }
 }

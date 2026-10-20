@@ -505,6 +505,7 @@ irc_chatter = [
   "lag on this net is just the distance between us",
   "i read the zine twice. the second time it had a different ending",
   "who wants to trade? i have a 2400 baud ringtone, gently used",
+  "there is a second line into this board. not a phone number. a socket.",
 ]
 
 [[eliza]]
@@ -2051,3 +2052,141 @@ TEARDROP.SH is faster and louder. It crashes a locked fserv outright, one charge
 Every /hack costs trace before the first move. Fill the meter and the op K-lines you. You leave with less of you than you came with.
 
 In a console, Tab asks for a hint. A hint costs 4 trace. Ask only when the clock is not the problem."""
+
+[[zine_article]]
+name = "WINNUKE.TXT"
+description = "PHRK issue 49 file 7: out of band"
+attack = "WINNUKE.EXE"
+body = """
+OUT OF BAND
+
+The guard on a black box reads the line one way. It has a doorbell it never checks against the traffic it already trusts. Send your data where it is not looking, in the gap between what the line is and what the line is doing, and the guard answers nothing at all.
+
+WINNUKE.EXE is that gap. It is not a conversation. There is no handshake and no reply, only twenty points of it arriving at once and the box deciding the silence is normal.
+
+DUEL key 1. 20 damage. Once per duel.
+
+It does nothing to the shadow. The shadow is not a box and has no line to send anything down. Save it for BLACK ICE.
+
+-- retyped from a printout with the last page missing."""
+
+[[zine_article]]
+name = "SMURF.TXT"
+description = "2600 vol.16 no.4: the amplifier"
+attack = "SMURF.EXE"
+body = """
+THE AMPLIFIER
+
+A guard that fights back announces what it is about to do. Read the announcement. Do not block it. Route it back through every host that will still answer politely, and let the net say it again, louder.
+
+SMURF.EXE turns the guard's own announced hit around. It comes home doubled. If the announcement was small, the floor is eight: the net does not send less than that.
+
+DUEL key 2. Twice the guard's announced hit, minimum 8. Once per duel.
+
+It does nothing to the shadow. The shadow announces nothing and has no neighbours to amplify with. BLACK ICE only.
+
+-- retyped. the mimeograph smelled like rain."""
+
+[[zine_article]]
+name = "SYNFLOOD.TXT"
+description = "PHRK issue 48 file 13: half open"
+attack = "SYNFLOOD.EXE"
+body = """
+HALF OPEN
+
+A guard has a table of conversations. Every row it cannot close, it must keep. Open rows until the table is full and the guard spends its turn counting instead of striking.
+
+SYNFLOOD.EXE opens six rows and leaves them open. Six points, plainly. The important part is what does not happen next: the guard is busy with the table and its turn goes by.
+
+DUEL key 3. 6 damage, and the guard loses its turn. Once per duel.
+
+The shadow keeps no table. It is not a box. Use this on BLACK ICE.
+
+-- retyped from PHRK 48, file 13. the staple was rusted through."""
+
+[[zine_article]]
+name = "PINGOD.TXT"
+description = "DOCS_05: the long ping"
+attack = "PINGOD.EXE"
+body = """
+THE LONG PING
+
+A ping is a small polite question. The trick is to ask it in a shape no guard expects, so the answer has to be assembled out of more memory than the guard has.
+
+PINGOD.EXE is the long one. Thirty points, and the guard spends them all at once. It costs you to hold the shape: eight EGO leaves your side of the line and does not come back.
+
+DUEL key 4. 30 damage. Costs 8 EGO. Once per duel.
+
+It will not work on the shadow, which has no memory to overflow and no line to ping. BLACK ICE only.
+
+-- retyped from DOCS_05. the page was warm."""
+
+[[zine_art]]
+name = "MODEM.ANS"
+description = "a 14.4 with its lights on"
+body = '''
+|08╔══════════════════════════════════════════════════╗|07
+|08║  |15ABRAXAS|08   |07MODEM V.32bis|08    |07 14.4 kbps|08           ║|07
+|08╠══════════════════════════════════════════════════╣|07
+|08║                                                  ║|07
+|08║           |07┌──┐|08    |07┌──┐|08    |07┌──┐|08    |07┌──┐|08           ║|07
+|08║           |10│SD│|08    |14│RD│|08    |11│CD│|08    |08│AA│|08           ║|07
+|08║           |07└──┘|08    |07└──┘|08    |07└──┘|08    |07└──┘|08           ║|07
+|08║           |10 ON |08    |14 ON |08    |11 ON |08    |08 off|08           ║|07
+|08║                                                  ║|07
+|08╚══════════════════════════════════════════════════╝|07
+'''
+
+[[zine_art]]
+name = "BLUEBOX.ANS"
+description = "blue box schematic, PHRK 48"
+body = '''
+|08┌─────────────────────────────────────┐|07
+|08│ |07┌─────┬─────┬─────┐|08                 │|07
+|08│ |07│  1  |07│  2  |07│  3  |07│|08                 │|07
+|08│ |07├─────┼─────┼─────┤|08   |11 2600  |08       │|07
+|08│ |07│  4  |07│  5  |07│  6  |07│|08   |11  Hz   |08       │|07
+|08│ |07├─────┼─────┼─────┤|08                 │|07
+|08│ |07│  7  |07│  8  |07│  9  |07│|08                 │|07
+|08│ |07├─────┼─────┼─────┤|08   |08──────|08        │|07
+|08│ |07│  *  |07│  0  |07│  #  |07│|08                 │|07
+|08│ |07└─────┴─────┴─────┘|08                 │|07
+|08└─────────────────────────────────────┘|07
+'''
+
+[[zine_art]]
+name = "PHRK_49.ANS"
+description = "PHRK issue 49 cover (retyped)"
+body = '''
+|11 ████  █   █ ████  █   █ |07
+|11 █   █ █   █ █   █ █  █  |07
+|11 ████  █████ ████  ███   |07
+|11 █     █   █ █  █  █  █  |07
+|11 █     █   █ █   █ █   █ |07
+|08 ────────────────────────|07
+|15       ▄▄▄▄▄▄▄▄
+|15     ▄█        █▄
+|15    ██          ██
+|15     ▀█        █▀
+|15       ▀▀▀▀▀▀▀▀
+|14   PHRK 49   |08 THE LINE ISSUE|07
+'''
+
+[[zine_art]]
+name = "COW.ANS"
+description = "the cow that would not die"
+body = '''
+|06          /\       /\
+|06         /  \_____/  \
+|07        /             \
+|07       |   |12X     X|07   |
+|07       |             |
+|15       |    |08▄▄▄▄▄|15    |
+|15       |    |08▄▄▄▄▄|15    |
+|07        \           /
+|06         \_________/
+|06        /|         |\
+|06       / |         | \
+|06      /  |         |  \
+|07   the cow that would not die
+'''

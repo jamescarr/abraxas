@@ -19,6 +19,7 @@ mise install
 mise run play                      # release build, then play (AI on, local Ollama)
 mise run play -- --offline         # no AI at all
 mise run check                     # fmt + clippy + tests (what CI runs)
+mise run ans                       # download ANSI artpacks into ./ans (art for the hidden line)
 ```
 
 Without mise: `cargo run --release -- [flags]`.
@@ -31,6 +32,8 @@ Without mise: `cargo run --release -- [flags]`.
 | `--model M`, `--base-url URL` | AI model and OpenAI-compatible endpoint |
 | `--calm` | no flicker, glitch, dissolve or CRT effects; visions are frozen (text still types) |
 | `--baud N` | modem speed; text arrives at N/10 characters per second, 0 is instant (default 9600) |
+| `--ans-dir DIR` | directory of `.ANS`/`.ICE` artpack files for the hidden line (default `./ans`) |
+| `--socket PATH` | the hidden line's Unix socket (default `<data dir>/abraxas.sock`) |
 
 Other commands: `abraxas pack check [DIR]` validates a story pack; `abraxas pack dream [--levels N] [--choose integrate|repress|neutral|random]` generates levels headlessly with the real director and prints them (`mise run dream`).
 
@@ -70,11 +73,21 @@ Other commands: `abraxas pack check [DIR]` validates a story pack; `abraxas pack
 
    ![The descent: a vision, the captions and the hexagram](docs/screenshots/descent.svg)
 
-Stats: **EGO** (health, +10 on every arrival; at 0 the run ends and the save is deleted), **RATIO** (KB credit earned from doors, spent on programs in the file library and on IRC fservs), **INTEGRATION** (your stance toward the Shadow, -10 to 10; it decides the ending), **DECK** (programs: DECRYPT, SNIFFER, BUFFER, GHOST, ICEPICK, MIRROR, MANDALA, METRONOM, and TEARDROP, which only IRC sells).
+Stats: **EGO** (health, +10 on every arrival; at 0 the run ends and the save is deleted), **RATIO** (KB credit earned from doors, spent on programs in the file library and on IRC fservs), **INTEGRATION** (your stance toward the Shadow, -10 to 10; it decides the ending), **DECK** (programs: DECRYPT, SNIFFER, BUFFER, GHOST, ICEPICK, MIRROR, MANDALA, METRONOM, and TEARDROP, which only IRC sells; plus the four DUEL attacks WINNUKE, SMURF, SYNFLOOD and PINGOD, which only the hidden line teaches).
 
 Levels 0-15 carry the authored story in four alchemical acts (NIGREDO, ALBEDO, CITRINITAS, RUBEDO); after an ending you can continue into THE UNDERBOARD, endless AI levels.
 
 ![The Self: the mandala of the four acts](docs/screenshots/psyche.svg)
+
+### The hidden line
+
+While you play, the game also listens on a Unix socket: `abraxas.sock` in the data directory (`~/Library/Application Support/abraxas/` on macOS, `~/.local/share/abraxas/` on Linux; `F1` shows the exact path, with the home directory as `$HOME`; `--socket PATH` moves it). Open a second terminal and connect with `socat - "UNIX-CONNECT:$HOME/Library/Application Support/abraxas/abraxas.sock"` or `nc -U "$HOME/Library/Application Support/abraxas/abraxas.sock"` (the macOS path has a space, so quote it). Before you are logged in it answers `NO CARRIER`; afterwards every board (level) has its own hidden server, and `HELP` lists its commands:
+
+- `TAP` plays **DECODE THE TRUNK** against the host's PHREAK relay (the guard that says WATCH THE LINE). The server prints the relay's DTMF tone pairs and a keypad grid; you type the keys the tones encode. A hit plants a **backdoor**: when you open the door, the relay is already cleared. Three misses lock the backdoor for that board. Hosts at danger 1 have no relay to tap.
+- `DIR`, `TYPE <name>` and `GET <name>` browse a zine directory: three pieces of ANSI art and one article, picked per board from the run seed and the level. `TYPE` plays art at your modem speed (`--baud`; any line skips it). The art is redrawn through the same 80-column interpreter as the in-game viewer and sent as explicit rows, so it looks right in a terminal of any width (a piece that animates with cursor moves arrives as its final picture). `GET` adds the original file to your run's files: `/files` on IRC lists it and `/read <n>` opens it. `.ANS` and `.ICE` files open in a full-screen viewer that replays them at modem speed, animations included, and scrolls (`Up`/`Down`, `PgUp`/`PgDn`, `Esc` leaves; any key finishes the drawing).
+- Reading an article teaches a DUEL attack for the rest of the run. Fire it with `1`-`4` once per duel against BLACK ICE (the Shadow is not a box): `WINNUKE.EXE` hits for 20, `SMURF.EXE` returns twice the announced hit (at least 8), `SYNFLOOD.EXE` hits for 6 and the ICE loses its turn, `PINGOD.EXE` hits for 30 and costs you 8 EGO.
+
+The art comes from a directory of real artpack files: `[ans] dir` in `config.toml` (default `ans`, `--ans-dir DIR`). `mise run ans` downloads classic ACiD, iCE and Blade packs from [16colo.rs](https://16colo.rs) into `./ans` (git-ignored; needs `curl` and `unzip`). Each board picks three of the files at random and shows their SAUCE credit. With no files in the directory the pool's inline `[[zine_art]]` pieces are offered instead.
 
 ### Controls
 
@@ -85,6 +98,7 @@ Levels 0-15 carry the authored story in four alchemical acts (NIGREDO, ALBEDO, C
 | Viewers | `Up`/`Down`, `PgUp`/`PgDn`, `Space` |
 | Text and the shell prompt | `Left`/`Right`/`Home`/`End`/`Backspace`/`Delete`, history with `Up`/`Down`, `Tab` completes commands, node ids and file names, `Ctrl+L` clears |
 | IRC | slash commands (`/help` lists them), `PgUp`/`PgDn` scroll the log, `Esc` clears the line, then leaves |
+| DUEL | `A` attack, `S` sleaze, `D` defend, `P` program, `R` retreat, `X` accept (Shadow), `1`-`4` the zine attacks you learned on the hidden line |
 | Any transmission | any key completes the current text |
 
 ## AI setup
@@ -122,6 +136,8 @@ baud = 9600                     # 0 = instant
 calm = false
 crt = true
 truecolor = "auto"              # auto | always | never
+[ans]
+dir = "ans"                     # .ANS/.ICE artpacks for the hidden line (mise run ans fills ./ans)
 ```
 
 A syntax error in `config.toml` is printed to stderr and the game exits with status 1 before the terminal is touched.
@@ -315,6 +331,8 @@ With `ai = "off"` the AI is never called for that level and missing fields come 
 | `irc_channels` | channel names matching `^#[a-z0-9_-]{2,20}$` |
 | `irc_nicks`, `irc_bots` | handles `^[A-Za-z0-9_-]{2,16}$`: the chatterers and the fserv bots |
 | `irc_chatter` | chat lines, at most 70 characters; may use `{handle}`, `{shadow}` and `{real_name}` |
+| `zine_art` | `[[zine_art]]` pieces (`name`, `description`, `body`): pipe-coded art, at most 78x20, shown on the hidden line when the ANS directory is empty |
+| `zine_article` | `[[zine_article]]` entries: `name`, `description`, `attack` (`WINNUKE.EXE`, `SMURF.EXE`, `SYNFLOOD.EXE` or `PINGOD.EXE`) and `body`; reading one on the hidden line teaches that DUEL attack |
 
 `[[post]]`, `[[text_file]]`, `[[host_file]]` and `[[exit]]` use the same fields as in anchors; a `[[choice]]` with `[[choice.option]]` must offer exactly one option per stance, and the exits must include every kind.
 
