@@ -12,7 +12,15 @@ The game is a terminal UI styled after a late-90s ANSI BBS: message bases, file 
 
 ## Install and run
 
-You need a terminal of at least 80x25 with truecolor (16 colours also work), on macOS or Linux, and a Rust toolchain. The repo pins the toolchain with [mise](https://mise.jdx.dev):
+You need a terminal of at least 80x25 with truecolor (16 colours also work), on macOS or Linux.
+
+```
+brew install jamescarr/tap/abraxas     # prebuilt binary, macOS and Linux
+cargo install --locked abraxas-bbs     # from crates.io; installs the `abraxas` command
+abraxas                                # play (flags below)
+```
+
+To build from source you need a Rust toolchain; the repo pins it with [mise](https://mise.jdx.dev):
 
 ```
 mise install

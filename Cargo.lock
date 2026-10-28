@@ -3,7 +3,7 @@
 version = 4
 
 [[package]]
-name = "abraxas"
+name = "abraxas-bbs"
 version = "0.1.0"
 dependencies = [
  "anyhow",
