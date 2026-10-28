@@ -15,7 +15,7 @@ use crate::game::shell::ShellEffect;
 use crate::game::state::Level;
 use crate::ice::IceOutcome;
 use crate::ice::duel::BlackClass;
-use crate::pack::model::{ExitKind, HostOs, ObjectiveIce, ObjectiveKind};
+use crate::pack::model::{ExitKind, FileDef, HostOs, ObjectiveIce, ObjectiveKind};
 use crate::rng::{Rng, substream};
 
 /// EGO lost to a DUMP SHOCK.
@@ -26,6 +26,16 @@ pub const FILE_REWARD_KB: u32 = 8;
 pub const BOUNCE_TRACE_RELIEF: f32 = 30.0;
 /// Trace added by retreating from a duel.
 pub const RETREAT_TRACE: f32 = 10.0;
+/// Trace added by SIGURG (the hidden archive).
+pub const SIGURG_TRACE: f32 = 20.0;
+/// Trace added by SIGHUP (the secret route).
+pub const SIGHUP_TRACE: f32 = 25.0;
+/// Trace added by SIGPIPE (a guard killed unplayed).
+pub const SIGPIPE_TRACE: f32 = 35.0;
+/// Passive trace multiplier once a signal has landed (the exchange is listening).
+pub const ALERT_RATE: f32 = 2.0;
+/// KB for the first `get` of the hidden archive (three plain files' worth).
+pub const HIDDEN_ARCHIVE_KB: u32 = 24;
 /// Fallback decoy process names when the pool offers too few.
 const FALLBACK_DAEMONS: [&str; 5] = ["init", "cron", "syslogd", "lpd", "inetd"];
 /// Kinds handed to the nodes that are neither portal nor objective, in order.
@@ -195,6 +205,51 @@ pub struct MapNode {
     pub neighbors: Vec<usize>,
 }
 
+/// A hidden-line signal sent to the exchange while the door is open.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Signal {
+    /// SIGURG: out-of-band data. The exchange gives up its hidden archive.
+    Urg,
+    /// SIGHUP: the routing daemon rereads its tables. A route from the current node to the
+    /// objective.
+    Hup,
+    /// SIGPIPE: the guard at `node` writes to a reset line and dies. The ICE is cleared unplayed.
+    Pipe { node: usize },
+}
+
+impl Signal {
+    /// The verb as typed on the hidden line.
+    pub fn name(self) -> &'static str {
+        match self {
+            Signal::Urg => "SIGURG",
+            Signal::Hup => "SIGHUP",
+            Signal::Pipe { .. } => "SIGPIPE",
+        }
+    }
+}
+
+/// A signal addressed to one host: the door at `depth`, host generation `attempt`.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct DoorSignal {
+    pub depth: u32,
+    pub attempt: u32,
+    pub signal: Signal,
+}
+
+/// The live door as the hidden line sees it: only what changes while the shell is open. The
+/// graph itself is regenerated from the run seed on both sides.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct DoorView {
+    pub depth: u32,
+    pub attempt: u32,
+    pub current: usize,
+    /// Bit `i` set: `nodes[i]` is cleared. A host has at most 9 nodes.
+    pub cleared: u16,
+    pub dumped: bool,
+    pub archive_found: bool,
+    pub route_found: bool,
+}
+
 #[derive(Debug, Clone)]
 pub struct HostSession {
     pub(crate) os: HostOs,
@@ -219,6 +274,14 @@ pub struct HostSession {
     pub(crate) dumped: bool,
     pub(crate) whoami_seen: bool,
     pub(crate) player: PlayerView,
+    /// Run depth of the door (`level.seed.depth`).
+    pub(crate) depth: u32,
+    /// SIGURG's prize, unlisted until the signal lands.
+    pub(crate) hidden_archive: Option<HostFile>,
+    pub(crate) archive_found: bool,
+    pub(crate) route_found: bool,
+    /// A signal has landed: passive trace runs at [`ALERT_RATE`].
+    pub(crate) alerted: bool,
 }
 
 impl HostSession {
@@ -477,6 +540,11 @@ impl HostSession {
             bounce_used: false,
             dumped: false,
             whoami_seen: false,
+            depth: level.seed.depth,
+            hidden_archive: None,
+            archive_found: false,
+            route_found: false,
+            alerted: false,
             player: PlayerView::default(),
         }
     }
@@ -607,6 +675,167 @@ impl HostSession {
         Some((node.id.clone(), node.display.clone()))
     }
 
+    /// Run depth of the door.
+    pub fn depth(&self) -> u32 {
+        self.depth
+    }
+
+    /// SIGURG's prize while it is still unlisted; `None` once found or when the pool has none.
+    pub fn hidden_archive(&self) -> Option<&HostFile> {
+        self.hidden_archive.as_ref()
+    }
+
+    /// True once a signal has landed: passive trace runs at [`ALERT_RATE`].
+    pub fn alerted(&self) -> bool {
+        self.alerted
+    }
+
+    /// Store SIGURG's prize, unlisted (it is in no node's `files` until the signal lands).
+    pub fn set_hidden_archive(&mut self, file: Option<HostFile>) {
+        self.hidden_archive = file;
+    }
+
+    /// The node that gives up the hidden archive: the first non-objective archive, else the first
+    /// archive, else node 1. (`generate` always makes the first non-objective node an archive.)
+    pub fn archive_node(&self) -> usize {
+        let archives = || {
+            self.nodes
+                .iter()
+                .enumerate()
+                .filter(|(_, n)| n.kind == NodeKind::Archive)
+        };
+        archives()
+            .find(|&(i, _)| i != self.objective_node)
+            .or_else(|| archives().next())
+            .map_or_else(|| 1.min(self.nodes.len().saturating_sub(1)), |(i, _)| i)
+    }
+
+    /// What the hidden line needs to know about this door.
+    pub fn door_view(&self) -> DoorView {
+        let cleared = self
+            .nodes
+            .iter()
+            .enumerate()
+            .filter(|(_, n)| n.cleared)
+            .fold(0u16, |mask, (i, _)| mask | (1u16 << i));
+        DoorView {
+            depth: self.depth,
+            attempt: self.attempt,
+            current: self.current,
+            cleared,
+            dumped: self.dumped,
+            archive_found: self.archive_found,
+            route_found: self.route_found,
+        }
+    }
+
+    /// Why `signal` would not land on the door described by `view`, or `None` when it would. The
+    /// one rule set: the live door asks with its own [`door_view`](Self::door_view), the hidden
+    /// line with the view the app last published.
+    pub fn signal_refusal(&self, view: &DoorView, signal: Signal) -> Option<String> {
+        if view.cleared & 1 == 0 {
+            return Some("the front door is still locked. no session to signal.".to_string());
+        }
+        if view.dumped {
+            return Some("the exchange dumped you. nothing listens.".to_string());
+        }
+        match signal {
+            Signal::Urg => {
+                if view.archive_found {
+                    return Some("the mark is already read. nothing more out of band.".to_string());
+                }
+                if self.hidden_archive.is_none() {
+                    return Some("nothing out of band on this exchange.".to_string());
+                }
+            }
+            Signal::Hup => {
+                if view.route_found {
+                    return Some("the tables are already reread. no more routes.".to_string());
+                }
+                let obj = &self.nodes[self.objective_node];
+                let Some(cur) = self.nodes.get(view.current) else {
+                    return Some("no such node.".to_string());
+                };
+                if view.current == self.objective_node {
+                    return Some(format!("you are at {}. no route to reread.", obj.id));
+                }
+                if cur.neighbors.contains(&self.objective_node) {
+                    return Some(format!("{} already routes to {}.", cur.id, obj.id));
+                }
+            }
+            Signal::Pipe { node } => {
+                let Some(target) = self.nodes.get(node) else {
+                    return Some("no such node.".to_string());
+                };
+                match target.ice {
+                    None => return Some(format!("nothing listens at {}.", target.id)),
+                    Some(IceKindAt::Shadow) => {
+                        return Some("the shadow is not a process.".to_string());
+                    }
+                    Some(_) => {}
+                }
+                if view.cleared & (1u16 << node) != 0 {
+                    return Some(format!("{} is already open.", target.id));
+                }
+            }
+        }
+        None
+    }
+
+    /// Land `signal` on the live host: unlock what it unlocks, add its trace, and (once per
+    /// session) alert the exchange. A signal the door refuses prints nothing and costs nothing:
+    /// the hidden line already answered it.
+    pub fn apply_signal(&mut self, signal: Signal) -> Vec<ShellEffect> {
+        let mut out = Vec::new();
+        if self.signal_refusal(&self.door_view(), signal).is_some() {
+            return out;
+        }
+        let trace = match signal {
+            Signal::Urg => {
+                let Some(file) = self.hidden_archive.take() else {
+                    return out;
+                };
+                let at = self.archive_node();
+                out.push(ShellEffect::highlight(format!(
+                    "SIGURG: out-of-band byte at the mark. {} [{}] holds a file no index lists: {}. trace +{SIGURG_TRACE:.0}.",
+                    self.nodes[at].id, self.nodes[at].display, file.name
+                )));
+                self.nodes[at].files.push(file);
+                self.archive_found = true;
+                SIGURG_TRACE
+            }
+            Signal::Hup => {
+                let (cur, obj) = (self.current, self.objective_node);
+                self.nodes[cur].neighbors.push(obj);
+                self.nodes[obj].neighbors.push(cur);
+                self.route_found = true;
+                out.push(ShellEffect::highlight(format!(
+                    "SIGHUP: the routing daemon rereads its tables. a static route it was told to forget: {} <-> {}. trace +{SIGHUP_TRACE:.0}.",
+                    self.nodes[cur].id, self.nodes[obj].id
+                )));
+                SIGHUP_TRACE
+            }
+            Signal::Pipe { node } => {
+                // The player does not move: the pending `connect`, if any, is the screen's business.
+                self.nodes[node].cleared = true;
+                let label = self.nodes[node].ice.map_or("ICE", IceKindAt::label);
+                out.push(ShellEffect::highlight(format!(
+                    "SIGPIPE: {} [{}] wrote to a reset line. the kernel ended its {label}. trace +{SIGPIPE_TRACE:.0}.",
+                    self.nodes[node].id, self.nodes[node].display
+                )));
+                SIGPIPE_TRACE
+            }
+        };
+        if !self.alerted {
+            self.alerted = true;
+            out.push(ShellEffect::dim(
+                "the exchange heard that. the trace runs twice as fast now.",
+            ));
+        }
+        self.bump(trace, true, &mut out);
+        out
+    }
+
     /// The shell's copy of the deck (the UI keeps the saved deck in sync via
     /// `ShellEffect::UseProgram`).
     pub fn deck(&self) -> &Deck {
@@ -707,6 +936,9 @@ impl HostSession {
         }
         if self.ghost {
             rate *= 0.6;
+        }
+        if self.alerted {
+            rate *= ALERT_RATE;
         }
         rate
     }
@@ -826,6 +1058,38 @@ fn bfs(adj: &[Vec<usize>], from: usize) -> Vec<usize> {
         }
     }
     dist
+}
+
+/// SIGURG's prize: one pool host file the level does not already use (by name, nor the target),
+/// filled like the level's own files and drawn from `substream(seed, depth, "sigurg", attempt)`.
+/// `None` when the pool offers nothing new. Worth [`HIDDEN_ARCHIVE_KB`] on its first `get`.
+pub fn hidden_archive(
+    level: &Level,
+    pool: &[FileDef],
+    fill: &dyn Fn(&str) -> String,
+    attempt: u32,
+    seed: u64,
+) -> Option<HostFile> {
+    let mut used: Vec<String> = Vec::new();
+    if let Some(place) = level.place.as_ref() {
+        used.extend(place.host_files.iter().map(|f| f.name.to_ascii_uppercase()));
+        used.push(place.host.target_file.to_ascii_uppercase());
+    }
+    let candidates: Vec<(String, &FileDef)> = pool
+        .iter()
+        .map(|f| (fill(&f.name).to_ascii_uppercase(), f))
+        .filter(|(name, _)| !name.is_empty() && !used.contains(name))
+        .collect();
+    let mut rng = substream(seed, level.seed.depth, "sigurg", attempt);
+    let (name, def) = candidates.choose(&mut rng)?;
+    Some(HostFile {
+        name: name.clone(),
+        description: fill(&def.description),
+        body: fill(&def.body),
+        reward_kb: HIDDEN_ARCHIVE_KB,
+        fetched: false,
+        is_target: false,
+    })
 }
 
 fn build_processes(rng: &mut Rng, target: &str, daemons: &[String]) -> Vec<Process> {

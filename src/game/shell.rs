@@ -799,7 +799,10 @@ fn candidates(session: &HostSession, first_word: bool, head: &str, prefix: &str)
 mod tests {
     use super::*;
     use crate::game::danger::IceGrade;
-    use crate::game::host::{ObjectiveState, PlayerView, PromptColor};
+    use crate::game::host::{
+        ALERT_RATE, HIDDEN_ARCHIVE_KB, HostFile, ObjectiveState, PlayerView, PromptColor,
+        SIGHUP_TRACE, SIGPIPE_TRACE, SIGURG_TRACE, Signal, hidden_archive,
+    };
     use crate::game::state::{HostInfo, Level, LevelSeed, Place, Sysop};
     use crate::ice::IceOutcome;
     use crate::pack::model::{ExitKind, FileDef, ObjectiveIce};
@@ -1792,5 +1795,290 @@ mod tests {
         let mut s = mk(ObjectiveKind::Plant, 1, None, 1);
         assert!(s.phreak_node().is_none());
         assert_eq!(s.open_backdoor(), None);
+    }
+
+    // ----- door signals --------------------------------------------------------------------
+
+    fn hidden_file() -> HostFile {
+        HostFile {
+            name: "SECRET.TXT".into(),
+            description: "in no index".into(),
+            body: "shh".into(),
+            reward_kb: HIDDEN_ARCHIVE_KB,
+            fetched: false,
+            is_target: false,
+        }
+    }
+
+    /// A host with SIGURG's prize set; the front door still locked.
+    fn locked(rd: u8, exit: Option<ExitKind>, seed: u64) -> HostSession {
+        let mut s = mk(ObjectiveKind::Retrieve, rd, exit, seed);
+        s.set_hidden_archive(Some(hidden_file()));
+        s
+    }
+
+    /// The same host after the player cleared the front WORDLOCK.
+    fn at_door(rd: u8, exit: Option<ExitKind>, seed: u64) -> HostSession {
+        let mut s = locked(rd, exit, seed);
+        s.apply_ice_outcome(0, IceOutcome::Cleared);
+        s
+    }
+
+    /// The first host (by seed) whose front node does not neighbour the objective.
+    fn far_from_the_objective() -> HostSession {
+        (0..64)
+            .map(|seed| at_door(3, None, seed))
+            .find(|s| !s.nodes()[0].neighbors.contains(&s.objective_node()))
+            .unwrap()
+    }
+
+    fn refusal(s: &HostSession, signal: Signal) -> Option<String> {
+        s.signal_refusal(&s.door_view(), signal)
+    }
+
+    #[test]
+    fn signals_wait_for_the_front_door() {
+        let s = locked(3, None, 1);
+        let guarded = (1..s.nodes().len())
+            .find(|&i| s.nodes()[i].ice.is_some())
+            .unwrap();
+        for signal in [Signal::Urg, Signal::Hup, Signal::Pipe { node: guarded }] {
+            assert_eq!(
+                refusal(&s, signal).as_deref(),
+                Some("the front door is still locked. no session to signal."),
+                "{signal:?}"
+            );
+        }
+        let mut s = s;
+        assert!(s.apply_signal(Signal::Urg).is_empty());
+        assert_eq!(s.trace(), 0.0);
+    }
+
+    #[test]
+    fn each_signal_is_refused_once_spent_or_pointless() {
+        let mut s = far_from_the_objective();
+        let obj = s.objective_node();
+        let obj_id = s.nodes()[obj].id.clone();
+        assert_eq!(refusal(&s, Signal::Urg), None);
+        assert_eq!(refusal(&s, Signal::Hup), None);
+        assert_eq!(refusal(&s, Signal::Pipe { node: obj }), None);
+
+        // SIGHUP: nothing to reread at the objective or next to it.
+        s.current = obj;
+        assert_eq!(
+            refusal(&s, Signal::Hup),
+            Some(format!("you are at {obj_id}. no route to reread."))
+        );
+        let near = s.nodes()[obj].neighbors[0];
+        s.current = near;
+        assert_eq!(
+            refusal(&s, Signal::Hup),
+            Some(format!(
+                "{} already routes to {obj_id}.",
+                s.nodes()[near].id
+            ))
+        );
+        s.current = 0;
+
+        // SIGPIPE: only a guarded node, never the shadow, nothing already open.
+        assert_eq!(
+            refusal(&s, Signal::Pipe { node: 99 }).as_deref(),
+            Some("no such node.")
+        );
+        assert_eq!(
+            refusal(&s, Signal::Pipe { node: 0 }),
+            Some(format!("{} is already open.", s.nodes()[0].id))
+        );
+        let bare = (1..s.nodes().len())
+            .find(|&i| s.nodes()[i].ice.is_none())
+            .unwrap();
+        assert_eq!(
+            refusal(&s, Signal::Pipe { node: bare }),
+            Some(format!("nothing listens at {}.", s.nodes()[bare].id))
+        );
+        let mut m = at_door(2, Some(ExitKind::Mirror), 1);
+        let mirror = m.nodes().len() - 1;
+        assert_eq!(m.nodes()[mirror].ice, Some(IceKindAt::Shadow));
+        assert_eq!(
+            refusal(&m, Signal::Pipe { node: mirror }).as_deref(),
+            Some("the shadow is not a process.")
+        );
+        assert!(m.apply_signal(Signal::Pipe { node: mirror }).is_empty());
+        assert!(m.nodes()[mirror].guarded());
+
+        // SIGURG: no prize on the exchange, or the dumped player.
+        s.set_hidden_archive(None);
+        assert_eq!(
+            refusal(&s, Signal::Urg).as_deref(),
+            Some("nothing out of band on this exchange.")
+        );
+        s.dumped = true;
+        assert_eq!(
+            refusal(&s, Signal::Hup).as_deref(),
+            Some("the exchange dumped you. nothing listens.")
+        );
+    }
+
+    #[test]
+    fn sigurg_unlists_a_file_that_pays_24k_once() {
+        let mut s = at_door(3, None, 1);
+        let at = s.archive_node();
+        assert_eq!(s.nodes()[at].kind, NodeKind::Archive);
+        assert_ne!(at, s.objective_node());
+        assert!(
+            !s.nodes()
+                .iter()
+                .any(|n| n.files.iter().any(|f| f.name == "SECRET.TXT"))
+        );
+
+        let effects = s.apply_signal(Signal::Urg);
+        let said = text(&effects);
+        assert!(
+            said.contains("SIGURG:") && said.contains("SECRET.TXT"),
+            "{said}"
+        );
+        assert!(said.contains(&s.nodes()[at].id), "{said}");
+        assert!((s.trace() - SIGURG_TRACE).abs() < 1e-4);
+        assert!(s.hidden_archive().is_none());
+        let file = s.nodes()[at].files.last().unwrap();
+        assert_eq!((file.name.as_str(), file.reward_kb), ("SECRET.TXT", 24));
+
+        // It is in `ls` and `get` pays for it, like any other file.
+        s.current = at;
+        assert!(text(&execute(&mut s, "ls")).contains("SECRET.TXT"));
+        let got = execute(&mut s, "get secret.txt");
+        assert!(has(&got, &ShellEffect::RatioReward(24)), "{got:?}");
+
+        // A second SIGURG lands nothing and costs nothing.
+        let trace = s.trace();
+        assert!(s.apply_signal(Signal::Urg).is_empty());
+        assert_eq!(s.trace(), trace);
+    }
+
+    #[test]
+    fn sighup_routes_the_current_node_to_the_objective() {
+        let mut s = far_from_the_objective();
+        let (cur, obj) = (s.current(), s.objective_node());
+        let effects = s.apply_signal(Signal::Hup);
+        let said = text(&effects);
+        assert!(said.contains("SIGHUP:"), "{said}");
+        assert!(said.contains(&format!("{} <-> {}", s.nodes()[cur].id, s.nodes()[obj].id)));
+        assert!(s.nodes()[cur].neighbors.contains(&obj));
+        assert!(s.nodes()[obj].neighbors.contains(&cur));
+        assert!((s.trace() - SIGHUP_TRACE).abs() < 1e-4);
+        assert_eq!(s.current(), cur, "the player does not move");
+        // The new edge is a real one: the objective's guard now holds the way from here.
+        let id = s.nodes()[obj].id.clone();
+        let go = execute(&mut s, &format!("connect {id}"));
+        assert!(
+            go.iter()
+                .any(|e| matches!(e, ShellEffect::StartIce { node, .. } if *node == obj))
+        );
+        assert!(s.edges().contains(&(cur.min(obj), cur.max(obj))));
+
+        let trace = s.trace();
+        assert!(s.apply_signal(Signal::Hup).is_empty());
+        assert_eq!(s.trace(), trace);
+    }
+
+    #[test]
+    fn sigpipe_kills_any_guard_but_the_shadow_unplayed() {
+        let mut killed = std::collections::BTreeSet::new();
+        for seed in 0..12 {
+            for rd in 1..=5 {
+                let base = at_door(rd, None, seed);
+                for node in 1..base.nodes().len() {
+                    let Some(ice) = base.nodes()[node].ice else {
+                        continue;
+                    };
+                    // A fresh host each time: three kills would trace the player out.
+                    let mut s = base.clone();
+                    let (cur, before) = (s.current(), s.trace());
+                    let effects = s.apply_signal(Signal::Pipe { node });
+                    let said = text(&effects);
+                    assert!(said.starts_with("SIGPIPE:"), "{said}");
+                    assert!(said.contains(ice.label()), "{said}");
+                    assert!(!s.nodes()[node].guarded());
+                    assert_eq!(s.current(), cur, "the pending connect is the screen's");
+                    assert!(has(&effects, &ShellEffect::TraceDelta(SIGPIPE_TRACE)));
+                    assert!(s.trace() > before);
+                    killed.insert(ice.label());
+                    // Spent: a second one on the same node is a no-op.
+                    assert!(s.apply_signal(Signal::Pipe { node }).is_empty());
+                }
+            }
+        }
+        assert_eq!(
+            killed.into_iter().collect::<Vec<_>>(),
+            ["BLACK ICE", "BREACH", "DAEMON", "PHREAK"]
+        );
+    }
+
+    #[test]
+    fn a_killed_guard_lets_connect_walk_in() {
+        let mut s = at_door(1, None, 1);
+        let node = s.nodes()[0].neighbors[0];
+        s.nodes[node].ice = Some(IceKindAt::Breach);
+        s.apply_signal(Signal::Pipe { node });
+        let id = s.nodes()[node].id.clone();
+        let go = execute(&mut s, &format!("connect {id}"));
+        assert!(
+            go.iter()
+                .all(|e| !matches!(e, ShellEffect::StartIce { .. }))
+        );
+        assert_eq!(s.current(), node);
+    }
+
+    #[test]
+    fn the_first_signal_alerts_the_exchange_and_doubles_the_passive_trace() {
+        let mut s = far_from_the_objective();
+        let calm = {
+            let before = s.trace();
+            s.tick(Duration::from_secs(10), false);
+            s.trace() - before
+        };
+        assert!(calm > 0.0);
+        assert!(!s.alerted());
+
+        let first = text(&s.apply_signal(Signal::Urg));
+        assert!(first.contains("the exchange heard that"), "{first}");
+        assert!(s.alerted());
+        let before = s.trace();
+        s.tick(Duration::from_secs(10), false);
+        assert!((s.trace() - before - calm * ALERT_RATE).abs() < 1e-3);
+
+        let second = text(&s.apply_signal(Signal::Hup));
+        assert!(!second.contains("heard that"), "{second}");
+    }
+
+    #[test]
+    fn a_signal_can_trace_you_into_a_dump_shock() {
+        let mut s = far_from_the_objective();
+        s.trace = 100.0 - SIGHUP_TRACE + 1.0;
+        let effects = s.apply_signal(Signal::Hup);
+        assert!(has(&effects, &ShellEffect::DumpShock), "{effects:?}");
+        assert!(s.is_dumped());
+        assert!(refusal(&s, Signal::Urg).is_some());
+    }
+
+    #[test]
+    fn the_hidden_archive_is_a_pool_file_the_level_does_not_use() {
+        let l = level(ObjectiveKind::Retrieve, None, None, HostOs::Unix);
+        let fill = |s: &str| s.to_string();
+        // A.TXT, B.TXT (any case) and the target are the level's; only D.TXT is new.
+        let pool = [
+            file("A.TXT"),
+            file("b.txt"),
+            file("WREN-01.LOG"),
+            file("d.txt"),
+        ];
+        for (attempt, seed) in [(0, 1), (0, 2), (3, 1), (9, 77)] {
+            let f = hidden_archive(&l, &pool, &fill, attempt, seed).unwrap();
+            assert_eq!(f.name, "D.TXT");
+            assert_eq!((f.reward_kb, f.fetched, f.is_target), (24, false, false));
+            assert_eq!(f.body, "body of d.txt");
+        }
+        assert_eq!(hidden_archive(&l, &pool[..3], &fill, 0, 1), None);
+        assert_eq!(hidden_archive(&l, &[], &fill, 0, 1), None);
     }
 }

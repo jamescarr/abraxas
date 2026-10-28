@@ -17,14 +17,15 @@ use ratatui::style::Style;
 use super::ice_view::{DuelArt, IceView, VIEW_ROWS, ice_input};
 use super::{BeatScreen, Nav, Screen, ScreenImpl};
 use crate::game::danger::{self, params};
-use crate::game::host::{HostSession, IceKindAt, PlayerView, PromptColor};
+use crate::game::host::{self, DoorView, HostSession, IceKindAt, PlayerView, PromptColor, Signal};
+use crate::game::irc;
 use crate::game::programs::{self, ProgramKind};
 use crate::game::shell::{
     self, EditKey, LineEditor, LineStyle, SHELL_COLS, ShellEffect, wrap_lines,
 };
 use crate::game::state::{Backdoor, Level, LevelSeed, Phase};
-use crate::ice::Loadout;
 use crate::ice::duel::{BlackClass, DuelKind};
+use crate::ice::{IceOutcome, Loadout};
 use crate::pack::model::{ExitKind, HostOs, ObjectiveKind};
 use crate::palette::{Dos, Palette};
 use crate::rng::substream;
@@ -204,6 +205,17 @@ impl RunScreen {
         let mut session =
             HostSession::generate(&level, run_danger, exit_kind(ctx), attempt, seed, &daemons);
         session.set_player(player_view(ctx));
+        if let Some(run) = ctx.run.as_ref() {
+            let shadow = run.shadow();
+            let fill = irc::filler(&run.handle, &shadow, &run.real_name);
+            session.set_hidden_archive(host::hidden_archive(
+                &level,
+                &ctx.pack.pool.host_file,
+                &fill,
+                attempt,
+                seed,
+            ));
+        }
         let choice_seen = ctx.run.as_ref().is_some_and(|r| {
             matches!(
                 r.phase,
@@ -247,6 +259,12 @@ impl RunScreen {
         screen
     }
 
+    /// The door as the hidden line sees it, or `None` while no shell is open (no session, or the
+    /// host dumped the player).
+    pub fn door_view(&self) -> Option<DoorView> {
+        (!self.orphan && !matches!(self.mode, Mode::Dump { .. })).then(|| self.session.door_view())
+    }
+
     // ----- scrollback ----------------------------------------------------------------------
 
     fn push_line(&mut self, style: LineStyle, text: String) {
@@ -288,6 +306,57 @@ impl RunScreen {
                 &format!("BACKDOOR: {id} [{display}] answers before it asks. the relay is yours."),
             );
         }
+    }
+
+    /// Land the signals the hidden line queued for this door. A signal for another host, or one
+    /// the door refuses now (a duplicate queued before the last frame, a node opened since), is
+    /// dropped at no cost. SIGPIPE on the node whose ICE is running ends that game unplayed and
+    /// completes the pending `connect`.
+    fn apply_signals(&mut self, ctx: &mut Ctx) -> Nav {
+        if ctx.door_signals.is_empty() {
+            return Nav::Stay;
+        }
+        let mut nav = Nav::Stay;
+        for req in std::mem::take(&mut ctx.door_signals) {
+            if req.depth != self.session.depth()
+                || req.attempt != self.session.attempt()
+                || matches!(self.mode, Mode::Dump { .. })
+                || self
+                    .session
+                    .signal_refusal(&self.session.door_view(), req.signal)
+                    .is_some()
+            {
+                continue;
+            }
+            if matches!(self.mode, Mode::Scan { .. }) {
+                // The full map is stale now.
+                self.mode = Mode::Shell;
+            }
+            let playing = match (&self.mode, req.signal) {
+                (Mode::Ice { node: Some(n), .. }, Signal::Pipe { node }) if *n == node => {
+                    Some(node)
+                }
+                _ => None,
+            };
+            let mut effects = Vec::new();
+            if playing.is_some() {
+                // The game is over, unplayed.
+                effects = self.drain_ice_side_effects(ctx);
+                self.mode = Mode::Shell;
+            }
+            effects.extend(self.session.apply_signal(req.signal));
+            if let Some(node) = playing
+                && !self.session.is_dumped()
+            {
+                // The pending `connect` completes: "access granted", the player moves.
+                effects.extend(self.session.apply_ice_outcome(node, IceOutcome::Cleared));
+            }
+            let next = self.apply_effects(effects, ctx);
+            if matches!(nav, Nav::Stay) {
+                nav = next;
+            }
+        }
+        nav
     }
 
     /// The guarded node of the running ICE view (tests).
@@ -385,11 +454,11 @@ impl RunScreen {
         }
     }
 
-    /// Drain the running game's side effects and, once it has an outcome, apply it to the
-    /// session and the run.
-    fn pump_ice(&mut self, ctx: &mut Ctx) -> Nav {
-        let Mode::Ice { view, node } = &mut self.mode else {
-            return Nav::Stay;
+    /// Move the running game's side effects (trace, EGO, spent programs) onto the session and
+    /// the run. Returns the effects the trace added (DUMP SHOCK at 100).
+    fn drain_ice_side_effects(&mut self, ctx: &mut Ctx) -> Vec<ShellEffect> {
+        let Mode::Ice { view, .. } = &mut self.mode else {
+            return Vec::new();
         };
         let mut effects = Vec::new();
         let trace = view.take_trace();
@@ -410,6 +479,19 @@ impl RunScreen {
                 }
             }
         }
+        effects
+    }
+
+    /// Drain the running game's side effects and, once it has an outcome, apply it to the
+    /// session and the run.
+    fn pump_ice(&mut self, ctx: &mut Ctx) -> Nav {
+        if !matches!(self.mode, Mode::Ice { .. }) {
+            return Nav::Stay;
+        }
+        let mut effects = self.drain_ice_side_effects(ctx);
+        let Mode::Ice { view, node } = &mut self.mode else {
+            return Nav::Stay;
+        };
         let Some(outcome) = view.outcome() else {
             return self.apply_effects(effects, ctx);
         };
@@ -638,6 +720,10 @@ impl ScreenImpl for RunScreen {
             return Nav::Back;
         }
         self.sync_backdoor(ctx);
+        let signalled = self.apply_signals(ctx);
+        if !matches!(signalled, Nav::Stay) {
+            return signalled;
+        }
         if !self.choice_seen
             && ctx.run.as_ref().is_some_and(|r| {
                 matches!(
@@ -1056,7 +1142,7 @@ fn render_dump(buf: &mut Buffer, area: Rect, p: &Palette) {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::game::host::{NodeKind, ObjectiveState};
+    use crate::game::host::{DoorSignal, NodeKind, ObjectiveState, SIGPIPE_TRACE, SIGURG_TRACE};
     use crate::game::programs::Program;
     use crate::ice::IceOutcome;
     use crate::pack::model::ExitDef;
@@ -1066,6 +1152,8 @@ mod tests {
     use ratatui::Terminal;
     use ratatui::backend::TestBackend;
     use ratatui::crossterm::event::{Event, KeyCode};
+    use std::io::{Read, Write};
+    use std::os::unix::net::UnixStream;
 
     const FRAME: Duration = Duration::from_millis(33);
 
@@ -1484,6 +1572,269 @@ mod tests {
         r.type_line(&format!("connect {id}"));
         assert!(r.in_shell(), "no WATCH THE LINE screen");
         assert_eq!(r.run().session.current_node().id, id);
+    }
+
+    /// A signal addressed to this screen's host.
+    fn door_signal(r: &mut Rig, signal: Signal) -> DoorSignal {
+        let s = &r.run().session;
+        DoorSignal {
+            depth: s.depth(),
+            attempt: s.attempt(),
+            signal,
+        }
+    }
+
+    /// The first guarded node past the front door: `(index, id, a node next to it)`.
+    fn guarded_node(r: &mut Rig) -> (usize, String, usize) {
+        let s = &r.run().session;
+        s.nodes()
+            .iter()
+            .enumerate()
+            .find_map(|(i, n)| (i != 0 && n.guarded()).then(|| (i, n.id.clone(), n.neighbors[0])))
+            .expect("a guarded node past the front door")
+    }
+
+    #[test]
+    fn sigpipe_clears_a_guard_unplayed_and_connect_walks_in() {
+        let mut r = rig(0);
+        r.skip_login();
+        let (node, id, near) = guarded_node(&mut r);
+        r.run().session.current = near;
+        let before = r.run().session.trace();
+
+        // The hidden line queued the same signal twice before the next frame: it lands once.
+        let signal = door_signal(&mut r, Signal::Pipe { node });
+        r.ctx().door_signals.extend([signal, signal]);
+        r.wait(0.1);
+        assert!(r.ctx().door_signals.is_empty());
+        let s = &r.run().session;
+        assert!(!s.nodes()[node].guarded());
+        assert!(s.alerted());
+        let spent = s.trace() - before;
+        assert!(
+            (SIGPIPE_TRACE..SIGPIPE_TRACE + 1.0).contains(&spent),
+            "{spent}"
+        );
+        let text = r.text();
+        assert!(text.contains("SIGPIPE:"), "{text}");
+        assert!(text.contains("the exchange heard that"), "{text}");
+
+        r.type_line(&format!("connect {id}"));
+        assert!(r.in_shell(), "no ICE screen");
+        assert_eq!(r.run().session.current_node().id, id);
+    }
+
+    #[test]
+    fn sigpipe_on_the_node_being_played_ends_the_game_and_walks_in() {
+        let mut r = rig(0);
+        r.skip_login();
+        assert!(connect_to_guard(&mut r, IceKindAt::Breach));
+        let node = r.run().ice_node().expect("the BREACH game is running");
+        let before = r.run().session.trace();
+
+        let signal = door_signal(&mut r, Signal::Pipe { node });
+        r.ctx().door_signals.push(signal);
+        r.wait(0.1);
+        assert!(r.in_shell(), "the game is over");
+        let s = &r.run().session;
+        assert_eq!(s.current(), node, "the pending connect completed");
+        assert!(s.nodes()[node].cleared);
+        assert!(s.trace() - before >= SIGPIPE_TRACE);
+        let text = r.text();
+        assert!(text.contains("SIGPIPE:"), "{text}");
+        assert!(text.contains("access granted"), "{text}");
+    }
+
+    #[test]
+    fn a_signal_that_is_not_about_the_running_game_leaves_it_running() {
+        let mut r = rig(0);
+        r.skip_login();
+        assert!(connect_to_guard(&mut r, IceKindAt::Breach));
+        let signal = door_signal(&mut r, Signal::Urg);
+        r.ctx().door_signals.push(signal);
+        r.wait(0.1);
+        assert!(r.run().ice_node().is_some(), "still playing");
+        assert!(r.run().session.alerted());
+        assert!(r.run().session.trace() >= SIGURG_TRACE);
+    }
+
+    #[test]
+    fn a_signal_for_another_host_is_dropped_unchanged() {
+        let mut r = rig(0);
+        r.skip_login();
+        let (node, _, _) = guarded_node(&mut r);
+        let here = door_signal(&mut r, Signal::Pipe { node });
+        r.ctx().door_signals.extend([
+            DoorSignal {
+                attempt: here.attempt + 1,
+                ..here
+            },
+            DoorSignal {
+                depth: here.depth + 1,
+                ..here
+            },
+        ]);
+        r.wait(0.1);
+        assert!(r.ctx().door_signals.is_empty());
+        let s = &r.run().session;
+        assert!(s.nodes()[node].guarded());
+        assert!(!s.alerted());
+        assert!(s.trace() < 1.0, "only the passive trace ran: {}", s.trace());
+    }
+
+    #[test]
+    fn the_door_view_opens_with_the_shell_and_closes_on_a_dump() {
+        let mut r = rig(0);
+        let locked = r.run().door_view().expect("the shell is open");
+        assert_eq!(locked.cleared & 1, 0, "the front door is still locked");
+        r.skip_login();
+        let view = r.run().door_view().expect("the shell is open");
+        assert_eq!(view.cleared & 1, 1);
+        let s = &r.run().session;
+        assert_eq!(
+            (view.depth, view.attempt, view.current),
+            (s.depth(), s.attempt(), 0)
+        );
+        r.run().mode = Mode::Dump { left: 1.0 };
+        assert_eq!(r.run().door_view(), None);
+    }
+
+    #[test]
+    fn sighup_routes_to_the_objective_and_drops_a_stale_scan_map() {
+        for depth in [9u32, 10, 11, 13, 14, 2, 6, 3, 5, 7, 12, 15, 4, 8] {
+            let mut r = rig(depth);
+            r.skip_login();
+            let obj = r.run().session.objective_node();
+            if r.run().session.nodes()[0].neighbors.contains(&obj) {
+                continue;
+            }
+            r.type_line("scan");
+            assert!(matches!(r.run().mode, Mode::Scan { .. }));
+            let signal = door_signal(&mut r, Signal::Hup);
+            r.ctx().door_signals.push(signal);
+            r.wait(0.1);
+            assert!(r.in_shell(), "the full map is stale now");
+            let s = &r.run().session;
+            assert!(s.nodes()[0].neighbors.contains(&obj));
+            assert!(s.nodes()[obj].neighbors.contains(&0));
+            return;
+        }
+        panic!("every host neighbours its objective at the front");
+    }
+
+    #[test]
+    fn sigurg_unlists_a_file_that_ls_shows_and_get_pays_for() {
+        let mut r = rig(0);
+        r.skip_login();
+        let name = r
+            .run()
+            .session
+            .hidden_archive()
+            .map(|f| f.name.clone())
+            .expect("the pack's pool has a file the level does not use");
+        let at = r.run().session.archive_node();
+        let signal = door_signal(&mut r, Signal::Urg);
+        r.ctx().door_signals.push(signal);
+        r.wait(0.1);
+        let text = r.text();
+        assert!(text.contains("SIGURG:"), "{text}");
+
+        r.run().session.current = at;
+        r.type_line("ls");
+        assert!(r.text().contains(&name), "{}", r.text());
+        let kb = ratio(&mut r);
+        r.type_line(&format!("get {name}"));
+        r.wait(1.0);
+        assert_eq!(ratio(&mut r), kb + 24);
+    }
+
+    /// Send `line` down the socket while stepping the app, and return what the hidden line
+    /// answered up to its next prompt (`""` sends nothing: read the greeting).
+    fn ask(r: &mut Rig, caller: &mut UnixStream, line: &str) -> String {
+        if !line.is_empty() {
+            caller.write_all(format!("{line}\n").as_bytes()).unwrap();
+        }
+        let mut got = Vec::new();
+        for _ in 0..200 {
+            r.wait(0.05);
+            let mut buf = [0u8; 1024];
+            match caller.read(&mut buf) {
+                Ok(0) => break,
+                Ok(n) => got.extend_from_slice(&buf[..n]),
+                Err(_) => {}
+            }
+            if got.ends_with(b"> ") {
+                break;
+            }
+        }
+        let text = String::from_utf8_lossy(&got).into_owned();
+        assert!(text.ends_with("> "), "no prompt after {line:?}: {text:?}");
+        text
+    }
+
+    #[test]
+    fn signals_travel_from_the_socket_to_the_open_door() {
+        // A short directory name keeps the socket path under the sun_path limit.
+        let sock_dir = tempfile::Builder::new().prefix("hl").tempdir().unwrap();
+        let path = sock_dir.path().join("s.sock");
+        let mut r = rig_with(0, |ctx| ctx.hidden.listen(path.clone()).unwrap());
+        // One step publishes the board and the open door; a caller before that gets NO CARRIER.
+        r.wait(0.1);
+        let mut caller = UnixStream::connect(&path).unwrap();
+        caller
+            .set_read_timeout(Some(Duration::from_millis(20)))
+            .unwrap();
+        let greeting = ask(&mut r, &mut caller, "");
+        assert!(greeting.contains("door    : open at portal0"), "{greeting}");
+
+        // Locked front door: the hidden line refuses and the app is never asked.
+        let reply = ask(&mut r, &mut caller, "SIGURG");
+        assert!(reply.contains("front door is still locked"), "{reply}");
+
+        r.skip_login();
+        r.wait(0.1);
+        let (node, id, _) = guarded_node(&mut r);
+        let archive = r.run().session.hidden_archive().unwrap().name.clone();
+        let archive_at = r.run().session.archive_node();
+        let archive_id = r.run().session.nodes()[archive_at].id.clone();
+        let before = r.run().session.trace();
+
+        // SIGPIPE: the socket answers, the door applies it, and the next line already sees the
+        // node open.
+        let reply = ask(&mut r, &mut caller, &format!("SIGPIPE {id}"));
+        assert!(reply.contains("SIGPIPE sent"), "{reply}");
+        r.wait(0.2);
+        assert!(!r.run().session.nodes()[node].guarded());
+        let text = r.text();
+        assert!(text.contains("SIGPIPE:"), "{text}");
+        let reply = ask(&mut r, &mut caller, &format!("SIGPIPE {id}"));
+        assert!(reply.contains(&format!("{id} is already open.")), "{reply}");
+
+        // SIGURG names the very file the open door unlists, then is spent.
+        let reply = ask(&mut r, &mut caller, "SIGURG");
+        assert!(
+            reply.contains(&format!("{archive} on {archive_id}")),
+            "{reply}"
+        );
+        r.wait(0.2);
+        let s = &r.run().session;
+        assert!(
+            s.nodes()[archive_at]
+                .files
+                .iter()
+                .any(|f| f.name == archive)
+        );
+        let spent = s.trace() - before;
+        assert!(spent >= SIGPIPE_TRACE + SIGURG_TRACE, "{spent}");
+        let reply = ask(&mut r, &mut caller, "SIGURG");
+        assert!(reply.contains("the mark is already read"), "{reply}");
+
+        // Logging out closes the door.
+        r.type_line("logout");
+        r.wait(0.2);
+        assert_eq!(r.app.screen.name(), "Menu");
+        let reply = ask(&mut r, &mut caller, "SIGHUP");
+        assert!(reply.contains("no session on the exchange"), "{reply}");
     }
 
     /// Connect to a DAEMON gate somewhere; the first seed/depth that has one is enough.
