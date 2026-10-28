@@ -21,6 +21,7 @@ use tachyonfx::{EffectManager, IntoEffect, fx};
 use crate::cli::GlobalOpts;
 use crate::config::{Config, Paths, TruecolorMode};
 use crate::director::{Director, DirectorEvent, JobKind};
+use crate::game::host::{DoorSignal, DoorView};
 use crate::game::programs;
 use crate::game::save::{CallerRecord, CallerStatus, SaveStore};
 use crate::game::seed::ensure_level;
@@ -158,6 +159,9 @@ pub struct Ctx {
     /// What socket sessions ask of the run (backdoors, downloads, learned attacks). The app
     /// drains it every frame.
     pub hidden_events: Receiver<HiddenEvent>,
+    /// Signals from hidden-line sessions waiting for the open door: the Run screen drains them
+    /// every tick; the app drops them while no door is open.
+    pub door_signals: Vec<DoorSignal>,
 }
 
 impl Ctx {
@@ -193,6 +197,7 @@ impl Ctx {
             noise_burst: Duration::ZERO,
             hidden: HiddenLine::idle(hidden_tx, config.display.baud),
             hidden_events: hidden_rx,
+            door_signals: Vec::new(),
             last_frame: Buffer::empty(Rect::new(0, 0, WIDTH, HEIGHT)),
             config,
             paths,
@@ -668,6 +673,11 @@ pub fn apply_hidden_event(ctx: &mut Ctx, ev: HiddenEvent) {
         HiddenEvent::Learn(program) => {
             programs::add(&mut run.deck, program);
         }
+        // The door lives and dies with its session: nothing in the run changes, nothing to save.
+        HiddenEvent::Signal(signal) => {
+            ctx.door_signals.push(signal);
+            return;
+        }
     }
     ctx.autosave();
 }
@@ -700,6 +710,8 @@ pub struct App {
     tracked_depth: Option<u32>,
     /// The board last offered to the hidden line.
     hidden_key: Option<BoardKey>,
+    /// The door last offered to the hidden line.
+    door_key: Option<DoorView>,
 }
 
 impl App {
@@ -727,6 +739,7 @@ impl App {
             canvas: Rect::new(0, 0, WIDTH, HEIGHT),
             tracked_depth: None,
             hidden_key: None,
+            door_key: None,
         };
         app.drain_fx();
         app
@@ -748,8 +761,13 @@ impl App {
         }
         let mut touched = false;
         while let Ok(ev) = self.ctx.hidden_events.try_recv() {
+            // A signal changes nothing the board snapshot shows: no rebuild.
+            touched |= !matches!(ev, HiddenEvent::Signal(_));
             apply_hidden_event(&mut self.ctx, ev);
-            touched = true;
+        }
+        // A signal sent while no shell is ticking (Beat, Choice, Menu, after death) is dropped.
+        if !matches!(self.screen, Screen::Run(_)) {
+            self.ctx.door_signals.clear();
         }
         self.publish_board(touched);
         // While the player chats, the next level waits: a chat reply must not queue behind a
@@ -771,6 +789,14 @@ impl App {
             self.apply_nav(nav);
         }
         self.check_ego_death();
+        let door = match &self.screen {
+            Screen::Run(run) => run.door_view(),
+            _ => None,
+        };
+        if door != self.door_key {
+            self.door_key = door;
+            self.ctx.hidden.set_door(door);
+        }
         if let Some(ov) = self.ctx.overlay_request.take() {
             self.overlay = Some(ov);
         }
@@ -1167,10 +1193,12 @@ fn event_loop(terminal: &mut ratatui::DefaultTerminal, app: &mut App) -> anyhow:
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::game::host::Signal;
     use crate::game::state::Phase;
     use crate::pack::model::{ChoiceDef, ExitDef, ExitKind, OptionDef, Stance, VisionKind};
     use crate::ui::canvas::row_text;
     use crate::ui::keys::{press, press_char, press_ctrl};
+    use crate::ui::screens::RunScreen;
     use ratatui::Terminal;
     use ratatui::backend::TestBackend;
     use ratatui::crossterm::event::KeyCode;
@@ -2067,5 +2095,34 @@ mod tests {
             "one board on arrival"
         );
         assert_eq!(app.ctx.hidden.board().unwrap().depth, 3);
+    }
+
+    #[test]
+    fn the_open_door_is_published_to_the_hidden_line_and_closed_with_the_shell() {
+        let dir = tempfile::Builder::new().prefix("hl").tempdir().unwrap();
+        let mut ctx = test_ctx(dir.path());
+        ctx.hidden.listen(dir.path().join("s.sock")).unwrap();
+        install_test_run(&mut ctx, 2);
+        let screen = Screen::Run(RunScreen::new(&mut ctx));
+        let mut app = App::with_screen(ctx, screen);
+        let dt = Duration::from_millis(16);
+        assert_eq!(app.ctx.hidden.door(), None, "nothing published yet");
+        app.step(None, dt);
+        let view = app.ctx.hidden.door().expect("the shell is open");
+        assert_eq!((view.depth, view.attempt, view.current), (2, 0, 0));
+
+        // The shell closes: the door is withdrawn, and a signal that was still queued (or
+        // sent a moment later) is dropped rather than held for the next door.
+        app.screen = Screen::Menu(MenuScreen::new(&mut app.ctx));
+        let signal = DoorSignal {
+            depth: 2,
+            attempt: 0,
+            signal: Signal::Urg,
+        };
+        apply_hidden_event(&mut app.ctx, HiddenEvent::Signal(signal));
+        assert_eq!(app.ctx.door_signals, vec![signal]);
+        app.step(None, dt);
+        assert_eq!(app.ctx.hidden.door(), None);
+        assert!(app.ctx.door_signals.is_empty());
     }
 }

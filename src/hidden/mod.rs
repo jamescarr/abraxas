@@ -17,6 +17,7 @@ use std::sync::mpsc::Sender;
 use std::sync::{Arc, Mutex, MutexGuard, PoisonError};
 use std::time::Duration;
 
+use crate::game::host::{DoorSignal, DoorView};
 use crate::game::programs::Program;
 use crate::game::state::Backdoor;
 use crate::pack::model::FileDef;
@@ -42,6 +43,8 @@ pub enum HiddenEvent {
     Download { depth: u32, file: FileDef },
     /// An article taught `program` (a zine attack).
     Learn(Program),
+    /// A signal for the open door: the Run screen applies it, the app drops it with no door.
+    Signal(DoorSignal),
 }
 
 /// The listener plus the state a connection reads.
@@ -54,6 +57,8 @@ pub struct HiddenLine {
 struct Shared {
     /// The current board and its generation, bumped whenever the board itself changes.
     board: Mutex<(u64, Option<Arc<BoardSnapshot>>)>,
+    /// The live door, `None` while no shell is open; the app sets it whenever it changes.
+    door: Mutex<Option<DoorView>>,
     baud: u32,
     shutdown: AtomicBool,
     tx: Sender<HiddenEvent>,
@@ -65,6 +70,7 @@ impl HiddenLine {
         Self {
             shared: Arc::new(Shared {
                 board: Mutex::new((0, None)),
+                door: Mutex::new(None),
                 baud,
                 shutdown: AtomicBool::new(false),
                 tx,
@@ -120,6 +126,19 @@ impl HiddenLine {
         *guard = (generation, board.map(Arc::new));
     }
 
+    /// The live door changed (opened, closed, moved on, a node cleared): a session reads it
+    /// before every line. `None` while no shell is open.
+    pub fn set_door(&self, door: Option<DoorView>) {
+        if self.path.is_none() {
+            return;
+        }
+        *self
+            .shared
+            .door
+            .lock()
+            .unwrap_or_else(PoisonError::into_inner) = door;
+    }
+
     fn lock(&self) -> MutexGuard<'_, (u64, Option<Arc<BoardSnapshot>>)> {
         self.shared
             .board
@@ -137,6 +156,12 @@ impl HiddenLine {
     #[cfg(test)]
     pub(crate) fn board(&self) -> Option<Arc<BoardSnapshot>> {
         self.lock().1.clone()
+    }
+
+    /// The published door (tests only).
+    #[cfg(test)]
+    pub(crate) fn door(&self) -> Option<DoorView> {
+        current_door(&self.shared)
     }
 }
 
@@ -169,6 +194,11 @@ fn current_board(shared: &Shared) -> (u64, Option<Arc<BoardSnapshot>>) {
     (guard.0, guard.1.clone())
 }
 
+/// The door the app last published.
+fn current_door(shared: &Shared) -> Option<DoorView> {
+    *shared.door.lock().unwrap_or_else(PoisonError::into_inner)
+}
+
 /// Serve one caller until it hangs up, the socket fails, or the hidden line shuts down.
 fn handle_client(stream: UnixStream, shared: &Arc<Shared>) {
     let _ = stream.set_nonblocking(false);
@@ -184,7 +214,7 @@ fn handle_client(stream: UnixStream, shared: &Arc<Shared>) {
         let _ = writer.write_all(NO_CARRIER);
         return;
     };
-    let (mut session, motd) = Session::open(board, generation);
+    let (mut session, motd) = Session::open(board, generation, current_door(shared));
     if write_and_prompt(&mut writer, &motd, &session).is_err() {
         return;
     }
@@ -238,6 +268,7 @@ fn handle_client(stream: UnixStream, shared: &Arc<Shared>) {
                 let _ = writer.write_all(NO_CARRIER);
                 return;
             };
+            session.set_door(current_door(shared));
             let message = session.reload(board, generation);
             if write_and_prompt(&mut writer, &message, &session).is_err() {
                 return;
@@ -269,6 +300,7 @@ fn answer(writer: &mut UnixStream, session: &Session, text: &str) -> bool {
 /// Handle one complete line: send its events, write the reply, stream any ANSI. `false` ends the
 /// connection.
 fn run_line(writer: &mut UnixStream, session: &mut Session, shared: &Shared, line: &str) -> bool {
+    session.set_door(current_door(shared));
     let reply = session.line(line);
     for event in reply.events {
         let _ = shared.tx.send(event);

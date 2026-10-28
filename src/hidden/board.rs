@@ -12,7 +12,7 @@ use rand::seq::SliceRandom;
 
 use crate::ans;
 use crate::game::danger::{params, run_danger};
-use crate::game::host::HostSession;
+use crate::game::host::{self, HostSession};
 use crate::game::irc;
 use crate::game::programs::{self, Program};
 use crate::game::state::{Backdoor, RunState};
@@ -35,6 +35,8 @@ pub const MAX_ANS_BYTES: u64 = 256 * 1024;
 #[derive(Debug, Clone)]
 pub struct BoardSnapshot {
     pub depth: u32,
+    /// The host generation of the door (`RunState::door_attempts`).
+    pub attempt: u32,
     pub handle: String,
     pub bbs_name: String,
     pub title: String,
@@ -46,6 +48,9 @@ pub struct BoardSnapshot {
     pub backdoor: Backdoor,
     /// Art first, then the board's article.
     pub files: Vec<ZineEntry>,
+    /// The door's host as the run regenerates it (graph, ICE, files, SIGURG's hidden archive),
+    /// so the hidden line can judge a signal the way the live door will.
+    pub host: HostSession,
 }
 
 /// The relay the hidden line taps: a host node guarded by PHREAK.
@@ -86,7 +91,9 @@ pub fn snapshot(run: &RunState, pack: &StoryPack, ans_dir: &Path) -> Option<Boar
 
     let exit = run.exit_taken.as_ref().map(|e| e.kind);
     let danger = run_danger(level.seed.base_danger, exit);
-    let host = HostSession::generate(
+    let shadow = run.shadow();
+    let fill = irc::filler(&run.handle, &shadow, &run.real_name);
+    let mut host = HostSession::generate(
         level,
         danger,
         exit,
@@ -94,6 +101,13 @@ pub fn snapshot(run: &RunState, pack: &StoryPack, ans_dir: &Path) -> Option<Boar
         run.seed,
         &pack.pool.daemons,
     );
+    host.set_hidden_archive(host::hidden_archive(
+        level,
+        &pack.pool.host_file,
+        &fill,
+        run.door_attempts,
+        run.seed,
+    ));
 
     let relay = host.phreak_node().map(|node| {
         let graded = params(danger).graded(node.grade);
@@ -146,8 +160,6 @@ pub fn snapshot(run: &RunState, pack: &StoryPack, ans_dir: &Path) -> Option<Boar
     if n > 0 {
         let index = (usize::try_from(run.seed % n as u64).unwrap_or(0) + run.depth as usize) % n;
         let article = &articles[index];
-        let shadow = run.shadow();
-        let fill = irc::filler(&run.handle, &shadow, &run.real_name);
         files.push(entry(
             run,
             article.name.to_uppercase(),
@@ -161,6 +173,7 @@ pub fn snapshot(run: &RunState, pack: &StoryPack, ans_dir: &Path) -> Option<Boar
 
     Some(BoardSnapshot {
         depth: run.depth,
+        attempt: run.door_attempts,
         handle: run.handle.clone(),
         bbs_name: place.bbs_name.clone(),
         title: place.title.clone(),
@@ -170,6 +183,7 @@ pub fn snapshot(run: &RunState, pack: &StoryPack, ans_dir: &Path) -> Option<Boar
         relay,
         backdoor,
         files,
+        host,
     })
 }
 

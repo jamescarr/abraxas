@@ -9,15 +9,34 @@ use std::sync::mpsc::channel;
 use std::time::Duration;
 
 use abraxas::game::danger::IceGrade;
+use abraxas::game::host::{DoorSignal, HostSession, Signal};
 use abraxas::game::programs::Program;
-use abraxas::game::state::Backdoor;
+use abraxas::game::state::{Backdoor, Level, LevelSeed};
 use abraxas::hidden::board::{BoardSnapshot, Relay, ZineEntry, ZineKind};
 use abraxas::hidden::{HiddenEvent, HiddenLine};
-use abraxas::pack::model::HostOs;
+use abraxas::ice::IceOutcome;
+use abraxas::pack::model::{HostOs, ObjectiveKind};
 
 fn snapshot(depth: u32, backdoor: Backdoor) -> BoardSnapshot {
+    let level = Level::new(
+        LevelSeed {
+            depth,
+            act_id: String::new(),
+            anchor: None,
+            base_danger: 1,
+            omen: 1,
+            motifs: Vec::new(),
+            room: String::new(),
+            focus: None,
+            objective_kind: ObjectiveKind::Retrieve,
+            target_daemon: None,
+            wordlock_len: 5,
+        },
+        Vec::new(),
+    );
     BoardSnapshot {
         depth,
+        attempt: 0,
         handle: "Tester".to_string(),
         bbs_name: "BAUDLINE".to_string(),
         title: "the quiet board".to_string(),
@@ -61,6 +80,7 @@ fn snapshot(depth: u32, backdoor: Backdoor) -> BoardSnapshot {
                 learned: false,
             },
         ],
+        host: HostSession::generate(&level, 1, None, 0, 7, &[]),
     }
 }
 
@@ -254,4 +274,50 @@ fn art_finishes_for_a_caller_that_closed_its_sending_side() {
     let out = String::from_utf8_lossy(&out);
     assert!(out.contains("*** PACK.ANS"), "{out}");
     assert_eq!(out.matches("hello").count(), 8, "{out}");
+}
+
+#[test]
+fn signals_reach_the_open_door() {
+    let dir = tempfile::Builder::new().prefix("hl").tempdir().unwrap();
+    let path = dir.path().join("s.sock");
+    let (tx, rx) = channel();
+    let mut line = HiddenLine::idle(tx, 0);
+    line.listen(path.clone()).unwrap();
+    let board = snapshot(0, Backdoor::default());
+    let mut host = board.host.clone();
+    line.publish(Some(board));
+
+    let mut caller = connect(&path);
+    assert!(read_until(&mut caller, "> ").contains("door    : closed"));
+    caller.write_all(b"SIGURG\n").unwrap();
+    assert!(read_until(&mut caller, "> ").contains("no session on the exchange"));
+    assert!(rx.try_recv().is_err());
+
+    // The app opens the door: the front WORDLOCK is cleared. The same connection sees it on its
+    // next line.
+    host.apply_ice_outcome(0, IceOutcome::Cleared);
+    line.set_door(Some(host.door_view()));
+    let node = host.nodes().iter().position(|n| n.guarded()).unwrap();
+    let id = host.nodes()[node].id.clone();
+    caller
+        .write_all(format!("SIGPIPE {id}\n").as_bytes())
+        .unwrap();
+    let reply = read_until(&mut caller, "> ");
+    assert!(reply.contains("SIGPIPE sent"), "{reply}");
+    assert_eq!(
+        rx.try_recv(),
+        Ok(HiddenEvent::Signal(DoorSignal {
+            depth: 0,
+            attempt: 0,
+            signal: Signal::Pipe { node },
+        }))
+    );
+    caller.write_all(b"INFO\n").unwrap();
+    assert!(read_until(&mut caller, "> ").contains("door    : open at"));
+
+    // The door closes again (logout): the next signal has nowhere to go.
+    line.set_door(None);
+    caller.write_all(b"SIGHUP\n").unwrap();
+    assert!(read_until(&mut caller, "> ").contains("no session on the exchange"));
+    assert!(rx.try_recv().is_err());
 }
