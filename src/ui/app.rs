@@ -761,8 +761,9 @@ impl App {
         }
         let mut touched = false;
         while let Ok(ev) = self.ctx.hidden_events.try_recv() {
+            // A signal changes nothing the board snapshot shows: no rebuild.
+            touched |= !matches!(ev, HiddenEvent::Signal(_));
             apply_hidden_event(&mut self.ctx, ev);
-            touched = true;
         }
         // A signal sent while no shell is ticking (Beat, Choice, Menu, after death) is dropped.
         if !matches!(self.screen, Screen::Run(_)) {
